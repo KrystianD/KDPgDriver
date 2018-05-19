@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 
-namespace KDPgDriver {
+namespace KDPgDriver
+{
   public static class Helper
   {
     public static string GetTableName(Type modelType)
@@ -22,6 +25,16 @@ namespace KDPgDriver {
         throw new Exception("no column info");
 
       return ((KDPgColumnAttribute) q[0]).Name;
+    }
+
+    public static IList<string> GetModelColumnNames(Type modelType)
+    {
+      List<string> names = new List<string>();
+      foreach (var propertyInfo in modelType.GetProperties()) {
+        names.Add(GetColumnName(propertyInfo));
+      }
+
+      return names;
     }
 
     public static Type GetColumnType(MemberInfo memberInfo)
