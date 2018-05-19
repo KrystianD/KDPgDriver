@@ -9,8 +9,9 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="Npgsql" Version="3.2.7" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\KDLib\KDLib.NET.csproj" />
+    <ProjectReference Include="..\KDLib.NET\KDLib.NET.csproj" />
   </ItemGroup>
 </Project>
