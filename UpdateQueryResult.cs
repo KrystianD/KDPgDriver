@@ -8,4 +8,8 @@ namespace KDPgDriver
   {
     
   }
+  public class InsertQueryResult
+  {
+    
+  }
 }

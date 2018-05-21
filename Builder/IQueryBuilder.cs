@@ -2,9 +2,9 @@
 using System.Linq.Expressions;
 
 namespace KDPgDriver.Builder {
-  public interface IBaseQueryBuilder
+  public interface IQueryBuilder
   {
-    Driver Driver { get; }
+    // Driver Driver { get; }
     string TableName { get; }
 
     string GetWherePart();

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using KDPgDriver.Utils;
+using Npgsql;
 
 namespace KDPgDriver.Builder
 {
@@ -23,11 +25,17 @@ namespace KDPgDriver.Builder
     }
 
     public List<object> GetParametersList() => _params;
+
+    public void AssignToCommand(NpgsqlCommand cmd)
+    {
+      for (int i = 0; i < _params.Count; i++)
+        cmd.Parameters.AddWithValue($"{i}", _params[i]);
+    }
   }
 
-  public class BaseQueryBuilder<TModel> : IBaseQueryBuilder
+  public class QueryBuilder<TModel> : IQueryBuilder
   {
-    public Driver Driver { get; }
+    // public Driver Driver { get; }
     public string TableName { get; }
 
     public ParametersContainer Parameters { get; } = new ParametersContainer();
@@ -35,16 +43,16 @@ namespace KDPgDriver.Builder
 
     public string GetWherePart() => _wherePart.ToString();
 
-    public BaseQueryBuilder(Driver driver)
+    public QueryBuilder()
     {
-      Driver = driver;
+      // Driver = driver;
       TableName = Helper.GetTableName(typeof(TModel));
     }
 
-    public BaseQueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
+    public QueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
     {
       var e = Evaluator.PartialEval(exp.Body);
-      var whereSql = "(" + NodeVisitor.Visit2(e, Parameters).Expression + ")";
+      var whereSql = "(" + NodeVisitor.Visit(e, Parameters).Expression + ")";
 
       if (_wherePart.Length > 0)
         _wherePart.Append(" AND ");

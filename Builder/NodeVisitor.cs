@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
+using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder {
+namespace KDPgDriver.Builder
+{
   public static class NodeVisitor
   {
     private static object GetConstant(Expression e)
@@ -16,11 +19,33 @@ namespace KDPgDriver.Builder {
       }
     }
 
-    public static TypedValue Visit2(Expression e222, ParametersContainer parametersContainer)
+    public static string VisitProperty<TModel>(Expression<Func<TModel, object>> exp)
     {
-      TypedValue Visit(Expression e)
+      switch (exp.Body) {
+        case MemberExpression me:
+          return Helper.GetColumnName(me.Member);
+
+        default:
+          throw new Exception($"invalid node: {exp.NodeType}");
+      }
+    }
+
+    public static PropertyInfo GetPropertyInfo<TModel>(Expression<Func<TModel, object>> exp)
+    {
+      switch (exp.Body) {
+        case MemberExpression me:
+          return (PropertyInfo)me.Member;
+
+        default:
+          throw new Exception($"invalid node: {exp.NodeType}");
+      }
+    }
+
+    public static TypedValue Visit(Expression expression, ParametersContainer parametersContainer)
+    {
+      TypedValue VisitInternal(Expression exp)
       {
-        switch (e) {
+        switch (exp) {
           // case NewArrayExpression newArrayExpression:
           //   var itemType = newArrayExpression.Type.GetElementType();
           //   
@@ -39,14 +64,14 @@ namespace KDPgDriver.Builder {
 
             switch (be.NodeType) {
               case ExpressionType.Equal:
-                left = Visit(be.Left);
-                right = Visit(be.Right);
+                left = VisitInternal(be.Left);
+                right = VisitInternal(be.Right);
 
                 return new TypedValue($"{left.Expression} = {right.Expression}", typeof(bool));
 
               case ExpressionType.Add:
-                left = Visit(be.Left);
-                right = Visit(be.Right);
+                left = VisitInternal(be.Left);
+                right = VisitInternal(be.Right);
 
                 string op;
                 if (left.Type == typeof(string) && right.Type == typeof(string))
@@ -57,13 +82,13 @@ namespace KDPgDriver.Builder {
                 return new TypedValue($"{left.Expression} {op} {right.Expression}", typeof(string));
 
               case ExpressionType.AndAlso:
-                left = Visit(be.Left);
-                right = Visit(be.Right);
+                left = VisitInternal(be.Left);
+                right = VisitInternal(be.Right);
                 return new TypedValue($"({left.Expression}) AND ({right.Expression})", typeof(bool));
 
               case ExpressionType.OrElse:
-                left = Visit(be.Left);
-                right = Visit(be.Right);
+                left = VisitInternal(be.Left);
+                right = VisitInternal(be.Right);
                 return new TypedValue($"({left.Expression}) OR ({right.Expression})", typeof(bool));
 
               default:
@@ -71,11 +96,11 @@ namespace KDPgDriver.Builder {
             }
 
           case MethodCallExpression call:
-            var callObject = call.Object != null ? Visit(call.Object) : null;
+            var callObject = call.Object != null ? VisitInternal(call.Object) : null;
             string txt;
 
             if (call.Method.Name == "PgIn") {
-              callObject = Visit(call.Arguments[0]);
+              callObject = VisitInternal(call.Arguments[0]);
               var value = GetConstant(call.Arguments[1]);
 
               StringBuilder sb = new StringBuilder();
@@ -94,22 +119,22 @@ namespace KDPgDriver.Builder {
               return new TypedValue($"({callObject.Expression}) IN ({sb})", typeof(string[]));
             }
             else if (call.Method.Name == "Substring") {
-              string start = Visit(call.Arguments[0]).Expression;
-              string length = Visit(call.Arguments[1]).Expression;
+              string start = VisitInternal(call.Arguments[0]).Expression;
+              string length = VisitInternal(call.Arguments[1]).Expression;
               return new TypedValue($"substring(({callObject.Expression}) from ({start}) for ({length}))", typeof(string));
             }
             else if (call.Method.Name == "StartsWith") {
-              txt = Visit(call.Arguments[0]).Expression;
+              txt = VisitInternal(call.Arguments[0]).Expression;
               return new TypedValue($"({callObject.Expression}) LIKE (f_escape_like({txt}) || '%')", typeof(string));
             }
             else if (call.Method.Name == "get_Item") {
-              txt = Visit(call.Arguments[0]).Expression;
+              txt = VisitInternal(call.Arguments[0]).Expression;
 
               return new TypedValue($"({callObject.Expression})->{txt}", typeof(object));
             }
             else if (call.Method.Name == "Contains") {
               if (callObject.Type.IsGenericType && callObject.Type.GetGenericTypeDefinition() == typeof(List<>)) {
-                var value = Visit(call.Arguments[0]).Expression;
+                var value = VisitInternal(call.Arguments[0]).Expression;
                 return new TypedValue($"({value}) = ANY({callObject.Expression})", typeof(string));
               }
               else {
@@ -119,11 +144,11 @@ namespace KDPgDriver.Builder {
             else { throw new Exception($"invalid method: {call.Method.Name}"); }
 
           default:
-            throw new Exception($"invalid node: {(e == null ? "(null)" : e.NodeType.ToString())}");
+            throw new Exception($"invalid node: {(exp == null ? "(null)" : exp.NodeType.ToString())}");
         }
       }
 
-      return Visit(e222);
+      return VisitInternal(expression);
     }
   }
 }

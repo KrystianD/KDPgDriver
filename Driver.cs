@@ -28,65 +28,16 @@ namespace KDPgDriver
       return _transaction.CommitAsync();
     }
 
-    public BaseQueryBuilder<TModel> CreateBuilder<TModel>() => Driver.CreateBuilder<TModel>();
+    public QueryBuilder<TModel> CreateBuilder<TModel>() => Driver.CreateBuilder<TModel>();
+
+    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
+      => Driver.QueryAsyncInternal(builder, _transaction);
     
-    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class
-    {
-      string query = builder.GetQuery();
-      var p = builder.Parameters.GetParametersList();
+    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
+      => Driver.QueryAsyncInternal(builder, _transaction);
 
-      Console.WriteLine(query);
-
-      using (var cmd = new NpgsqlCommand(query, Driver.Connection, _transaction)) {
-        for (int i = 0; i < p.Count; i++)
-          cmd.Parameters.AddWithValue($"{i}", p[i]);
-
-        await cmd.ExecuteNonQueryAsync();
-      }
-
-      return null;
-    }
-
-    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class
-    {
-      string query = builder.GetQuery();
-      var p = builder.Parameters.GetParametersList();
-
-      Console.WriteLine(query);
-
-      using (var cmd = new NpgsqlCommand(query, Driver.Connection, _transaction)) {
-        for (int i = 0; i < p.Count; i++)
-          cmd.Parameters.AddWithValue($"{i}", p[i]);
-
-        using (var reader = await cmd.ExecuteReaderAsync()) {
-          while (await reader.ReadAsync()) {
-            for (int i = 0; i < reader.FieldCount; i++) {
-              var t = reader.GetValue(i);
-
-              if (t is Array a) {
-                Console.Write("[");
-                foreach (var item in a) {
-                  Console.Write(item);
-                  Console.Write(",");
-                }
-
-                Console.Write("]");
-              }
-              else {
-                Console.Write(t);
-              }
-
-              Console.Write(",");
-            }
-
-            Console.WriteLine();
-          }
-        }
-      }
-
-      return new SelectQueryResult<TOut>();
-      // return builder.
-    }
+    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
+      => Driver.QueryAsyncInternal(builder, _transaction);
   }
 
   public class Driver
@@ -140,10 +91,68 @@ LANGUAGE sql IMMUTABLE;
       return new Transaction(this, tr);
     }
 
-    public BaseQueryBuilder<TModel> CreateBuilder<TModel>()
+    public InsertQuery<TModel> CreateInsert<TModel>()
     {
-      var b = new BaseQueryBuilder<TModel>(this);
+      var b = new InsertQuery<TModel>();
       return b;
+    }
+
+    public QueryBuilder<TModel> CreateBuilder<TModel>()
+    {
+      var b = new QueryBuilder<TModel>();
+      return b;
+    }
+
+    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
+      => QueryAsyncInternal(builder, null);
+
+    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
+      => QueryAsyncInternal(builder, null);
+
+    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
+      => QueryAsyncInternal(builder, null);
+
+    internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder, NpgsqlTransaction trans) where TOut : class, new()
+    {
+      string query = builder.GetQuery(this);
+
+      Console.WriteLine(query);
+
+      using (var cmd = new NpgsqlCommand(query, Connection, trans)) {
+        builder.Parameters.AssignToCommand(cmd);
+        await cmd.ExecuteNonQueryAsync();
+      }
+
+      return null;
+    }
+
+    internal async Task<UpdateQueryResult> QueryAsyncInternal<TOut>(UpdateQuery<TOut> builder, NpgsqlTransaction trans) where TOut : class, new()
+    {
+      string query = builder.GetQuery(this);
+
+      Console.WriteLine(query);
+
+      using (var cmd = new NpgsqlCommand(query, Connection, trans)) {
+        builder.Parameters.AssignToCommand(cmd);
+
+        await cmd.ExecuteNonQueryAsync();
+      }
+
+      return null;
+    }
+
+    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(SelectQuery<TOut> builder, NpgsqlTransaction trans) where TOut : class, new()
+    {
+      var columns = builder.GetColumns();
+      string query = builder.GetQuery(this);
+
+      Console.WriteLine(query);
+
+      var cmd = new NpgsqlCommand(query, Connection, trans);
+      builder.Parameters.AssignToCommand(cmd);
+      var reader = await cmd.ExecuteReaderAsync();
+
+      return new SelectQueryResult<TOut>(cmd, reader, columns);
     }
   }
 }

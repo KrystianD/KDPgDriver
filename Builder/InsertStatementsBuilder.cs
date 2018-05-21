@@ -3,16 +3,16 @@ using System.Linq.Expressions;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builder {
-  public class UpdateStatementsBuilder<TModel>
+  public class InsertStatementsBuilder<TModel>
   {
     private readonly UpdateQuery<TModel> _updateQuery;
 
-    public UpdateStatementsBuilder(UpdateQuery<TModel> updateQuery)
+    public InsertStatementsBuilder(UpdateQuery<TModel> updateQuery)
     {
       _updateQuery = updateQuery;
     }
 
-    public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
+    public InsertStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       switch (field.Body) {
         case MemberExpression memberExpression:

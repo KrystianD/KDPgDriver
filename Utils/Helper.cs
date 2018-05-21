@@ -1,12 +1,17 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
-namespace KDPgDriver
+namespace KDPgDriver.Utils
 {
   public static class Helper
   {
+    public class ModelExtractor
+    {
+      private object model;
+    }
+
     public static string GetTableName(Type modelType)
     {
       var q = modelType.GetCustomAttributes(typeof(KDPgTableAttribute), false);
@@ -27,6 +32,11 @@ namespace KDPgDriver
       return ((KDPgColumnAttribute) q[0]).Name;
     }
 
+    public static IList<PropertyInfo> GetModelColumns(Type modelType)
+    {
+      return modelType.GetProperties().ToList();
+    }
+
     public static IList<string> GetModelColumnNames(Type modelType)
     {
       List<string> names = new List<string>();
@@ -37,12 +47,23 @@ namespace KDPgDriver
       return names;
     }
 
+    public static object GetModelValueByColumn(object model, PropertyInfo column)
+    {
+      return column.GetValue(model);
+    }
+
+
     public static Type GetColumnType(MemberInfo memberInfo)
     {
       if (memberInfo is PropertyInfo p)
         return p.PropertyType;
       else
         throw new Exception("no");
+    }
+
+    public static bool IsSystemArray(object value)
+    {
+      return value is Array;
     }
   }
 }

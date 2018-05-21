@@ -6,19 +6,19 @@ namespace KDPgDriver.Builder
   public class UpdateQuery<TOut>
   {
     public ParametersContainer Parameters { get; }
-    public IBaseQueryBuilder Builder { get; }
+    public IQueryBuilder Builder { get; }
 
     public Dictionary<string, string> updateParts = new Dictionary<string, string>();
 
-    public UpdateQuery(IBaseQueryBuilder baseQueryBuilder, ParametersContainer parameters)
+    public UpdateQuery(IQueryBuilder queryBuilder, ParametersContainer parameters)
     {
       Parameters = parameters;
-      Builder = baseQueryBuilder;
+      Builder = queryBuilder;
     }
 
-    public string GetQuery()
+    public string GetQuery(Driver driver)
     {
-      string q = $"UPDATE \"{Builder.Driver.Schema}\".\"{Builder.TableName}\"";
+      string q = $"UPDATE \"{driver.Schema}\".\"{Builder.TableName}\"";
 
       string setPart = string.Join(", ", updateParts.Select(x => $"{x.Key} = {x.Value}"));
       q += $" SET {setPart}";
