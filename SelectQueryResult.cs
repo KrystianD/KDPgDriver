@@ -16,17 +16,22 @@ namespace KDPgDriver
 {
   public class SelectQueryResult<T> : IDisposable where T : class, new()
   {
-    private readonly NpgsqlCommand _cmd;
+    private readonly NpgsqlConnection _connection;
+
+    // private readonly NpgsqlCommand _cmd;
     private readonly DbDataReader _reader;
     private readonly IList<PropertyInfo> _columns;
+    private readonly bool _disposeConnection;
 
     private bool disposed = false;
 
-    public SelectQueryResult(NpgsqlCommand cmd, DbDataReader reader, IList<PropertyInfo> columns)
+    public SelectQueryResult(NpgsqlConnection connection, NpgsqlCommand cmd, DbDataReader reader, IList<PropertyInfo> columns, bool disposeConnection)
     {
-      _cmd = cmd;
+      _connection = connection;
+      // _cmd = cmd;
       _reader = reader;
       _columns = columns;
+      _disposeConnection = disposeConnection;
     }
 
     public Task<bool> HasNextResult()
@@ -60,23 +65,23 @@ namespace KDPgDriver
         columnProperty.SetValue(obj, rawValue);
 
 
-        if (rawValue is Array a) {
-          Console.Write("[");
-          foreach (var item in a) {
-            Console.Write(item);
-            Console.Write(",");
-          }
-
-          Console.Write("]");
-        }
-        else {
-          Console.Write(rawValue);
-        }
-
-        Console.Write(",");
+        // if (rawValue is Array a) {
+        //   Console.Write("[");
+        //   foreach (var item in a) {
+        //     Console.Write(item);
+        //     Console.Write(",");
+        //   }
+        //
+        //   Console.Write("]");
+        // }
+        // else {
+        //   Console.Write(rawValue);
+        // }
+        //
+        // Console.Write(",");
       }
 
-      Console.WriteLine();
+      // Console.WriteLine();
 
       return obj;
     }
@@ -114,7 +119,11 @@ namespace KDPgDriver
         return;
       disposed = true;
       _reader.Dispose();
-      _cmd.Dispose();
+      // _cmd.Dispose();
+      
+      if (_disposeConnection) {
+        _connection.Dispose();
+      }
     }
   }
 }

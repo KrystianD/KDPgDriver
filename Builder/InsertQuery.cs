@@ -26,6 +26,8 @@ namespace KDPgDriver.Builder
 
     public ParametersContainer Parameters { get; } = new ParametersContainer();
 
+    private bool preparation = true;
+    
     public InsertQuery()
     {
     }
@@ -51,6 +53,11 @@ namespace KDPgDriver.Builder
 
     public void Add(TModel obj)
     {
+      preparation = false;
+      
+      if (columns.Count == 0)
+        columns.AddRange(Helper.GetModelColumns(typeof(TModel)));
+      
       objects.Add(obj);
 
       if (insertStr.Length > 0)
@@ -72,9 +79,6 @@ namespace KDPgDriver.Builder
 
     public string GetQuery(Driver driver)
     {
-      if (columns.Count == 0)
-        columns.AddRange(Helper.GetModelColumns(typeof(TModel)));
-
       var columnsStr = columns.Select(Helper.GetColumnName).JoinString(",");
       string tableName = Helper.GetTableName(typeof(TModel));
       string q = $"INSERT INTO \"{driver.Schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";

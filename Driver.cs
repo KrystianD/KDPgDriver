@@ -10,16 +10,20 @@ namespace KDPgDriver
   {
     public Driver Driver { get; }
 
+    private readonly NpgsqlConnection _connection;
     private readonly NpgsqlTransaction _transaction;
 
-    public Transaction(Driver driver, NpgsqlTransaction transaction)
+    public Transaction(Driver driver, NpgsqlConnection connection, NpgsqlTransaction transaction)
     {
       Driver = driver;
+      _connection = connection;
       _transaction = transaction;
     }
 
     public void Dispose()
     {
+      _connection.Close();
+      _connection.Dispose();
       _transaction.Dispose();
     }
 
@@ -31,39 +35,58 @@ namespace KDPgDriver
     public QueryBuilder<TModel> CreateBuilder<TModel>() => Driver.CreateBuilder<TModel>();
 
     public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
-      => Driver.QueryAsyncInternal(builder, _transaction);
-    
+    {
+      return Driver.QueryAsyncInternal(builder, _connection, _transaction);
+    }
+
     public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
-      => Driver.QueryAsyncInternal(builder, _transaction);
+    {
+      return Driver.QueryAsyncInternal(builder, _connection, _transaction);
+    }
 
     public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
-      => Driver.QueryAsyncInternal(builder, _transaction);
+    {
+      return Driver.QueryAsyncInternal(builder, _connection, _transaction, disposeConnection: false);
+    }
   }
 
   public class Driver
   {
-    public string Dsn { get; }
-    public string Schema { get; }
+    private string _connString;
 
-    public NpgsqlConnection Connection { get; private set; }
+    // public string Dsn { get; }
+    public string Schema { get; }
 
     public Driver(string dsn, string schema)
     {
-      Dsn = dsn;
+      // Dsn = dsn;
       Schema = schema;
-    }
 
-    public async Task ConnectAsync()
-    {
-      UrlUtils.ParserURI(Dsn, out var scheme, out var user, out var pass, out var host, out int port, out string path);
+      UrlUtils.ParserURI(dsn, out var scheme, out var user, out var pass, out var host, out int port, out string path);
       path = path.TrimStart('/');
 
-      var connString = $"Host={host};Database={path};Username={user}";
+      _connString = new NpgsqlConnectionStringBuilder
+      {
+          Database = path,
+          Username = user,
+          Password = pass,
+          Host = host,
+          Port = port,
+          Pooling = true
+      }.ToString();
+    }
 
-      Connection = new NpgsqlConnection(connString);
-      await Connection.OpenAsync();
+    private async Task<NpgsqlConnection> CreateConnection()
+    {
+      var connection = new NpgsqlConnection(_connString);
+      await connection.OpenAsync();
+      return connection;
+    }
 
-      string fn = @"
+    public async Task InitializeAsync()
+    {
+      using (var connection = await CreateConnection()) {
+        string fn = @"
 CREATE OR REPLACE FUNCTION f_escape_regexp(text) RETURNS text AS
 $func$
 SELECT regexp_replace($1, '([!$()*+.:<=>?[\\\]^{|}-])', '\\\1', 'g')
@@ -80,15 +103,19 @@ $func$
 LANGUAGE sql IMMUTABLE;
 ";
 
-      var t = Connection.CreateCommand();
-      t.CommandText = fn;
-      await t.ExecuteNonQueryAsync();
+        using (var t = connection.CreateCommand()) {
+          t.CommandText = fn;
+          await t.ExecuteNonQueryAsync();
+        }
+      }
     }
 
-    public Transaction CreateTransaction()
+
+    public async Task<Transaction> CreateTransaction()
     {
-      var tr = Connection.BeginTransaction();
-      return new Transaction(this, tr);
+      var connection = await CreateConnection();
+      var tr = connection.BeginTransaction();
+      return new Transaction(this, connection, tr);
     }
 
     public InsertQuery<TModel> CreateInsert<TModel>()
@@ -103,22 +130,35 @@ LANGUAGE sql IMMUTABLE;
       return b;
     }
 
-    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
-      => QueryAsyncInternal(builder, null);
+    public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
+    {
+      using (var connection = await CreateConnection()) {
+        return await QueryAsyncInternal(builder, connection, null);
+      }
+    }
 
-    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
-      => QueryAsyncInternal(builder, null);
+    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
+    {
+      using (var connection = await CreateConnection()) {
+        return await QueryAsyncInternal(builder, connection, null);
+      }
+    }
 
-    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
-      => QueryAsyncInternal(builder, null);
+    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
+    {
+      var connection = await CreateConnection();
+      return await QueryAsyncInternal(builder, connection, null, disposeConnection: true);
+    }
 
-    internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder, NpgsqlTransaction trans) where TOut : class, new()
+    internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder,
+                                                                    NpgsqlConnection connection,
+                                                                    NpgsqlTransaction trans) where TOut : class, new()
     {
       string query = builder.GetQuery(this);
 
       Console.WriteLine(query);
 
-      using (var cmd = new NpgsqlCommand(query, Connection, trans)) {
+      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         builder.Parameters.AssignToCommand(cmd);
         await cmd.ExecuteNonQueryAsync();
       }
@@ -126,33 +166,39 @@ LANGUAGE sql IMMUTABLE;
       return null;
     }
 
-    internal async Task<UpdateQueryResult> QueryAsyncInternal<TOut>(UpdateQuery<TOut> builder, NpgsqlTransaction trans) where TOut : class, new()
+    internal async Task<UpdateQueryResult> QueryAsyncInternal<TOut>(UpdateQuery<TOut> builder,
+                                                                    NpgsqlConnection connection,
+                                                                    NpgsqlTransaction trans) where TOut : class, new()
     {
       string query = builder.GetQuery(this);
 
       Console.WriteLine(query);
 
-      using (var cmd = new NpgsqlCommand(query, Connection, trans)) {
+      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         builder.Parameters.AssignToCommand(cmd);
-
         await cmd.ExecuteNonQueryAsync();
       }
 
       return null;
     }
 
-    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(SelectQuery<TOut> builder, NpgsqlTransaction trans) where TOut : class, new()
+    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(
+        SelectQuery<TOut> builder,
+        NpgsqlConnection connection,
+        NpgsqlTransaction trans,
+        bool disposeConnection) where TOut : class, new()
     {
       var columns = builder.GetColumns();
       string query = builder.GetQuery(this);
 
       Console.WriteLine(query);
 
-      var cmd = new NpgsqlCommand(query, Connection, trans);
-      builder.Parameters.AssignToCommand(cmd);
-      var reader = await cmd.ExecuteReaderAsync();
+      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
+        builder.Parameters.AssignToCommand(cmd);
+        var reader = await cmd.ExecuteReaderAsync();
 
-      return new SelectQueryResult<TOut>(cmd, reader, columns);
+        return new SelectQueryResult<TOut>(connection, cmd, reader, columns, disposeConnection);
+      }
     }
   }
 }
