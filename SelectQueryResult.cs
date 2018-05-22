@@ -8,6 +8,7 @@ using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using KDLib;
+using KDPgDriver.Builder;
 using KDPgDriver.Utils;
 using Newtonsoft.Json.Linq;
 using Npgsql;
@@ -20,16 +21,20 @@ namespace KDPgDriver
 
     // private readonly NpgsqlCommand _cmd;
     private readonly DbDataReader _reader;
+    private readonly SelectQuery<T> _builder;
     private readonly IList<PropertyInfo> _columns;
     private readonly bool _disposeConnection;
 
     private bool disposed = false;
 
-    public SelectQueryResult(NpgsqlConnection connection, NpgsqlCommand cmd, DbDataReader reader, IList<PropertyInfo> columns, bool disposeConnection)
+    public SelectQueryResult(NpgsqlConnection connection, NpgsqlCommand cmd,
+                             DbDataReader reader,
+                             SelectQuery<T> builder, IList<PropertyInfo> columns, bool disposeConnection)
     {
       _connection = connection;
       // _cmd = cmd;
       _reader = reader;
+      _builder = builder;
       _columns = columns;
       _disposeConnection = disposeConnection;
     }
@@ -62,7 +67,10 @@ namespace KDPgDriver
           }
         }
 
-        columnProperty.SetValue(obj, rawValue);
+        if (_builder.isSingleValue)
+          obj = (T) rawValue;
+        else
+          columnProperty.SetValue(obj, rawValue);
 
 
         // if (rawValue is Array a) {
@@ -120,7 +128,7 @@ namespace KDPgDriver
       disposed = true;
       _reader.Dispose();
       // _cmd.Dispose();
-      
+
       if (_disposeConnection) {
         _connection.Dispose();
       }

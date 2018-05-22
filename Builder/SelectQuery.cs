@@ -16,6 +16,7 @@ namespace KDPgDriver.Builder
 
     private List<PropertyInfo> columns = new List<PropertyInfo>();
     private StringBuilder selectPart = new StringBuilder();
+    public bool isSingleValue = false;
 
     public SelectQuery(IQueryBuilder queryBuilder, ParametersContainer parameters)
     {
@@ -66,8 +67,17 @@ namespace KDPgDriver.Builder
     public void Process(Expression prBody)
     {
       switch (prBody.NodeType) {
-        // case ExpressionType.Lambda:
-        // break;
+        case ExpressionType.MemberAccess:
+          var member = ((MemberExpression) prBody).Member;
+          string columnName = Helper.GetColumnName(member);
+          
+          if (selectPart.Length > 0)
+            selectPart.Append(", ");
+          selectPart.Append(columnName);
+          columns.Add((PropertyInfo) member);
+          isSingleValue = true;
+          
+          break;
         case ExpressionType.New:
           VisitForSelectNewType((NewExpression) prBody);
           break;

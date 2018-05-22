@@ -52,7 +52,6 @@ namespace KDPgDriver.Utils
       return column.GetValue(model);
     }
 
-
     public static Type GetColumnType(MemberInfo memberInfo)
     {
       if (memberInfo is PropertyInfo p)
@@ -64,6 +63,12 @@ namespace KDPgDriver.Utils
     public static bool IsSystemArray(object value)
     {
       return value is Array;
+    }
+
+    public static bool IsModelProperty(MemberInfo memberInfo)
+    {
+      var q = memberInfo.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
+      return q.Length == 1;
     }
   }
 }

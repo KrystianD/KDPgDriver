@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlTypes;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -19,9 +20,11 @@ namespace KDPgDriver.Builder
       }
     }
 
-    public static string VisitProperty<TModel>(Expression<Func<TModel, object>> exp)
+    public static string VisitProperty<TModel>(Expression<Func<TModel, object>> exp) => VisitProperty(exp.Body);
+
+    public static string VisitProperty(Expression exp)
     {
-      switch (exp.Body) {
+      switch (exp) {
         case MemberExpression me:
           return Helper.GetColumnName(me.Member);
 
@@ -34,7 +37,7 @@ namespace KDPgDriver.Builder
     {
       switch (exp.Body) {
         case MemberExpression me:
-          return (PropertyInfo)me.Member;
+          return (PropertyInfo) me.Member;
 
         default:
           throw new Exception($"invalid node: {exp.NodeType}");
@@ -58,6 +61,22 @@ namespace KDPgDriver.Builder
 
           case ConstantExpression me:
             return new TypedValue(parametersContainer.GetNextParam(me.Value), me.Type);
+
+          case UnaryExpression un:
+            switch (un.NodeType) {
+              case ExpressionType.Convert:
+                if (un.Type.IsGenericType && un.Type.GetGenericTypeDefinition() == typeof(Nullable<>)) {
+                  return VisitInternal(un.Operand);
+                  // return new TypedValue(VisitInternal(un.Operand), un.Type.GetGenericArguments()[0]);
+                }
+
+                throw new Exception($"unknown type: {un.Type}");
+
+              default:
+                throw new Exception($"unknown operator: {un.NodeType}");
+            }
+
+            break;
 
           case BinaryExpression be:
             TypedValue left, right;

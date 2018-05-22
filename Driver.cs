@@ -197,7 +197,7 @@ LANGUAGE sql IMMUTABLE;
         builder.Parameters.AssignToCommand(cmd);
         var reader = await cmd.ExecuteReaderAsync();
 
-        return new SelectQueryResult<TOut>(connection, cmd, reader, columns, disposeConnection);
+        return new SelectQueryResult<TOut>(connection, cmd, reader,builder, columns, disposeConnection);
       }
     }
   }
