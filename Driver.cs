@@ -34,17 +34,17 @@ namespace KDPgDriver
 
     public QueryBuilder<TModel> CreateBuilder<TModel>() => Driver.CreateBuilder<TModel>();
 
-    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
+    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class
     {
       return Driver.QueryAsyncInternal(builder, _connection, _transaction);
     }
 
-    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
+    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class
     {
       return Driver.QueryAsyncInternal(builder, _connection, _transaction);
     }
 
-    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
+    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class
     {
       return Driver.QueryAsyncInternal(builder, _connection, _transaction, disposeConnection: false);
     }
@@ -101,6 +101,12 @@ SELECT replace(replace(replace($1
          , '_', '\_');
 $func$
 LANGUAGE sql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kdpg_jsonb_add(data jsonb, path varchar[], new_value jsonb) RETURNS jsonb AS $$
+BEGIN
+  RETURN jsonb_set(data, path, jsonb_extract_path(data, VARIADIC path) || new_value);
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
 ";
 
         using (var t = connection.CreateCommand()) {
@@ -130,21 +136,21 @@ LANGUAGE sql IMMUTABLE;
       return b;
     }
 
-    public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class, new()
+    public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class
     {
       using (var connection = await CreateConnection()) {
         return await QueryAsyncInternal(builder, connection, null);
       }
     }
 
-    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class, new()
+    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class
     {
       using (var connection = await CreateConnection()) {
         return await QueryAsyncInternal(builder, connection, null);
       }
     }
 
-    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class, new()
+    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class
     {
       var connection = await CreateConnection();
       return await QueryAsyncInternal(builder, connection, null, disposeConnection: true);
@@ -152,7 +158,7 @@ LANGUAGE sql IMMUTABLE;
 
     internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder,
                                                                     NpgsqlConnection connection,
-                                                                    NpgsqlTransaction trans) where TOut : class, new()
+                                                                    NpgsqlTransaction trans) where TOut : class
     {
       string query = builder.GetQuery(this);
 
@@ -168,7 +174,7 @@ LANGUAGE sql IMMUTABLE;
 
     internal async Task<UpdateQueryResult> QueryAsyncInternal<TOut>(UpdateQuery<TOut> builder,
                                                                     NpgsqlConnection connection,
-                                                                    NpgsqlTransaction trans) where TOut : class, new()
+                                                                    NpgsqlTransaction trans) where TOut : class
     {
       string query = builder.GetQuery(this);
 
@@ -186,7 +192,7 @@ LANGUAGE sql IMMUTABLE;
         SelectQuery<TOut> builder,
         NpgsqlConnection connection,
         NpgsqlTransaction trans,
-        bool disposeConnection) where TOut : class, new()
+        bool disposeConnection) where TOut : class
     {
       var columns = builder.GetColumns();
       string query = builder.GetQuery(this);

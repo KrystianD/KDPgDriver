@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder {
+namespace KDPgDriver.Builder
+{
   public class InsertStatementsBuilder<TModel>
   {
     private readonly UpdateQuery<TModel> _updateQuery;
@@ -16,16 +18,16 @@ namespace KDPgDriver.Builder {
     {
       switch (field.Body) {
         case MemberExpression memberExpression:
-          string colName = Helper.GetColumnName(memberExpression.Member);
 
-          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(value));
-
+          PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
+          string colName = Helper.GetColumnName(columnPropertyInfo);
+          var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
+          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
           break;
         default:
           throw new Exception($"invalid node: {field.Body.NodeType}");
       }
 
-      // var v = _fromBuilder.Visit(field);
       return this;
     }
   }

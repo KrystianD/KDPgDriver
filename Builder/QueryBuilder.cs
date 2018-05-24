@@ -1,38 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
 using KDPgDriver.Utils;
-using Npgsql;
 
 namespace KDPgDriver.Builder
 {
-  public class ParametersContainer
-  {
-    private readonly List<object> _params = new List<object>();
-
-    public string GetNextParam(object value)
-    {
-      if (value is string s) {
-        if (s.Length < 30) {
-          return "'" + s.Replace("'", "''") + "'";
-        }
-      }
-
-      var name = $"@{_params.Count}";
-      _params.Add(value);
-      return name;
-    }
-
-    public List<object> GetParametersList() => _params;
-
-    public void AssignToCommand(NpgsqlCommand cmd)
-    {
-      for (int i = 0; i < _params.Count; i++)
-        cmd.Parameters.AddWithValue($"{i}", _params[i]);
-    }
-  }
-
   public class QueryBuilder<TModel> : IQueryBuilder
   {
     // public Driver Driver { get; }

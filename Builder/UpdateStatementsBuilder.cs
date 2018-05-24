@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection;
+using System.Text;
+using KDLib;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builder
@@ -18,31 +22,38 @@ namespace KDPgDriver.Builder
     {
       switch (field.Body) {
         case MemberExpression memberExpression:
-          string colName = Helper.GetColumnName(memberExpression.Member);
-
-          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(value));
-
+          PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
+          string colName = Helper.GetColumnName(columnPropertyInfo);
+          var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
+          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
           break;
         default:
           throw new Exception($"invalid node: {field.Body.NodeType}");
       }
 
-      // var v = _fromBuilder.Visit(field);
       return this;
     }
 
     public UpdateStatementsBuilder<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
-      string colName = NodeVisitor.VisitProperty(field.Body);
+      NodeVisitor.JsonPropertyPath jsonPath;
+      var v = NodeVisitor.ProcessPath(field.Body as MemberExpression, out jsonPath);
 
-      var val = _updateQuery.Parameters.GetNextParam(new[] { value });
+      var valueArray = new[] { value };
+      var valueType = Helper.GetNpgsqlTypeFromObject(valueArray);
+      string val = _updateQuery.Parameters.GetNextParam(valueArray, null);
 
-      if (_updateQuery.updateParts.ContainsKey(colName)) {
-        string prevVal = _updateQuery.updateParts[colName];
-        _updateQuery.updateParts[colName] = $"array_cat({prevVal}, {val})";
+      if (v.Type is KDPgColumnArrayType) {
+        var colName = v.Expression;
+        AddUpdate(colName, src => $"array_cat({src}, {val})");
+      }
+      else if (v.Type is KDPgColumnJsonType) {
+        string jsonPathStr1 = jsonPath.jsonPath.Select(x => $"'{x}'").JoinString(",");
+        AddUpdate(jsonPath.columnName,
+                  src => $"kdpg_jsonb_add({src}, array[{jsonPathStr1}], to_jsonb({val}::{valueType.PostgresType}))");
       }
       else {
-        _updateQuery.updateParts.Add(colName, $"array_cat({colName}, {val})");
+        throw new Exception("unable to add to non-list");
       }
 
       return this;
@@ -52,17 +63,16 @@ namespace KDPgDriver.Builder
     {
       string colName = NodeVisitor.VisitProperty(field.Body);
 
-      var val = _updateQuery.Parameters.GetNextParam(value);
-
-      if (_updateQuery.updateParts.ContainsKey(colName)) {
-        string prevVal = _updateQuery.updateParts[colName];
-        _updateQuery.updateParts[colName] = $"array_remove({prevVal}, {val})";
-      }
-      else {
-        _updateQuery.updateParts.Add(colName, $"array_remove({colName}, {val})");
-      }
-
+      var val = _updateQuery.Parameters.GetNextParam(value, null);
+      
+      AddUpdate(colName, src => $"array_remove({src}, {val})");
       return this;
+    }
+
+    private void AddUpdate(string src, Func<string, string> template)
+    {
+      string newSrc = _updateQuery.updateParts.GetValueOrDefault(src, src);
+      _updateQuery.updateParts[src] = template($"{newSrc}");
     }
   }
 }

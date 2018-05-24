@@ -10,26 +10,38 @@ using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Builder;
 using KDPgDriver.Utils;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Npgsql;
 
 namespace KDPgDriver
 {
-  public class SelectQueryResult<T> : IDisposable where T : class, new()
+  public class SelectQueryResultAsync<T> : IDisposable where T : class, new()
+  {
+    public void Dispose() { }
+  }
+
+  public class ResultColumnDef
+  {
+    public PropertyInfo PropertyInfo;
+    public KDPgColumnType KdPgColumnType;
+  }
+  
+  public class SelectQueryResult<T> : IDisposable where T : class
   {
     private readonly NpgsqlConnection _connection;
 
     // private readonly NpgsqlCommand _cmd;
     private readonly DbDataReader _reader;
     private readonly SelectQuery<T> _builder;
-    private readonly IList<PropertyInfo> _columns;
+    private readonly IList<ResultColumnDef> _columns;
     private readonly bool _disposeConnection;
 
     private bool disposed = false;
 
     public SelectQueryResult(NpgsqlConnection connection, NpgsqlCommand cmd,
                              DbDataReader reader,
-                             SelectQuery<T> builder, IList<PropertyInfo> columns, bool disposeConnection)
+                             SelectQuery<T> builder, IList<ResultColumnDef> columns, bool disposeConnection)
     {
       _connection = connection;
       // _cmd = cmd;
@@ -46,7 +58,10 @@ namespace KDPgDriver
 
     public T GetCurrentResult()
     {
-      var obj = new T();
+      var t = typeof(T);
+      T obj;
+
+      object[] fields = new object[_reader.FieldCount];
 
       for (int i = 0; i < _reader.FieldCount; i++) {
         var rawValue = _reader.GetValue(i);
@@ -55,46 +70,30 @@ namespace KDPgDriver
           rawValue = null;
 
         var columnProperty = _columns[i];
-        var propType = columnProperty.PropertyType;
+        object outputValue = Helper.ConvertFromNpgsql(columnProperty.KdPgColumnType, rawValue);
 
-        if (rawValue != null) {
-          if (propType.IsGenericList()) {
-            rawValue = Activator.CreateInstance(columnProperty.PropertyType, rawValue);
-          }
-
-          if (propType == typeof(JObject)) {
-            rawValue = JObject.Parse((string) rawValue);
-          }
-        }
-
-        if (_builder.isSingleValue)
-          obj = (T) rawValue;
-        else
-          columnProperty.SetValue(obj, rawValue);
-
-
-        // if (rawValue is Array a) {
-        //   Console.Write("[");
-        //   foreach (var item in a) {
-        //     Console.Write(item);
-        //     Console.Write(",");
-        //   }
-        //
-        //   Console.Write("]");
-        // }
-        // else {
-        //   Console.Write(rawValue);
-        // }
-        //
-        // Console.Write(",");
+        fields[i] = outputValue;
       }
 
-      // Console.WriteLine();
+      if (t.IsAnonymous()) {
+        obj = (T) Activator.CreateInstance(t, fields);
+      }
+      else {
+        obj = (T) Activator.CreateInstance(t);
+        for (int i = 0; i < _reader.FieldCount; i++) {
+          var columnProperty = _columns[i];
+
+          if (_builder.isSingleValue)
+            obj = (T) fields[i];
+          else
+            columnProperty.PropertyInfo.SetValue(obj, fields[i]);
+        }
+      }
 
       return obj;
     }
 
-    public async Task<IList<T>> GetAll()
+    public async Task<List<T>> GetAll()
     {
       List<T> objs = new List<T>();
       while (await HasNextResult())

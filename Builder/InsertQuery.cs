@@ -27,10 +27,8 @@ namespace KDPgDriver.Builder
     public ParametersContainer Parameters { get; } = new ParametersContainer();
 
     private bool preparation = true;
-    
-    public InsertQuery()
-    {
-    }
+
+    public InsertQuery() { }
 
     public void UseField(Expression<Func<TModel, object>> field)
     {
@@ -54,10 +52,10 @@ namespace KDPgDriver.Builder
     public void Add(TModel obj)
     {
       preparation = false;
-      
+
       if (columns.Count == 0)
         columns.AddRange(Helper.GetModelColumns(typeof(TModel)));
-      
+
       objects.Add(obj);
 
       if (insertStr.Length > 0)
@@ -68,10 +66,12 @@ namespace KDPgDriver.Builder
         var column = columns[i];
         object val = Helper.GetModelValueByColumn(obj, column);
 
+        var npgValue = Helper.ConvertToNpgsql(column, val);
+
         if (i > 0)
           insertStr.Append(",");
 
-        insertStr.Append(val == null ? "NULL" : Parameters.GetNextParam(val));
+        insertStr.Append(val == null ? "NULL" : Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
       }
 
       insertStr.Append(")");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
@@ -14,7 +15,7 @@ namespace KDPgDriver.Builder
 
     public IQueryBuilder Builder { get; }
 
-    private List<PropertyInfo> columns = new List<PropertyInfo>();
+    private List<ResultColumnDef> columns = new List<ResultColumnDef>();
     private StringBuilder selectPart = new StringBuilder();
     public bool isSingleValue = false;
 
@@ -24,9 +25,13 @@ namespace KDPgDriver.Builder
       Builder = queryBuilder;
     }
 
-    public IList<PropertyInfo> GetColumns()
+    public IList<ResultColumnDef> GetColumns()
     {
-      return columns.Count == 0 ? Helper.GetModelColumns(typeof(TOut)) : columns;
+      return columns.Count == 0 ? Helper.GetModelColumns(typeof(TOut)).Select(x=>new ResultColumnDef()
+      {
+          PropertyInfo = x,
+          KdPgColumnType = Helper.GetColumnDataType(x),
+      }) .ToList(): columns;
     }
 
     public string GetQuery(Driver driver)
@@ -44,23 +49,23 @@ namespace KDPgDriver.Builder
       return q;
     }
 
-    private string BuildSelectExpression(Expression e)
-    {
-      return NodeVisitor.Visit(e, Parameters).Expression;
-    }
-
     private void VisitForSelectNewType(NewExpression e)
     {
       var args = e.Arguments;
       var members = e.Members;
 
       foreach (var (member, arg) in members.Zip(args)) {
-        var exp = BuildSelectExpression(Evaluator.PartialEval(arg));
+        var exp = NodeVisitor.Visit(Evaluator.PartialEval(arg), Parameters);
 
         if (selectPart.Length > 0)
           selectPart.Append(", ");
-        selectPart.Append(exp);
-        columns.Add((PropertyInfo) member);
+        selectPart.Append(exp.Expression);
+        
+        columns.Add(new ResultColumnDef()
+        {
+            PropertyInfo = (PropertyInfo) member,
+            KdPgColumnType = exp.Type,
+        });
       }
     }
 
@@ -74,7 +79,13 @@ namespace KDPgDriver.Builder
           if (selectPart.Length > 0)
             selectPart.Append(", ");
           selectPart.Append(columnName);
-          columns.Add((PropertyInfo) member);
+          
+          columns.Add(new ResultColumnDef()
+          {
+              PropertyInfo = (PropertyInfo) member,
+              KdPgColumnType =Helper.GetColumnDataType((PropertyInfo) member),
+          });
+          
           isSingleValue = true;
           
           break;

@@ -18,16 +18,16 @@ namespace KDPgDriver.Builder
 
     public string GetQuery(Driver driver)
     {
-      string q = $"UPDATE \"{driver.Schema}\".\"{Builder.TableName}\"";
+      string q = $"\nUPDATE \"{driver.Schema}\".\"{Builder.TableName}\"\n";
 
       string setPart = string.Join(", ", updateParts.Select(x => $"{x.Key} = {x.Value}"));
-      q += $" SET {setPart}";
+      q += $"SET {setPart}\n";
 
       string wherePart = Builder.GetWherePart();
       if (wherePart.Length > 0)
-        q += $" WHERE {wherePart}";
+        q += $"WHERE {wherePart}";
 
-      return q;
+      return q + "\n";
     }
   }
 }
