@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.Linq.Expressions;
@@ -27,7 +28,7 @@ namespace KDPgDriver.Builder
     {
       switch (exp) {
         case MemberExpression me:
-          return Helper.GetColumnName(me.Member);
+          return Helper.GetColumn(me.Member).Name;
 
         default:
           throw new Exception($"invalid node: {exp.NodeType}");
@@ -150,10 +151,10 @@ namespace KDPgDriver.Builder
             if (call.Method.Name == "PgIn") {
               callObject = VisitInternal(call.Arguments[0]);
               var value = GetConstant(call.Arguments[1]);
-              var valueType = Helper.GetNpgsqlTypeFromObject(value);
+              // var valueType = Helper.GetNpgsqlTypeFromObject(value);
 
               StringBuilder sb = new StringBuilder();
-              if (value is Array array) {
+              if (value is IEnumerable array) {
                 foreach (var item in array) {
                   sb.Append(parametersContainer.GetNextParam(item, null));
                   sb.Append(",");
@@ -165,7 +166,7 @@ namespace KDPgDriver.Builder
                 throw new Exception($"invalid array: {value.GetType()}");
               }
 
-              return new TypedValue($"({callObject.Expression}) IN ({sb})", valueType);
+              return new TypedValue($"({callObject.Expression}) IN ({sb})", KDPgColumnBooleanType.Instance);
             }
             else if (call.Method.Name == "Substring") {
               string start = VisitInternal(call.Arguments[0]).Expression;
@@ -174,7 +175,7 @@ namespace KDPgDriver.Builder
             }
             else if (call.Method.Name == "StartsWith") {
               txt = VisitInternal(call.Arguments[0]).Expression;
-              return new TypedValue($"({callObject.Expression}) LIKE (f_escape_like({txt}) || '%')", KDPgColumnStringType.Instance);
+              return new TypedValue($"({callObject.Expression}) LIKE (f_escape_like({txt}) || '%')", KDPgColumnBooleanType.Instance);
             }
             else if (call.Method.Name == "get_Item") {
               txt = VisitInternal(call.Arguments[0]).Expression;
@@ -224,14 +225,14 @@ namespace KDPgDriver.Builder
       bool isColumn = Helper.IsColumn(propertyInfo);
 
       if (isColumn) {
-        string columnName = Helper.GetColumnName(propertyInfo);
-        jsonPath.columnName = $"\"{columnName}\"";
-        return new TypedValue($"\"{columnName}\"", Helper.GetColumnDataType(((PropertyInfo) propertyInfo)));
+        var column = Helper.GetColumn(propertyInfo);
+        jsonPath.columnName = $"\"{column.Name}\"";
+        return new TypedValue($"\"{column.Name}\"", column.Type);
       }
       else {
         string fieldName = Helper.GetJsonPropertyName(propertyInfo);
 
-        var fieldType = ((FieldInfo) propertyInfo).FieldType;
+        // var fieldType = ((FieldInfo) propertyInfo).FieldType;
 
         if (exp is MemberExpression memberExpression) {
           TypedValue parentField = ProcessPathInternal(memberExpression.Expression, memberExpression.Member, jsonPath);

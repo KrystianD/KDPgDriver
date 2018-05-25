@@ -23,7 +23,7 @@ namespace KDPgDriver.Builder
       switch (field.Body) {
         case MemberExpression memberExpression:
           PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
-          string colName = Helper.GetColumnName(columnPropertyInfo);
+          string colName = Helper.GetColumn(columnPropertyInfo).Name;
           var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
           _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
           break;

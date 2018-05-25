@@ -27,18 +27,20 @@ namespace KDPgDriver.Builder
 
     public IList<ResultColumnDef> GetColumns()
     {
-      return columns.Count == 0 ? Helper.GetModelColumns(typeof(TOut)).Select(x=>new ResultColumnDef()
-      {
-          PropertyInfo = x,
-          KdPgColumnType = Helper.GetColumnDataType(x),
-      }) .ToList(): columns;
+      return columns.Count == 0
+          ? Helper.GetTable(typeof(TOut)).Columns.Select(x => new ResultColumnDef()
+          {
+              PropertyInfo = x.PropertyInfo,
+              KdPgColumnType = x.Type,
+          }).ToList()
+          : columns;
     }
 
     public string GetQuery(Driver driver)
     {
       string selectStr = selectPart.ToString();
       if (selectStr.Length == 0) {
-        selectStr = Helper.GetModelColumnNames(typeof(TOut)).JoinString(",");
+        selectStr = Helper.GetTable(typeof(TOut)).Columns.Select(x => x.Name).JoinString(",");
       }
 
       string q = $"SELECT {selectStr} FROM \"{driver.Schema}\".\"{Builder.TableName}\"";
@@ -60,7 +62,7 @@ namespace KDPgDriver.Builder
         if (selectPart.Length > 0)
           selectPart.Append(", ");
         selectPart.Append(exp.Expression);
-        
+
         columns.Add(new ResultColumnDef()
         {
             PropertyInfo = (PropertyInfo) member,
@@ -73,21 +75,21 @@ namespace KDPgDriver.Builder
     {
       switch (prBody.NodeType) {
         case ExpressionType.MemberAccess:
-          var member = ((MemberExpression) prBody).Member;
-          string columnName = Helper.GetColumnName(member);
-          
+          var member = (PropertyInfo) ((MemberExpression) prBody).Member;
+          string columnName = Helper.GetColumn(member).Name;
+
           if (selectPart.Length > 0)
             selectPart.Append(", ");
           selectPart.Append(columnName);
-          
+
           columns.Add(new ResultColumnDef()
           {
-              PropertyInfo = (PropertyInfo) member,
-              KdPgColumnType =Helper.GetColumnDataType((PropertyInfo) member),
+              PropertyInfo = member,
+              KdPgColumnType = Helper.GetColumnDataType(member).Type,
           });
-          
+
           isSingleValue = true;
-          
+
           break;
         case ExpressionType.New:
           VisitForSelectNewType((NewExpression) prBody);

@@ -15,13 +15,21 @@ namespace KDPgDriver
     }
   }
 
+  [Flags]
+  public enum KDPgColumnFlagsEnum
+  {
+    PrimaryKey = 1,
+  }
+
   public class KDPgColumnAttribute : Attribute
   {
     public string Name { get; }
+    public KDPgColumnFlagsEnum Flags { get; }
 
-    public KDPgColumnAttribute(string name)
+    public KDPgColumnAttribute(string name, KDPgColumnFlagsEnum flags = 0)
     {
       Name = name;
+      Flags = flags;
     }
   }
 

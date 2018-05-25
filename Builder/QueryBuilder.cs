@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using KDPgDriver.Utils;
@@ -23,7 +24,7 @@ namespace KDPgDriver.Builder
 
     public QueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
     {
-      var e = Evaluator.PartialEval(exp.Body);
+      var e = Evaluator.PartialEval(exp.Body, exp.Parameters.First().Name);
       var whereSql = "(" + NodeVisitor.Visit(e, Parameters).Expression + ")";
 
       if (_wherePart.Length > 0)

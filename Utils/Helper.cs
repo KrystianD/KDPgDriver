@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
+using System.Runtime.InteropServices.WindowsRuntime;
+using System.Security.Cryptography.X509Certificates;
 using KDLib;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -12,62 +14,43 @@ using NpgsqlTypes;
 
 namespace KDPgDriver.Utils
 {
+  public class KdPgTableDescriptor
+  {
+    public string Name { get; }
+    public List<KdPgColumnDescriptor> Columns { get; }
+
+    public KdPgColumnDescriptor PrimaryKey { get; }
+
+    public KdPgTableDescriptor(string name, List<KdPgColumnDescriptor> columns)
+    {
+      Name = name;
+      Columns = columns;
+
+      PrimaryKey = columns.Find(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) > 0);
+    }
+  }
+
+  public class KdPgColumnDescriptor
+  {
+    public string Name { get; }
+    public KDPgColumnFlagsEnum Flags { get; }
+    public KDPgColumnType Type { get; }
+    public PropertyInfo PropertyInfo { get; }
+
+    public KdPgColumnDescriptor(string name, KDPgColumnFlagsEnum flags, KDPgColumnType type, PropertyInfo propertyInfo)
+    {
+      Name = name;
+      Flags = flags;
+      Type = type;
+      PropertyInfo = propertyInfo;
+    }
+  }
+
   public static class Helper
   {
     private static readonly HashSet<Type> TablesInitialized = new HashSet<Type>();
-    private static readonly Dictionary<PropertyInfo, KDPgColumnType> Types = new Dictionary<PropertyInfo, KDPgColumnType>();
-
-    private static void InitializeTable(Type tableType)
-    {
-      if (TablesInitialized.Contains(tableType))
-        return;
-
-      foreach (var columnPropertyInfo in GetModelColumns(tableType))
-        Types[columnPropertyInfo] = CreateColumnDataType(columnPropertyInfo);
-
-      TablesInitialized.Add(tableType);
-    }
-
-    private static KDPgColumnType CreateColumnDataType(PropertyInfo columnPropertyInfo)
-    {
-      var q = columnPropertyInfo.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
-      if (q.Length == 0)
-        throw new Exception("no column info");
-
-      Type propertyType = columnPropertyInfo.PropertyType;
-      KDPgColumnAttribute columnAttribute = (KDPgColumnAttribute) q[0];
-
-      var q2 = columnPropertyInfo.GetCustomAttributes(typeof(KDPgColumnTypeAttribute), false);
-      if (q2.Length > 0) {
-        KDPgColumnTypeAttribute columnTypeAttribute = (KDPgColumnTypeAttribute) q2[0];
-
-        switch (columnTypeAttribute.Type) {
-          case KDPgColumnTypeEnum.String:
-            return KDPgColumnStringType.Instance;
-          case KDPgColumnTypeEnum.Integer:
-            return KDPgColumnIntegerType.Instance;
-
-          case KDPgColumnTypeEnum.DateTime:
-            return KDPgColumnDateTimeType.Instance;
-          case KDPgColumnTypeEnum.Date:
-            return KDPgColumnDateType.Instance;
-          case KDPgColumnTypeEnum.Time:
-            return KDPgColumnTimeType.Instance;
-
-          case KDPgColumnTypeEnum.Json:
-            return new KDPgColumnJsonType(propertyType);
-          case KDPgColumnTypeEnum.Array:
-            var itemType = propertyType.GetGenericArguments()[0];
-            return new KDPgColumnArrayType(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
-
-          default:
-            throw new Exception($"CreateColumnDataType: Type {columnTypeAttribute.Type} not implemented");
-        }
-      }
-      else {
-        return GetNpgsqlTypeFromObject(propertyType);
-      }
-    }
+    private static readonly Dictionary<Type, KdPgTableDescriptor> TypeToTableDesc = new Dictionary<Type, KdPgTableDescriptor>();
+    private static readonly Dictionary<PropertyInfo, KdPgColumnDescriptor> PropertyInfoToColumnDesc = new Dictionary<PropertyInfo, KdPgColumnDescriptor>();
 
     public static KDPgColumnType GetNpgsqlTypeFromObject(object obj) => GetNpgsqlTypeFromObject(obj.GetType());
 
@@ -86,6 +69,9 @@ namespace KDPgDriver.Utils
         return KDPgColumnDateTimeType.Instance;
       if (propertyType == typeof(TimeSpan))
         return KDPgColumnTimeType.Instance;
+
+      if (propertyType == typeof(JToken) || propertyType == typeof(JArray) || propertyType == typeof(JObject))
+        return KDPgColumnJsonType.Instance;
 
       if (propertyType.IsGenericList()) {
         var itemType = propertyType.GetGenericArguments()[0];
@@ -122,33 +108,49 @@ namespace KDPgDriver.Utils
 
     public static bool IsColumn(MemberInfo memberType)
     {
-      var q = memberType.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
-      return q.Length > 0;
+      if (!(memberType is PropertyInfo propertyInfo))
+        return false;
+
+      InitializeTable(memberType.DeclaringType);
+      return PropertyInfoToColumnDesc.ContainsKey(propertyInfo);
     }
 
-    public static string GetColumnName(MemberInfo memberType)
+    public static KdPgColumnDescriptor GetColumn(MemberInfo memberType)
     {
-      var q = memberType.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
-
-      if (q.Length == 0)
-        throw new Exception("no column info");
-
-      return ((KDPgColumnAttribute) q[0]).Name;
+      return GetColumn((PropertyInfo) memberType);
     }
 
-    public static IList<PropertyInfo> GetModelColumns(Type modelType)
+    public static KdPgColumnDescriptor GetColumn(PropertyInfo memberType)
     {
-      return modelType.GetProperties().ToList();
+      InitializeTable(memberType.DeclaringType);
+      return PropertyInfoToColumnDesc[memberType];
     }
 
-    public static IList<string> GetModelColumnNames(Type modelType)
-    {
-      List<string> names = new List<string>();
-      foreach (var propertyInfo in modelType.GetProperties()) {
-        names.Add(GetColumnName(propertyInfo));
-      }
+    // public static IList<PropertyInfo> GetModelColumns(Type modelType)
+    // {
+    //   return modelType.GetProperties().ToList();
+    // }
 
-      return names;
+
+    public static KdPgTableDescriptor GetTable(Type tableType)
+    {
+      InitializeTable(tableType);
+      return TypeToTableDesc[tableType];
+    }
+
+    // public static IList<string> GetModelColumnNames(Type modelType)
+    // {
+    //   List<string> names = new List<string>();
+    //   foreach (var propertyInfo in modelType.GetProperties()) {
+    //     names.Add(GetColumn(propertyInfo));
+    //   }
+    //
+    //   return names;
+    // }
+
+    public static object GetModelValueByColumn(object model, KdPgColumnDescriptor column)
+    {
+      return column.PropertyInfo.GetValue(model);
     }
 
     public static object GetModelValueByColumn(object model, PropertyInfo column)
@@ -164,22 +166,22 @@ namespace KDPgDriver.Utils
     //     throw new Exception("no");
     // }
 
-    public static KDPgColumnType GetColumnDataType(PropertyInfo memberInfo)
+    public static KdPgColumnDescriptor GetColumnDataType(PropertyInfo memberInfo)
     {
       InitializeTable(memberInfo.DeclaringType);
-      return Types[memberInfo];
+      return PropertyInfoToColumnDesc[memberInfo];
     }
 
-    public static bool IsSystemArray(object value)
-    {
-      return value is Array;
-    }
-
-    public static bool IsModelProperty(MemberInfo memberInfo)
-    {
-      var q = memberInfo.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
-      return q.Length == 1;
-    }
+    // public static bool IsSystemArray(object value)
+    // {
+    //   return value is Array;
+    // }
+    //
+    // public static bool IsModelProperty(MemberInfo memberInfo)
+    // {
+    //   var q = memberInfo.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
+    //   return q.Length == 1;
+    // }
 
     // public static object ConvertFromNpgsql(PropertyInfo columnProperty, object rawValue)
     // {
@@ -215,24 +217,29 @@ namespace KDPgDriver.Utils
       }
     }
 
+    public static Tuple<object, NpgsqlDbType> ConvertToNpgsql(KdPgColumnDescriptor column, object rawValue)
+    {
+      return ConvertToNpgsql(column.PropertyInfo, rawValue);
+    }
+
     public static Tuple<object, NpgsqlDbType> ConvertToNpgsql(PropertyInfo columnProperty, object rawValue)
     {
       if (rawValue == null)
         return Tuple.Create<object, NpgsqlDbType>(null, NpgsqlDbType.Unknown);
 
-      var type = GetColumnDataType(columnProperty);
+      var column = GetColumnDataType(columnProperty);
 
-      switch (type) {
+      switch (column.Type) {
         case KDPgColumnStringType _:
         case KDPgColumnIntegerType _:
         case KDPgColumnArrayType _:
         case KDPgColumnBooleanType _:
         case KDPgColumnDateTimeType _:
         case KDPgColumnTimeType _:
-          return Tuple.Create(rawValue, type.NpgsqlType);
+          return Tuple.Create(rawValue, column.Type.NpgsqlType);
 
         case KDPgColumnDateType _:
-          return Tuple.Create((object) ((DateTime) rawValue).Date, type.NpgsqlType);
+          return Tuple.Create((object) ((DateTime) rawValue).Date, column.Type.NpgsqlType);
 
         case KDPgColumnJsonType jsonType:
           if (jsonType.BackingType == null)
@@ -241,8 +248,79 @@ namespace KDPgDriver.Utils
             return Tuple.Create((object) JsonConvert.SerializeObject(rawValue, Formatting.None), NpgsqlDbType.Jsonb);
 
         default:
-          throw new Exception($"ConvertToNpgsql: Type {type} not implemented");
+          throw new Exception($"ConvertToNpgsql: Type {column} not implemented");
       }
+    }
+
+    // Initializers
+    private static void InitializeTable(Type tableType)
+    {
+      if (TablesInitialized.Contains(tableType))
+        return;
+
+      var tableAttribute = tableType.GetCustomAttribute<KDPgTableAttribute>();
+
+      var table = new KdPgTableDescriptor(
+          name: tableAttribute.Name,
+          columns: tableType.GetProperties()
+                            .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
+                            .Select(CreateColumnDescriptor).ToList()
+      );
+
+      foreach (var col in table.Columns) {
+        PropertyInfoToColumnDesc[col.PropertyInfo] = col;
+      }
+
+      TypeToTableDesc[tableType] = table;
+
+      TablesInitialized.Add(tableType);
+    }
+
+    private static KDPgColumnType CreateColumnDataType(PropertyInfo columnPropertyInfo)
+    {
+      Type propertyType = columnPropertyInfo.PropertyType;
+
+      var columnTypeAttribute = columnPropertyInfo.GetCustomAttribute<KDPgColumnTypeAttribute>();
+      if (columnTypeAttribute != null) {
+        switch (columnTypeAttribute.Type) {
+          case KDPgColumnTypeEnum.String:
+            return KDPgColumnStringType.Instance;
+          case KDPgColumnTypeEnum.Integer:
+            return KDPgColumnIntegerType.Instance;
+
+          case KDPgColumnTypeEnum.DateTime:
+            return KDPgColumnDateTimeType.Instance;
+          case KDPgColumnTypeEnum.Date:
+            return KDPgColumnDateType.Instance;
+          case KDPgColumnTypeEnum.Time:
+            return KDPgColumnTimeType.Instance;
+
+          case KDPgColumnTypeEnum.Json:
+            return new KDPgColumnJsonType(propertyType);
+          case KDPgColumnTypeEnum.Array:
+            var itemType = propertyType.GetGenericArguments()[0];
+            return new KDPgColumnArrayType(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
+
+          default:
+            throw new Exception($"CreateColumnDataType: Type {columnTypeAttribute.Type} not implemented");
+        }
+      }
+      else {
+        return GetNpgsqlTypeFromObject(propertyType);
+      }
+    }
+
+    private static KdPgColumnDescriptor CreateColumnDescriptor(PropertyInfo columnPropertyInfo)
+    {
+      var columnAttribute = columnPropertyInfo.GetCustomAttribute<KDPgColumnAttribute>();
+      if (columnAttribute == null)
+        throw new Exception("no column info");
+
+      return new KdPgColumnDescriptor(
+          name: columnAttribute.Name,
+          flags: columnAttribute.Flags,
+          type: CreateColumnDataType(columnPropertyInfo),
+          propertyInfo: columnPropertyInfo);
     }
   }
 }

@@ -2,12 +2,18 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace KDPgDriver {
+namespace KDPgDriver
+{
   public static class Evaluator
   {
     public static Expression PartialEval(Expression expression)
     {
       return new SubtreeEvaluator(new Nominator().Nominate(expression)).Eval(expression);
+    }
+
+    public static Expression PartialEval(Expression expression, string inputParameterName)
+    {
+      return new SubtreeEvaluator(new Nominator(inputParameterName).Nominate(expression)).Eval(expression);
     }
 
     /// <summary>
@@ -52,8 +58,15 @@ namespace KDPgDriver {
     /// </summary>
     class Nominator : ExpressionVisitor
     {
+      private readonly string _inputParameterName;
+
       HashSet<Expression> candidates;
       bool cannotBeEvaluated;
+
+      public Nominator(string inputParameterName = null)
+      {
+        _inputParameterName = inputParameterName;
+      }
 
       internal HashSet<Expression> Nominate(Expression expression)
       {
@@ -62,9 +75,21 @@ namespace KDPgDriver {
         return candidates;
       }
 
-      private static bool CanBeEvaluatedLocally(Expression expression)
+      private bool CanBeEvaluatedLocally(Expression expression)
       {
-        return expression.NodeType != ExpressionType.Parameter;
+        if (expression is ParameterExpression parameterExpression) {
+          if (_inputParameterName == null) {
+            return false;
+          }
+          else {
+            return parameterExpression.Name != _inputParameterName;
+          }
+        }
+        else {
+          return true;
+        }
+
+        // return expression.NodeType != ExpressionType.Parameter;
       }
 
       public override Expression Visit(Expression expression)

@@ -16,15 +16,16 @@ namespace KDPgDriver.Builder
 
   public class InsertQuery<TModel>
   {
-    private List<PropertyInfo> columns = new List<PropertyInfo>();
+    private List<KdPgColumnDescriptor> columns = new List<KdPgColumnDescriptor>();
     private List<string> extractors = new List<string>();
-
 
     private List<TModel> objects = new List<TModel>();
 
     private StringBuilder insertStr = new StringBuilder();
 
     public ParametersContainer Parameters { get; } = new ParametersContainer();
+
+    private KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
 
     private bool preparation = true;
 
@@ -33,7 +34,7 @@ namespace KDPgDriver.Builder
     public void UseField(Expression<Func<TModel, object>> field)
     {
       PropertyInfo column = NodeVisitor.GetPropertyInfo(field);
-      columns.Add(column);
+      columns.Add(Helper.GetColumn(column));
     }
 
     // public UpdateQuery<TModel> Insert(TModel obj)
@@ -53,8 +54,10 @@ namespace KDPgDriver.Builder
     {
       preparation = false;
 
-      if (columns.Count == 0)
-        columns.AddRange(Helper.GetModelColumns(typeof(TModel)));
+      if (columns.Count == 0) {
+        columns.AddRange(Helper.GetTable(typeof(TModel)).Columns
+                               .Where(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) == 0));
+      }
 
       objects.Add(obj);
 
@@ -79,9 +82,15 @@ namespace KDPgDriver.Builder
 
     public string GetQuery(Driver driver)
     {
-      var columnsStr = columns.Select(Helper.GetColumnName).JoinString(",");
+      var columnsStr = columns.Select(x => x.Name).JoinString(",");
+
       string tableName = Helper.GetTableName(typeof(TModel));
       string q = $"INSERT INTO \"{driver.Schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";
+
+      if (TableModel.PrimaryKey != null) {
+        q += $" RETURNING \"{TableModel.PrimaryKey.Name}\"";
+      }
+
       return q;
     }
   }

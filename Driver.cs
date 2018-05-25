@@ -32,6 +32,9 @@ namespace KDPgDriver
       return _transaction.CommitAsync();
     }
 
+
+    public InsertQuery<TModel> CreateInsert<TModel>() => Driver.CreateInsert<TModel>();
+
     public QueryBuilder<TModel> CreateBuilder<TModel>() => Driver.CreateBuilder<TModel>();
 
     public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class
@@ -166,10 +169,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         builder.Parameters.AssignToCommand(cmd);
-        await cmd.ExecuteNonQueryAsync();
+        var lastInsertId = await cmd.ExecuteScalarAsync();
+        
+        return new InsertQueryResult((int)lastInsertId);
       }
-
-      return null;
     }
 
     internal async Task<UpdateQueryResult> QueryAsyncInternal<TOut>(UpdateQuery<TOut> builder,
@@ -203,7 +206,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
         builder.Parameters.AssignToCommand(cmd);
         var reader = await cmd.ExecuteReaderAsync();
 
-        return new SelectQueryResult<TOut>(connection, cmd, reader,builder, columns, disposeConnection);
+        return new SelectQueryResult<TOut>(connection, cmd, reader, builder, columns, disposeConnection);
       }
     }
   }
