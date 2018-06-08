@@ -175,7 +175,7 @@ namespace KDPgDriver.Builder
             }
             else if (call.Method.Name == "StartsWith") {
               txt = VisitInternal(call.Arguments[0]).Expression;
-              return new TypedValue($"({callObject.Expression}) LIKE (f_escape_like({txt}) || '%')", KDPgColumnBooleanType.Instance);
+              return new TypedValue($"({callObject.Expression}) LIKE (kdpg_escape_like({txt}) || '%')", KDPgColumnBooleanType.Instance);
             }
             else if (call.Method.Name == "get_Item") {
               txt = VisitInternal(call.Arguments[0]).Expression;

@@ -90,13 +90,13 @@ namespace KDPgDriver
     {
       using (var connection = await CreateConnection()) {
         string fn = @"
-CREATE OR REPLACE FUNCTION f_escape_regexp(text) RETURNS text AS
+CREATE OR REPLACE FUNCTION kdpg_escape_regexp(text) RETURNS text AS
 $func$
 SELECT regexp_replace($1, '([!$()*+.:<=>?[\\\]^{|}-])', '\\\1', 'g')
 $func$
 LANGUAGE sql IMMUTABLE;
 
-CREATE OR REPLACE FUNCTION f_escape_like(text) RETURNS text AS
+CREATE OR REPLACE FUNCTION kdpg_escape_like(text) RETURNS text AS
 $func$
 SELECT replace(replace(replace($1
          , '\', '\\')  -- must come 1st
