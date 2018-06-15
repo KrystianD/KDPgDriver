@@ -69,6 +69,10 @@ namespace KDPgDriver.Utils
         return KDPgColumnDateTimeType.Instance;
       if (propertyType == typeof(TimeSpan))
         return KDPgColumnTimeType.Instance;
+      if (propertyType == typeof(Guid))
+        return KDPgColumnUUIDType.Instance;
+      if (propertyType == typeof(decimal))
+        return KDPgColumnDecimal.Instance;
 
       if (propertyType == typeof(JToken) || propertyType == typeof(JArray) || propertyType == typeof(JObject))
         return KDPgColumnJsonType.Instance;
@@ -201,6 +205,8 @@ namespace KDPgDriver.Utils
         case KDPgColumnDateTimeType _:
         case KDPgColumnDateType _:
         case KDPgColumnTimeType _:
+        case KDPgColumnUUIDType _:
+        case KDPgColumnDecimal _:
           return rawValue;
 
         case KDPgColumnArrayType arrayType:
@@ -236,6 +242,8 @@ namespace KDPgDriver.Utils
         case KDPgColumnBooleanType _:
         case KDPgColumnDateTimeType _:
         case KDPgColumnTimeType _:
+        case KDPgColumnUUIDType _:
+        case KDPgColumnDecimal _:
           return Tuple.Create(rawValue, column.Type.NpgsqlType);
 
         case KDPgColumnDateType _:

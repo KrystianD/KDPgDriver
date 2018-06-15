@@ -43,6 +43,8 @@ namespace KDPgDriver
     DateTime,
     Date,
     Time,
+    UUID,
+    Decimal,
   }
 
   public abstract class KDPgColumnType
@@ -108,6 +110,16 @@ namespace KDPgDriver
     public KDPgColumnIntegerType() : base(KDPgColumnTypeEnum.Integer) { }
   }
 
+  public class KDPgColumnDecimal : KDPgColumnType
+  {
+    public static KDPgColumnDecimal Instance = new KDPgColumnDecimal();
+
+    public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Numeric;
+    public override string PostgresType => "numeric";
+
+    public KDPgColumnDecimal() : base(KDPgColumnTypeEnum.Decimal) { }
+  }
+
   public class KDPgColumnStringType : KDPgColumnType
   {
     public static KDPgColumnStringType Instance = new KDPgColumnStringType();
@@ -116,6 +128,16 @@ namespace KDPgDriver
     public override string PostgresType => "text";
 
     public KDPgColumnStringType() : base(KDPgColumnTypeEnum.String) { }
+  }
+
+  public class KDPgColumnUUIDType : KDPgColumnType
+  {
+    public static KDPgColumnUUIDType Instance = new KDPgColumnUUIDType();
+
+    public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Uuid;
+    public override string PostgresType => "uuid";
+
+    public KDPgColumnUUIDType() : base(KDPgColumnTypeEnum.UUID) { }
   }
 
   public class KDPgColumnArrayType : KDPgColumnType
