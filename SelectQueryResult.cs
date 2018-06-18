@@ -24,7 +24,7 @@ namespace KDPgDriver
   public class ResultColumnDef
   {
     public PropertyInfo PropertyInfo;
-    public KDPgColumnType KdPgColumnType;
+    public KDPgValueType KdPgColumnType;
   }
   
   public class SelectQueryResult<T> : IDisposable where T : class

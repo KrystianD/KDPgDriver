@@ -6,6 +6,7 @@ namespace KDPgDriver.Builder {
   {
     // Driver Driver { get; }
     string TableName { get; }
+    string SchemaName { get; }
 
     string GetWherePart();
   }

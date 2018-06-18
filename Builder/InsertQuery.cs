@@ -74,7 +74,7 @@ namespace KDPgDriver.Builder
         if (i > 0)
           insertStr.Append(",");
 
-        insertStr.Append(val == null ? "NULL" : Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
+        insertStr.Append(val == null ? "NULL" : Parameters.GetNextParam(npgValue));
       }
 
       insertStr.Append(")");
@@ -83,9 +83,11 @@ namespace KDPgDriver.Builder
     public string GetQuery(Driver driver)
     {
       var columnsStr = columns.Select(x => x.Name).JoinString(",");
+      
+      string schema = Helper.GetTableSchema(typeof(TModel)) ?? driver.Schema;
 
       string tableName = Helper.GetTableName(typeof(TModel));
-      string q = $"INSERT INTO \"{driver.Schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";
+      string q = $"INSERT INTO \"{schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";
 
       if (TableModel.PrimaryKey != null) {
         q += $" RETURNING \"{TableModel.PrimaryKey.Name}\"";

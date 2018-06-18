@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using KDLib;
+using KDPgDriver.Utils;
 using Npgsql;
 using NpgsqlTypes;
 
@@ -9,8 +12,10 @@ namespace KDPgDriver.Builder
   {
     private readonly List<Tuple<object, NpgsqlDbType?>> _params = new List<Tuple<object, NpgsqlDbType?>>();
 
-    public string GetNextParam(object value, NpgsqlDbType? type)
+    public string GetNextParam(Helper.PgValue pgValue)
     {
+      object value = pgValue.value;
+
       if (value is string s) {
         if (s.Length < 30) {
           return "'" + s.Replace("'", "''") + "'";
@@ -20,8 +25,12 @@ namespace KDPgDriver.Builder
       if (value == null)
         return "NULL";
 
+      if (value.GetType().IsGenericEumerable()) { }
+
       var name = $"@{_params.Count}";
-      _params.Add(Tuple.Create(value, type));
+      if (pgValue.PostgresType != null)
+        name += $"::{pgValue.PostgresType}";
+      _params.Add(Tuple.Create(value, pgValue.NpgsqlType));
       return name;
     }
 

@@ -35,7 +35,7 @@ namespace KDPgDriver.Builder
       }
     }
 
-    public static TypedValue VisitProperty2(Expression exp)
+    public static TypedExpression VisitProperty2(Expression exp)
     {
       switch (exp) {
         case MemberExpression me:
@@ -72,9 +72,9 @@ namespace KDPgDriver.Builder
       }
     }
 
-    public static TypedValue Visit(Expression expression, ParametersContainer parametersContainer)
+    public static TypedExpression Visit(Expression expression, ParametersContainer parametersContainer)
     {
-      TypedValue VisitInternal(Expression exp)
+      TypedExpression VisitInternal(Expression exp)
       {
         switch (exp) {
           // case NewArrayExpression newArrayExpression:
@@ -88,8 +88,12 @@ namespace KDPgDriver.Builder
             return ProcessPath(me.Expression, me.Member);
 
           case ConstantExpression me:
-            var npgValue = Helper.GetNpgsqlTypeFromObject(me.Value);
-            return new TypedValue(parametersContainer.GetNextParam(me.Value, npgValue.NpgsqlType), npgValue);
+          {
+            var npgValue = Helper.GetNpgsqlTypeFromObject(me.Type);
+            var pgValue = Helper.ConvertToNpgsql(npgValue, me.Value);
+            return new TypedExpression(parametersContainer.GetNextParam(pgValue),
+                                       npgValue);
+          }
 
           case UnaryExpression un:
             switch (un.NodeType) {
@@ -106,39 +110,39 @@ namespace KDPgDriver.Builder
             break;
 
           case BinaryExpression be:
-            TypedValue left, right;
+            TypedExpression left, right;
 
             switch (be.NodeType) {
               case ExpressionType.Equal:
                 left = VisitInternal(be.Left);
                 right = VisitInternal(be.Right);
 
-                if (left.Type is KDPgColumnJsonType)
-                  return new TypedValue($"{left.Expression} = to_jsonb({right.Expression}::{right.Type.PostgresType})", KDPgColumnBooleanType.Instance);
+                if (left.Type is KDPgValueTypeJson)
+                  return new TypedExpression($"{left.Expression} = to_jsonb({right.Expression}::{right.Type.PostgresType})", KDPgValueTypeBoolean.Instance);
                 else
-                  return new TypedValue($"{left.Expression} = {right.Expression}", KDPgColumnBooleanType.Instance);
+                  return new TypedExpression($"{left.Expression} = {right.Expression}", KDPgValueTypeBoolean.Instance);
 
               case ExpressionType.Add:
                 left = VisitInternal(be.Left);
                 right = VisitInternal(be.Right);
 
                 string op;
-                if (left.Type == KDPgColumnStringType.Instance && right.Type == KDPgColumnStringType.Instance)
+                if (left.Type == KDPgValueTypeString.Instance && right.Type == KDPgValueTypeString.Instance)
                   op = "||";
                 else
                   op = "+";
 
-                return new TypedValue($"{left.Expression} {op} {right.Expression}", KDPgColumnStringType.Instance);
+                return new TypedExpression($"{left.Expression} {op} {right.Expression}", KDPgValueTypeString.Instance);
 
               case ExpressionType.AndAlso:
                 left = VisitInternal(be.Left);
                 right = VisitInternal(be.Right);
-                return new TypedValue($"({left.Expression}) AND ({right.Expression})", KDPgColumnBooleanType.Instance);
+                return new TypedExpression($"({left.Expression}) AND ({right.Expression})", KDPgValueTypeBoolean.Instance);
 
               case ExpressionType.OrElse:
                 left = VisitInternal(be.Left);
                 right = VisitInternal(be.Right);
-                return new TypedValue($"({left.Expression}) OR ({right.Expression})", KDPgColumnBooleanType.Instance);
+                return new TypedExpression($"({left.Expression}) OR ({right.Expression})", KDPgValueTypeBoolean.Instance);
 
               default:
                 throw new Exception($"unknown operator: {be.NodeType}");
@@ -156,7 +160,7 @@ namespace KDPgDriver.Builder
               StringBuilder sb = new StringBuilder();
               if (value is IEnumerable array) {
                 foreach (var item in array) {
-                  sb.Append(parametersContainer.GetNextParam(item, null));
+                  sb.Append(parametersContainer.GetNextParam(new Helper.PgValue(item, null, null)));
                   sb.Append(",");
                 }
 
@@ -166,26 +170,36 @@ namespace KDPgDriver.Builder
                 throw new Exception($"invalid array: {value.GetType()}");
               }
 
-              return new TypedValue($"({callObject.Expression}) IN ({sb})", KDPgColumnBooleanType.Instance);
+              return new TypedExpression($"({callObject.Expression}) IN ({sb})", KDPgValueTypeBoolean.Instance);
             }
             else if (call.Method.Name == "Substring") {
               string start = VisitInternal(call.Arguments[0]).Expression;
               string length = VisitInternal(call.Arguments[1]).Expression;
-              return new TypedValue($"substring(({callObject.Expression}) from ({start}) for ({length}))", KDPgColumnStringType.Instance);
+              return new TypedExpression($"substring(({callObject.Expression}) from ({start}) for ({length}))", KDPgValueTypeString.Instance);
             }
             else if (call.Method.Name == "StartsWith") {
               txt = VisitInternal(call.Arguments[0]).Expression;
-              return new TypedValue($"({callObject.Expression}) LIKE (kdpg_escape_like({txt}) || '%')", KDPgColumnBooleanType.Instance);
+              return new TypedExpression($"({callObject.Expression}) LIKE (kdpg_escape_like({txt}) || '%')", KDPgValueTypeBoolean.Instance);
             }
             else if (call.Method.Name == "get_Item") {
               txt = VisitInternal(call.Arguments[0]).Expression;
 
-              return new TypedValue($"({callObject.Expression})->{txt}", KDPgColumnJsonType.Instance);
+              return new TypedExpression($"({callObject.Expression})->{txt}", KDPgValueTypeJson.Instance);
             }
             else if (call.Method.Name == "Contains") {
-              if (callObject.Type is KDPgColumnArrayType) {
+              if (callObject.Type is KDPgValueTypeArray) {
                 var value = VisitInternal(call.Arguments[0]).Expression;
-                return new TypedValue($"({value}) = ANY({callObject.Expression})", KDPgColumnStringType.Instance);
+                return new TypedExpression($"({value}) = ANY({callObject.Expression})", KDPgValueTypeBoolean.Instance);
+              }
+              else {
+                throw new Exception($"Contains cannot be used on non-list");
+              }
+            }
+            else if (call.Method.Name == "PgContainsAny") {
+              callObject = VisitInternal(call.Arguments[0]);
+              if (callObject.Type is KDPgValueTypeArray) {
+                var value = VisitInternal(call.Arguments[1]).Expression;
+                return new TypedExpression($"({value}) && {callObject.Expression}", KDPgValueTypeBoolean.Instance);
               }
               else {
                 throw new Exception($"Contains cannot be used on non-list");
@@ -207,27 +221,27 @@ namespace KDPgDriver.Builder
       public List<string> jsonPath = new List<string>();
     }
 
-    public static TypedValue ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)
+    public static TypedExpression ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)
     {
       return ProcessPath(me.Expression, me.Member, out jsonPath);
     }
 
-    public static TypedValue ProcessPath(Expression exp, MemberInfo propertyInfo) => ProcessPath(exp, propertyInfo, out _);
+    public static TypedExpression ProcessPath(Expression exp, MemberInfo propertyInfo) => ProcessPath(exp, propertyInfo, out _);
 
-    public static TypedValue ProcessPath(Expression exp, MemberInfo propertyInfo, out JsonPropertyPath jsonPath)
+    public static TypedExpression ProcessPath(Expression exp, MemberInfo propertyInfo, out JsonPropertyPath jsonPath)
     {
       jsonPath = new JsonPropertyPath();
       return ProcessPathInternal(exp, propertyInfo, jsonPath);
     }
 
-    private static TypedValue ProcessPathInternal(Expression exp, MemberInfo propertyInfo, JsonPropertyPath jsonPath)
+    private static TypedExpression ProcessPathInternal(Expression exp, MemberInfo propertyInfo, JsonPropertyPath jsonPath)
     {
       bool isColumn = Helper.IsColumn(propertyInfo);
 
       if (isColumn) {
         var column = Helper.GetColumn(propertyInfo);
         jsonPath.columnName = $"\"{column.Name}\"";
-        return new TypedValue($"\"{column.Name}\"", column.Type);
+        return new TypedExpression($"\"{column.Name}\"", column.Type);
       }
       else {
         string fieldName = Helper.GetJsonPropertyName(propertyInfo);
@@ -235,9 +249,9 @@ namespace KDPgDriver.Builder
         // var fieldType = ((FieldInfo) propertyInfo).FieldType;
 
         if (exp is MemberExpression memberExpression) {
-          TypedValue parentField = ProcessPathInternal(memberExpression.Expression, memberExpression.Member, jsonPath);
+          TypedExpression parentField = ProcessPathInternal(memberExpression.Expression, memberExpression.Member, jsonPath);
           jsonPath.jsonPath.Add(fieldName);
-          return new TypedValue($"{parentField.Expression}->'{fieldName}'", KDPgColumnJsonType.Instance);
+          return new TypedExpression($"{parentField.Expression}->'{fieldName}'", KDPgValueTypeJson.Instance);
         }
         else { throw new Exception($"invalid path"); }
       }

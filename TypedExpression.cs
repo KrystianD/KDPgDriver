@@ -1,12 +1,12 @@
 ﻿using System;
 
 namespace KDPgDriver {
-  public class TypedValue
+  public class TypedExpression
   {
     public string Expression { get; }
-    public KDPgColumnType Type { get; }
+    public KDPgValueType Type { get; }
 
-    public TypedValue(string expression, KDPgColumnType type)
+    public TypedExpression(string expression, KDPgValueType type)
     {
       Expression = expression;
       Type = type;

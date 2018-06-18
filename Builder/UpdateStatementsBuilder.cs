@@ -11,11 +11,11 @@ namespace KDPgDriver.Builder
 {
   public class UpdateStatementsBuilder<TModel>
   {
-    private readonly UpdateQuery<TModel> _updateQuery;
+    public readonly UpdateQuery<TModel> UpdateQuery;
 
     public UpdateStatementsBuilder(UpdateQuery<TModel> updateQuery)
     {
-      _updateQuery = updateQuery;
+      UpdateQuery = updateQuery;
     }
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
@@ -25,7 +25,7 @@ namespace KDPgDriver.Builder
           PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
           string colName = Helper.GetColumn(columnPropertyInfo).Name;
           var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
-          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
+          UpdateQuery.updateParts.Add(colName, UpdateQuery.Parameters.GetNextParam(npgValue));
           break;
         default:
           throw new Exception($"invalid node: {field.Body.NodeType}");
@@ -41,13 +41,13 @@ namespace KDPgDriver.Builder
 
       var valueArray = new[] { value };
       var valueType = Helper.GetNpgsqlTypeFromObject(valueArray);
-      string val = _updateQuery.Parameters.GetNextParam(valueArray, null);
+      string val = UpdateQuery.Parameters.GetNextParam(new Helper.PgValue(valueArray, null, null));
 
-      if (v.Type is KDPgColumnArrayType) {
+      if (v.Type is KDPgValueTypeArray) {
         var colName = v.Expression;
         AddUpdate(colName, src => $"array_cat({src}, {val})");
       }
-      else if (v.Type is KDPgColumnJsonType) {
+      else if (v.Type is KDPgValueTypeJson) {
         string jsonPathStr1 = jsonPath.jsonPath.Select(x => $"'{x}'").JoinString(",");
         AddUpdate(jsonPath.columnName,
                   src => $"kdpg_jsonb_add({src}, array[{jsonPathStr1}], to_jsonb({val}::{valueType.PostgresType}))");
@@ -63,16 +63,16 @@ namespace KDPgDriver.Builder
     {
       string colName = NodeVisitor.VisitProperty(field.Body);
 
-      var val = _updateQuery.Parameters.GetNextParam(value, null);
-      
+      var val = UpdateQuery.Parameters.GetNextParam(new Helper.PgValue(value, null, null));
+
       AddUpdate(colName, src => $"array_remove({src}, {val})");
       return this;
     }
 
     private void AddUpdate(string src, Func<string, string> template)
     {
-      string newSrc = _updateQuery.updateParts.GetValueOrDefault(src, src);
-      _updateQuery.updateParts[src] = template($"{newSrc}");
+      string newSrc = UpdateQuery.updateParts.GetValueOrDefault(src, src);
+      UpdateQuery.updateParts[src] = template($"{newSrc}");
     }
   }
 }

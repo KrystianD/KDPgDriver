@@ -10,6 +10,7 @@ namespace KDPgDriver.Builder
   {
     // public Driver Driver { get; }
     public string TableName { get; }
+    public string SchemaName { get; }
 
     public ParametersContainer Parameters { get; } = new ParametersContainer();
     private readonly StringBuilder _wherePart = new StringBuilder();
@@ -20,6 +21,7 @@ namespace KDPgDriver.Builder
     {
       // Driver = driver;
       TableName = Helper.GetTableName(typeof(TModel));
+      SchemaName = Helper.GetTableSchema(typeof(TModel));
     }
 
     public QueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
@@ -53,6 +55,18 @@ namespace KDPgDriver.Builder
       var us = new UpdateStatementsBuilder<TModel>(uq);
       fn(us);
       return uq;
+    }
+
+    public UpdateQuery<TModel> Update(UpdateStatementsBuilder<TModel> builder)
+    {
+      return builder.UpdateQuery;
+    }
+
+    public UpdateStatementsBuilder<TModel> CreateUpdateStatementBuilder()
+    {
+      var uq = new UpdateQuery<TModel>(this, Parameters);
+      var us = new UpdateStatementsBuilder<TModel>(uq);
+      return us;
     }
   }
 }

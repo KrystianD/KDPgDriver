@@ -18,7 +18,9 @@ namespace KDPgDriver.Builder
 
     public string GetQuery(Driver driver)
     {
-      string q = $"\nUPDATE \"{driver.Schema}\".\"{Builder.TableName}\"\n";
+      string schema = Builder.SchemaName ?? driver.Schema;
+      
+      string q = $"\nUPDATE \"{schema}\".\"{Builder.TableName}\"\n";
 
       string setPart = string.Join(", ", updateParts.Select(x => $"{x.Key} = {x.Value}"));
       q += $"SET {setPart}\n";

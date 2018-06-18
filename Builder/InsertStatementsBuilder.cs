@@ -22,7 +22,7 @@ namespace KDPgDriver.Builder
           PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
           string colName = Helper.GetColumn(columnPropertyInfo).Name;
           var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
-          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(npgValue.Item1, npgValue.Item2));
+          _updateQuery.updateParts.Add(colName, _updateQuery.Parameters.GetNextParam(npgValue));
           break;
         default:
           throw new Exception($"invalid node: {field.Body.NodeType}");

@@ -43,7 +43,9 @@ namespace KDPgDriver.Builder
         selectStr = Helper.GetTable(typeof(TOut)).Columns.Select(x => x.Name).JoinString(",");
       }
 
-      string q = $"SELECT {selectStr} FROM \"{driver.Schema}\".\"{Builder.TableName}\"";
+      string schema = Builder.SchemaName ?? driver.Schema;
+
+      string q = $"SELECT {selectStr} FROM \"{schema}\".\"{Builder.TableName}\"";
       string wherePart = Builder.GetWherePart();
       if (wherePart.Length > 0)
         q += $" WHERE {wherePart}";

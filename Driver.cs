@@ -86,6 +86,7 @@ namespace KDPgDriver
       return connection;
     }
 
+
     public async Task InitializeAsync()
     {
       using (var connection = await CreateConnection()) {
@@ -139,25 +140,34 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return b;
     }
 
-    public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class
+    public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> insertQuery) where TOut : class
     {
       using (var connection = await CreateConnection()) {
-        return await QueryAsyncInternal(builder, connection, null);
+        return await QueryAsyncInternal(insertQuery, connection, null);
       }
     }
 
-    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder) where TOut : class
+    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> updateQuery) where TOut : class
     {
       using (var connection = await CreateConnection()) {
-        return await QueryAsyncInternal(builder, connection, null);
+        return await QueryAsyncInternal(updateQuery, connection, null);
       }
     }
 
-    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder) where TOut : class
+    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> selectQuery) where TOut : class
     {
       var connection = await CreateConnection();
-      return await QueryAsyncInternal(builder, connection, null, disposeConnection: true);
+      return await QueryAsyncInternal(selectQuery, connection, null, disposeConnection: true);
     }
+
+    // public async Task<SelectQueryResult<TOut>> QueryAsync<TModel,TOut>(Func<QueryBuilder<TModel>, SelectQuery<TOut>> fn) where TOut : class
+    // {
+    //   var builder = CreateBuilder<TModel>();
+    //   var q = fn(builder);
+    //   
+    //   var connection = await CreateConnection();
+    //   return await QueryAsyncInternal(q, connection, null, disposeConnection: true);
+    // }
 
     internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder,
                                                                     NpgsqlConnection connection,
@@ -170,8 +180,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         builder.Parameters.AssignToCommand(cmd);
         var lastInsertId = await cmd.ExecuteScalarAsync();
-        
-        return new InsertQueryResult((int)lastInsertId);
+
+        return new InsertQueryResult((int) lastInsertId);
       }
     }
 

@@ -34,10 +34,10 @@ namespace KDPgDriver.Utils
   {
     public string Name { get; }
     public KDPgColumnFlagsEnum Flags { get; }
-    public KDPgColumnType Type { get; }
+    public KDPgValueType Type { get; }
     public PropertyInfo PropertyInfo { get; }
 
-    public KdPgColumnDescriptor(string name, KDPgColumnFlagsEnum flags, KDPgColumnType type, PropertyInfo propertyInfo)
+    public KdPgColumnDescriptor(string name, KDPgColumnFlagsEnum flags, KDPgValueType type, PropertyInfo propertyInfo)
     {
       Name = name;
       Flags = flags;
@@ -52,39 +52,44 @@ namespace KDPgDriver.Utils
     private static readonly Dictionary<Type, KdPgTableDescriptor> TypeToTableDesc = new Dictionary<Type, KdPgTableDescriptor>();
     private static readonly Dictionary<PropertyInfo, KdPgColumnDescriptor> PropertyInfoToColumnDesc = new Dictionary<PropertyInfo, KdPgColumnDescriptor>();
 
-    public static KDPgColumnType GetNpgsqlTypeFromObject(object obj) => GetNpgsqlTypeFromObject(obj.GetType());
+    public static KDPgValueType GetNpgsqlTypeFromObject(object obj) => GetNpgsqlTypeFromObject(obj.GetType());
 
-    public static KDPgColumnType GetNpgsqlTypeFromObject(Type propertyType)
+    public static KDPgValueType GetNpgsqlTypeFromObject(Type propertyType)
     {
       if (propertyType.IsNullable())
         propertyType = propertyType.GetNullableInnerType();
 
       if (propertyType == typeof(string))
-        return KDPgColumnStringType.Instance;
+        return KDPgValueTypeString.Instance;
       if (propertyType == typeof(int))
-        return KDPgColumnIntegerType.Instance;
+        return KDPgValueTypeInteger.Instance;
       if (propertyType == typeof(bool))
-        return KDPgColumnBooleanType.Instance;
+        return KDPgValueTypeBoolean.Instance;
       if (propertyType == typeof(DateTime))
-        return KDPgColumnDateTimeType.Instance;
+        return KDPgValueTypeDateTime.Instance;
       if (propertyType == typeof(TimeSpan))
-        return KDPgColumnTimeType.Instance;
+        return KDPgValueTypeTime.Instance;
       if (propertyType == typeof(Guid))
-        return KDPgColumnUUIDType.Instance;
+        return KDPgValueTypeUUID.Instance;
       if (propertyType == typeof(decimal))
-        return KDPgColumnDecimal.Instance;
+        return KDPgValueTypeDecimal.Instance;
 
       if (propertyType == typeof(JToken) || propertyType == typeof(JArray) || propertyType == typeof(JObject))
-        return KDPgColumnJsonType.Instance;
+        return KDPgValueTypeJson.Instance;
 
-      if (propertyType.IsGenericList()) {
+      if (propertyType.IsGenericList() || propertyType.IsGenericEumerable()) {
         var itemType = propertyType.GetGenericArguments()[0];
-        return new KDPgColumnArrayType(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
+        return new KDPgValueTypeArray(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
       }
 
       if (propertyType.IsArray) {
         var itemType = propertyType.GetElementType();
-        return new KDPgColumnArrayType(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
+        return new KDPgValueTypeArray(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
+      }
+
+      if (TypeRegistry.HasEnumType(propertyType)) {
+        var entry = TypeRegistry.GetEnumEntryForType(propertyType);
+        return KDPgValueTypeEnum.GetInstance(entry.enumName, entry);
       }
 
       throw new Exception($"GetNpgsqlTypeFromObject: Type {propertyType} not implemented");
@@ -98,6 +103,16 @@ namespace KDPgDriver.Utils
         throw new Exception("no table info");
 
       return ((KDPgTableAttribute) q[0]).Name;
+    }
+
+    public static string GetTableSchema(Type modelType)
+    {
+      var q = modelType.GetCustomAttributes(typeof(KDPgTableAttribute), false);
+
+      if (q.Length == 0)
+        throw new Exception("no table info");
+
+      return ((KDPgTableAttribute) q[0]).Schema;
     }
 
     public static string GetJsonPropertyName(MemberInfo memberInfo)
@@ -193,26 +208,35 @@ namespace KDPgDriver.Utils
     //   return ConvertFromNpgsql(type, rawValue);
     // }
 
-    public static object ConvertFromNpgsql(KDPgColumnType type, object rawValue)
+    public static object ConvertFromNpgsql(KDPgValueType type, object rawValue)
     {
       if (rawValue == null)
         return null;
 
       switch (type) {
-        case KDPgColumnStringType _:
-        case KDPgColumnIntegerType _:
-        case KDPgColumnBooleanType _:
-        case KDPgColumnDateTimeType _:
-        case KDPgColumnDateType _:
-        case KDPgColumnTimeType _:
-        case KDPgColumnUUIDType _:
-        case KDPgColumnDecimal _:
+        case KDPgValueTypeString _:
+        case KDPgValueTypeInteger _:
+        case KDPgValueTypeBoolean _:
+        case KDPgValueTypeDateTime _:
+        case KDPgValueTypeDate _:
+        case KDPgValueTypeTime _:
+        case KDPgValueTypeUUID _:
+        case KDPgValueTypeDecimal _:
           return rawValue;
 
-        case KDPgColumnArrayType arrayType:
-          return Activator.CreateInstance(arrayType.ListType, rawValue);
+        case KDPgValueTypeArray arrayType:
+          var rawItems = (IList) rawValue;
+          var outputList = (IList) Activator.CreateInstance(arrayType.ListType);
+          foreach (var rawItem in rawItems) {
+            outputList.Add(ConvertFromNpgsql(arrayType.ItemType, rawItem));
+          }
 
-        case KDPgColumnJsonType jsonType:
+          return outputList;
+
+        case KDPgValueTypeEnum enumType:
+          return enumType.EnumEntry.nameToEnumFunc((string) rawValue);
+
+        case KDPgValueTypeJson jsonType:
           if (jsonType.BackingType == null)
             return JToken.Parse((string) rawValue);
           else
@@ -223,40 +247,70 @@ namespace KDPgDriver.Utils
       }
     }
 
-    public static Tuple<object, NpgsqlDbType> ConvertToNpgsql(KdPgColumnDescriptor column, object rawValue)
+    public class PgValue
+    {
+      public object value;
+      public NpgsqlDbType? NpgsqlType;
+      public string PostgresType;
+
+      public PgValue(object value, NpgsqlDbType? npgsqlType, string postgresType)
+      {
+        this.value = value;
+        NpgsqlType = npgsqlType;
+        PostgresType = postgresType;
+      }
+    }
+
+    public static PgValue ConvertToNpgsql(KdPgColumnDescriptor column, object rawValue)
     {
       return ConvertToNpgsql(column.PropertyInfo, rawValue);
     }
 
-    public static Tuple<object, NpgsqlDbType> ConvertToNpgsql(PropertyInfo columnProperty, object rawValue)
+    public static PgValue ConvertToNpgsql(PropertyInfo columnProperty, object rawValue)
     {
-      if (rawValue == null)
-        return Tuple.Create<object, NpgsqlDbType>(null, NpgsqlDbType.Unknown);
-
       var column = GetColumnDataType(columnProperty);
 
-      switch (column.Type) {
-        case KDPgColumnStringType _:
-        case KDPgColumnIntegerType _:
-        case KDPgColumnArrayType _:
-        case KDPgColumnBooleanType _:
-        case KDPgColumnDateTimeType _:
-        case KDPgColumnTimeType _:
-        case KDPgColumnUUIDType _:
-        case KDPgColumnDecimal _:
-          return Tuple.Create(rawValue, column.Type.NpgsqlType);
+      return ConvertToNpgsql(column.Type, rawValue);
+    }
 
-        case KDPgColumnDateType _:
-          return Tuple.Create((object) ((DateTime) rawValue).Date, column.Type.NpgsqlType);
+    public static PgValue ConvertToNpgsql(KDPgValueType type, object rawValue)
+    {
+      if (rawValue == null)
+        return new PgValue(null, NpgsqlDbType.Unknown, null);
 
-        case KDPgColumnJsonType jsonType:
+      switch (type) {
+        case KDPgValueTypeString _:
+        case KDPgValueTypeInteger _:
+        case KDPgValueTypeBoolean _:
+        case KDPgValueTypeDateTime _:
+        case KDPgValueTypeTime _:
+        case KDPgValueTypeUUID _:
+        case KDPgValueTypeDecimal _:
+          return new PgValue(rawValue, type.NpgsqlType, type.PostgresType);
+
+        case KDPgValueTypeEnum enumType:
+          object v = enumType.EnumEntry.enumToNameFunc(rawValue);
+          return new PgValue(v, type.NpgsqlType, type.PostgresType);
+
+        case KDPgValueTypeDate _:
+          return new PgValue(((DateTime) rawValue).Date, type.NpgsqlType, type.PostgresType);
+
+        case KDPgValueTypeArray arrayType:
+          IList objs = new List<string>();
+          foreach (var rawItem in (IList) rawValue) {
+            objs.Add(ConvertToNpgsql(arrayType.ItemType, rawItem).value);
+          }
+
+          return new PgValue(objs, type.NpgsqlType, type.PostgresType);
+
+        case KDPgValueTypeJson jsonType:
           if (jsonType.BackingType == null)
-            return Tuple.Create((object) ((JToken) rawValue).ToString(Formatting.None), NpgsqlDbType.Jsonb);
+            return new PgValue(((JToken) rawValue).ToString(Formatting.None), NpgsqlDbType.Jsonb, "jsonb");
           else
-            return Tuple.Create((object) JsonConvert.SerializeObject(rawValue, Formatting.None), NpgsqlDbType.Jsonb);
+            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), NpgsqlDbType.Jsonb, "jsonb");
 
         default:
-          throw new Exception($"ConvertToNpgsql: Type {column} not implemented");
+          throw new Exception($"ConvertToNpgsql: Type {type} not implemented");
       }
     }
 
@@ -284,33 +338,38 @@ namespace KDPgDriver.Utils
       TablesInitialized.Add(tableType);
     }
 
-    private static KDPgColumnType CreateColumnDataType(PropertyInfo columnPropertyInfo)
+    private static KDPgValueType CreateColumnDataType(PropertyInfo columnPropertyInfo)
     {
       Type propertyType = columnPropertyInfo.PropertyType;
 
       var columnTypeAttribute = columnPropertyInfo.GetCustomAttribute<KDPgColumnTypeAttribute>();
       if (columnTypeAttribute != null) {
-        switch (columnTypeAttribute.Type) {
-          case KDPgColumnTypeEnum.String:
-            return KDPgColumnStringType.Instance;
-          case KDPgColumnTypeEnum.Integer:
-            return KDPgColumnIntegerType.Instance;
+        switch (columnTypeAttribute.TypeEnum) {
+          case KDPgValueTypeKind.String:
+            return KDPgValueTypeString.Instance;
+          case KDPgValueTypeKind.Integer:
+            return KDPgValueTypeInteger.Instance;
 
-          case KDPgColumnTypeEnum.DateTime:
-            return KDPgColumnDateTimeType.Instance;
-          case KDPgColumnTypeEnum.Date:
-            return KDPgColumnDateType.Instance;
-          case KDPgColumnTypeEnum.Time:
-            return KDPgColumnTimeType.Instance;
+          case KDPgValueTypeKind.DateTime:
+            return KDPgValueTypeDateTime.Instance;
+          case KDPgValueTypeKind.Date:
+            return KDPgValueTypeDate.Instance;
+          case KDPgValueTypeKind.Time:
+            return KDPgValueTypeTime.Instance;
 
-          case KDPgColumnTypeEnum.Json:
-            return new KDPgColumnJsonType(propertyType);
-          case KDPgColumnTypeEnum.Array:
-            var itemType = propertyType.GetGenericArguments()[0];
-            return new KDPgColumnArrayType(listType: propertyType, itemType: GetNpgsqlTypeFromObject(itemType));
+          case KDPgValueTypeKind.Enum:
+            var entry = TypeRegistry.GetEnumEntryForType(propertyType);
+            return KDPgValueTypeEnum.GetInstance(entry.enumName, entry);
+
+          case KDPgValueTypeKind.Json:
+            return new KDPgValueTypeJson(propertyType);
+
+          case KDPgValueTypeKind.Array:
+            var listItemType = propertyType.GetGenericArguments()[0];
+            return new KDPgValueTypeArray(listType: propertyType, itemType: GetNpgsqlTypeFromObject(listItemType));
 
           default:
-            throw new Exception($"CreateColumnDataType: Type {columnTypeAttribute.Type} not implemented");
+            throw new Exception($"CreateColumnDataType: Type {columnTypeAttribute.TypeEnum} not implemented");
         }
       }
       else {
