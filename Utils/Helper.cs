@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading;
 using KDLib;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -261,6 +263,13 @@ namespace KDPgDriver.Utils
       }
     }
 
+    public static PgValue ConvertObjectToPgValue(object rawValue)
+    {
+      var npgValue = GetNpgsqlTypeFromObject(rawValue);
+      var pgValue = ConvertToNpgsql(npgValue, rawValue);
+      return pgValue;
+    }
+
     public static PgValue ConvertToNpgsql(KdPgColumnDescriptor column, object rawValue)
     {
       return ConvertToNpgsql(column.PropertyInfo, rawValue);
@@ -317,26 +326,30 @@ namespace KDPgDriver.Utils
     // Initializers
     private static void InitializeTable(Type tableType)
     {
-      if (TablesInitialized.Contains(tableType))
-        return;
+      lock (PropertyInfoToColumnDesc) {
+        if (TablesInitialized.Contains(tableType))
+          return;
 
-      var tableAttribute = tableType.GetCustomAttribute<KDPgTableAttribute>();
+        var tableAttribute = tableType.GetCustomAttribute<KDPgTableAttribute>();
 
-      var table = new KdPgTableDescriptor(
-          name: tableAttribute.Name,
-          columns: tableType.GetProperties()
-                            .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
-                            .Select(CreateColumnDescriptor).ToList()
-      );
+        var table = new KdPgTableDescriptor(
+            name: tableAttribute.Name,
+            columns: tableType.GetProperties()
+                              .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
+                              .Select(CreateColumnDescriptor).ToList()
+        );
 
-      foreach (var col in table.Columns) {
-        PropertyInfoToColumnDesc[col.PropertyInfo] = col;
+        Console.WriteLine("ASD");
+        foreach (var col in table.Columns) {
+          PropertyInfoToColumnDesc[col.PropertyInfo] = col;
+        }
+
+        TypeToTableDesc[tableType] = table;
+
+        TablesInitialized.Add(tableType);
       }
-
-      TypeToTableDesc[tableType] = table;
-
-      TablesInitialized.Add(tableType);
     }
+
 
     private static KDPgValueType CreateColumnDataType(PropertyInfo columnPropertyInfo)
     {
@@ -388,6 +401,28 @@ namespace KDPgDriver.Utils
           flags: columnAttribute.Flags,
           type: CreateColumnDataType(columnPropertyInfo),
           propertyInfo: columnPropertyInfo);
+    }
+
+    public static string Quote(string str)
+    {
+      return "\"" + str + "\"";
+    }
+
+    public static string QuoteTable(string tableName, string schema = null)
+    {
+      return schema == null ? Quote(tableName) : $"{Quote(schema)}.{Quote(tableName)}";
+    }
+
+    public static string EscapePostgresValue(object value)
+    {
+      switch (value) {
+        case string s:
+          return "'" + s.Replace("'", "''") + "'";
+        case int v:
+          return v.ToString();
+        default:
+          throw new Exception($"unable to escape value of type: {value.GetType()}");
+      }
     }
   }
 }

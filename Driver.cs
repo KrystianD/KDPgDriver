@@ -189,12 +189,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans) where TOut : class
     {
-      string query = builder.GetQuery(this);
+      RawQuery rq = builder.GetQuery(this);
 
+      string query;
+      ParametersContainer parameters;
+      rq.Render(out query, out parameters);
+      
       Console.WriteLine(query);
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        builder.Parameters.AssignToCommand(cmd);
+        parameters.AssignToCommand(cmd);
         await cmd.ExecuteNonQueryAsync();
       }
 
@@ -208,12 +212,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
         bool disposeConnection) where TOut : class
     {
       var columns = builder.GetColumns();
-      string query = builder.GetQuery(this);
+      RawQuery rq = builder.GetQuery(this);
 
+      string query;
+      ParametersContainer parameters;
+      rq.Render(out query, out parameters);
+      
       Console.WriteLine(query);
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        builder.Parameters.AssignToCommand(cmd);
+        parameters.AssignToCommand(cmd);
         var reader = await cmd.ExecuteReaderAsync();
 
         return new SelectQueryResult<TOut>(connection, cmd, reader, builder, columns, disposeConnection);

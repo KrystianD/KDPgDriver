@@ -19,5 +19,10 @@ namespace KDPgDriver
     {
       throw new Exception("do not use directly");
     }
+
+    public static bool PgContainsAny<T>(this IEnumerable<T> source, params T[] values)
+    {
+      throw new Exception("do not use directly");
+    }
   }
 }

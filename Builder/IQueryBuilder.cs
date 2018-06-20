@@ -8,6 +8,6 @@ namespace KDPgDriver.Builder {
     string TableName { get; }
     string SchemaName { get; }
 
-    string GetWherePart();
+    RawQuery GetWherePart();
   }
 }

@@ -1,20 +1,21 @@
 ﻿using System;
+using KDPgDriver.Builder;
 
 namespace KDPgDriver {
   public class TypedExpression
   {
-    public string Expression { get; }
+    public RawQuery RawQuery { get; }
     public KDPgValueType Type { get; }
 
-    public TypedExpression(string expression, KDPgValueType type)
+    public TypedExpression(RawQuery rawQuery, KDPgValueType type)
     {
-      Expression = expression;
+      RawQuery = rawQuery;
       Type = type;
     }
 
     public override string ToString()
     {
-      return $"{Expression}, {Type}";
+      return $"{RawQuery}, {Type}";
     }
   }
 }

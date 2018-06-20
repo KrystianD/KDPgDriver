@@ -9,9 +9,14 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builder
 {
-  public class SelectQuery<TOut>
+  public interface ISelectQuery
   {
-    public readonly ParametersContainer Parameters;
+    RawQuery GetQuery(Driver driver);
+  }
+
+  public class SelectQuery<TOut> : ISelectQuery
+  {
+    // public readonly ParametersContainer Parameters;
 
     public IQueryBuilder Builder { get; }
 
@@ -19,9 +24,9 @@ namespace KDPgDriver.Builder
     private StringBuilder selectPart = new StringBuilder();
     public bool isSingleValue = false;
 
-    public SelectQuery(IQueryBuilder queryBuilder, ParametersContainer parameters)
+    public SelectQuery(IQueryBuilder queryBuilder /*, ParametersContainer parameters*/)
     {
-      Parameters = parameters;
+      // Parameters = parameters;
       Builder = queryBuilder;
     }
 
@@ -36,21 +41,26 @@ namespace KDPgDriver.Builder
           : columns;
     }
 
-    public string GetQuery(Driver driver)
+    public RawQuery GetQuery(Driver driver)
     {
       string selectStr = selectPart.ToString();
       if (selectStr.Length == 0) {
-        selectStr = Helper.GetTable(typeof(TOut)).Columns.Select(x => x.Name).JoinString(",");
+        selectStr = Helper.GetTable(typeof(TOut)).Columns.Select(x => Helper.Quote(x.Name)).JoinString(",");
       }
 
       string schema = Builder.SchemaName ?? driver.Schema;
 
-      string q = $"SELECT {selectStr} FROM \"{schema}\".\"{Builder.TableName}\"";
-      string wherePart = Builder.GetWherePart();
-      if (wherePart.Length > 0)
-        q += $" WHERE {wherePart}";
+      RawQuery rq = new RawQuery();
+      rq.Append("SELECT ", selectStr, " FROM ", Helper.QuoteTable(Builder.TableName, schema));
 
-      return q;
+      // string q = $"SELECT {selectStr} FROM \"{schema}\".\"{Builder.TableName}\"";
+      RawQuery wherePart = Builder.GetWherePart();
+      if (!wherePart.IsEmpty) {
+        rq.Append(" WHERE ");
+        rq.Append(wherePart);
+      }
+
+      return rq;
     }
 
     private void VisitForSelectNewType(NewExpression e)
@@ -59,11 +69,11 @@ namespace KDPgDriver.Builder
       var members = e.Members;
 
       foreach (var (member, arg) in members.Zip(args)) {
-        var exp = NodeVisitor.Visit(Evaluator.PartialEval(arg), Parameters);
+        var exp = NodeVisitor.Visit(Evaluator.PartialEval(arg));
 
         if (selectPart.Length > 0)
           selectPart.Append(", ");
-        selectPart.Append(exp.Expression);
+        selectPart.Append(exp.RawQuery.RenderSimple());
 
         columns.Add(new ResultColumnDef()
         {
