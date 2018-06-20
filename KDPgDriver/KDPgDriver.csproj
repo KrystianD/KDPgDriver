@@ -1,17 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
+    <Version>0.1.0.0</Version>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Npgsql, Version=3.2.7.0, Culture=neutral, PublicKeyToken=5d8b90d52f46fda7">
-      <HintPath>..\..\..\..\.nuget\packages\npgsql\3.2.7\lib\netstandard2.0\Npgsql.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
+    <PackageReference Include="KDLib.NET" Version="0.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="Npgsql" Version="3.2.7" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\KDLib.NET\KDLib.NET.csproj" />
   </ItemGroup>
 </Project>

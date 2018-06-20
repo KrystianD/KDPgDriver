@@ -1,4 +1,5 @@
-﻿using KDPgDriver.Builder;
+﻿using System;
+using KDPgDriver.Builder;
 
 namespace KDPgDriver
 {
@@ -13,9 +14,9 @@ namespace KDPgDriver
   
   public static class Func
   {
-    public static string MD5(string query)
+    public static string MD5(string value)
     {
-      return "A";
+      throw new Exception("do not use directly");
     }
   }
 }
