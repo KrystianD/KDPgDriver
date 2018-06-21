@@ -10,7 +10,21 @@ namespace KDPgDriver.Builder
 {
   public class WhereBuilder<TModel>
   {
-    public RawQuery RawQuery { get; } = new RawQuery();
+    public RawQuery RawQuery { get; private set; } = new RawQuery();
+
+    public static WhereBuilder<TModel> Empty => new WhereBuilder<TModel>();
+
+    public WhereBuilder<TModel> AndWith(WhereBuilder<TModel> other)
+    {
+      RawQuery = And(this, other).RawQuery;
+      return this;
+    }
+
+    public WhereBuilder<TModel> OrWith(WhereBuilder<TModel> other)
+    {
+      RawQuery = Or(this, other).RawQuery;
+      return this;
+    }
 
     public static WhereBuilder<TModel> Eq<T>(Expression<Func<TModel, T>> field, T value)
     {
@@ -63,6 +77,9 @@ namespace KDPgDriver.Builder
 
       bool first = true;
       foreach (var statement in statements) {
+        if (statement.RawQuery.IsEmpty)
+          continue;
+        
         if (!first)
           b.RawQuery.Append(" OR ");
 
@@ -79,6 +96,9 @@ namespace KDPgDriver.Builder
 
       bool first = true;
       foreach (var statement in statements) {
+        if (statement.RawQuery.IsEmpty)
+          continue;
+        
         if (!first)
           b.RawQuery.Append(" AND ");
 
