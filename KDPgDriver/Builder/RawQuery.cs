@@ -74,7 +74,7 @@ namespace KDPgDriver.Builder
 
     public RawQuery AppendSurround(Helper.PgValue value)
     {
-      if (value.value == null) {
+      if (value.Value == null) {
         Append("NULL");
       }
       else {
@@ -159,7 +159,7 @@ namespace KDPgDriver.Builder
         }
 
         if (part.paramIdx != -1) {
-          var v = parameters[part.paramIdx].value;
+          var v = parameters[part.paramIdx].Value;
           sb.Append(Helper.EscapePostgresValue(v));
         }
 

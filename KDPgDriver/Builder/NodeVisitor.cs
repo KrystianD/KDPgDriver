@@ -80,9 +80,6 @@ namespace KDPgDriver.Builder
         switch (exp) {
           // case NewArrayExpression newArrayExpression:
           //   var itemType = newArrayExpression.Type.GetElementType();
-          //   
-          //   
-          //   
           //   return null;
 
           case MemberExpression me:
@@ -90,9 +87,8 @@ namespace KDPgDriver.Builder
 
           case ConstantExpression me:
           {
-            var npgValue = Helper.GetNpgsqlTypeFromType(me.Type);
-            var pgValue = Helper.ConvertToNpgsql(npgValue, me.Value);
-            return new TypedExpression(RawQuery.Create(pgValue), npgValue);
+            var pgValue = Helper.ConvertObjectToPgValue(me.Value);
+            return new TypedExpression(RawQuery.Create(pgValue), pgValue.Type);
           }
 
           case UnaryExpression un:

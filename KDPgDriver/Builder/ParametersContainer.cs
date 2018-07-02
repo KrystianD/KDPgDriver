@@ -14,7 +14,7 @@ namespace KDPgDriver.Builder
 
     public string GetNextParam(Helper.PgValue pgValue)
     {
-      object value = pgValue.value;
+      object value = pgValue.Value;
 
       var idx = _params.Count + 1;
 
@@ -34,9 +34,9 @@ namespace KDPgDriver.Builder
       if (value.GetType().IsGenericEumerable()) { }
 
       var name = $"@{idx}";
-      if (pgValue.PostgresType != null)
-        name += $"::{pgValue.PostgresType}";
-      _params.Add(Tuple.Create(value, pgValue.NpgsqlType));
+      if (pgValue.Type != null)
+        name += $"::{pgValue.Type.PostgresType}";
+      _params.Add(Tuple.Create(value, pgValue.Type?.NpgsqlType));
       return name;
     }
 

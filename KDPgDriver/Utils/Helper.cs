@@ -147,27 +147,11 @@ namespace KDPgDriver.Utils
       return PropertyInfoToColumnDesc[memberType];
     }
 
-    // public static IList<PropertyInfo> GetModelColumns(Type modelType)
-    // {
-    //   return modelType.GetProperties().ToList();
-    // }
-
-
     public static KdPgTableDescriptor GetTable(Type tableType)
     {
       InitializeTable(tableType);
       return TypeToTableDesc[tableType];
     }
-
-    // public static IList<string> GetModelColumnNames(Type modelType)
-    // {
-    //   List<string> names = new List<string>();
-    //   foreach (var propertyInfo in modelType.GetProperties()) {
-    //     names.Add(GetColumn(propertyInfo));
-    //   }
-    //
-    //   return names;
-    // }
 
     public static object GetModelValueByColumn(object model, KdPgColumnDescriptor column)
     {
@@ -179,36 +163,11 @@ namespace KDPgDriver.Utils
       return column.GetValue(model);
     }
 
-    // public static Type GetColumnType(MemberInfo memberInfo)
-    // {
-    //   if (memberInfo is PropertyInfo p)
-    //     return p.PropertyType;
-    //   else
-    //     throw new Exception("no");
-    // }
-
     public static KdPgColumnDescriptor GetColumnDataType(PropertyInfo memberInfo)
     {
       InitializeTable(memberInfo.DeclaringType);
       return PropertyInfoToColumnDesc[memberInfo];
     }
-
-    // public static bool IsSystemArray(object value)
-    // {
-    //   return value is Array;
-    // }
-    //
-    // public static bool IsModelProperty(MemberInfo memberInfo)
-    // {
-    //   var q = memberInfo.GetCustomAttributes(typeof(KDPgColumnAttribute), false);
-    //   return q.Length == 1;
-    // }
-
-    // public static object ConvertFromNpgsql(PropertyInfo columnProperty, object rawValue)
-    // {
-    //   KDPgColumnType type = GetColumnDataType(columnProperty);
-    //   return ConvertFromNpgsql(type, rawValue);
-    // }
 
     public static object ConvertFromNpgsql(KDPgValueType type, object rawValue)
     {
@@ -251,18 +210,16 @@ namespace KDPgDriver.Utils
 
     public class PgValue
     {
-      public object value;
-      public NpgsqlDbType? NpgsqlType;
-      public string PostgresType;
+      public object Value;
+      public KDPgValueType Type;
 
-      public PgValue(object value, NpgsqlDbType? npgsqlType, string postgresType)
+      public PgValue(object value, KDPgValueType type)
       {
-        this.value = value;
-        NpgsqlType = npgsqlType;
-        PostgresType = postgresType;
+        Value = value;
+        Type = type;
       }
 
-      public static PgValue Null = new PgValue(null, NpgsqlDbType.Unknown, null);
+      public static readonly PgValue Null = new PgValue(null, null);
     }
 
     public static PgValue ConvertObjectToPgValue(object rawValue)
@@ -300,28 +257,28 @@ namespace KDPgDriver.Utils
         case KDPgValueTypeTime _:
         case KDPgValueTypeUUID _:
         case KDPgValueTypeDecimal _:
-          return new PgValue(rawValue, type.NpgsqlType, type.PostgresType);
+          return new PgValue(rawValue, type);
 
         case KDPgValueTypeEnum enumType:
           object v = enumType.EnumEntry.enumToNameFunc(rawValue);
-          return new PgValue(v, type.NpgsqlType, type.PostgresType);
+          return new PgValue(v, type);
 
         case KDPgValueTypeDate _:
-          return new PgValue(((DateTime) rawValue).Date, type.NpgsqlType, type.PostgresType);
+          return new PgValue(((DateTime) rawValue).Date, type);
 
         case KDPgValueTypeArray arrayType:
           IList objs = new List<string>();
           foreach (var rawItem in (IList) rawValue) {
-            objs.Add(ConvertToNpgsql(arrayType.ItemType, rawItem).value);
+            objs.Add(ConvertToNpgsql(arrayType.ItemType, rawItem).Value);
           }
 
-          return new PgValue(objs, type.NpgsqlType, type.PostgresType);
+          return new PgValue(objs, type);
 
         case KDPgValueTypeJson jsonType:
           if (jsonType.BackingType == null)
-            return new PgValue(((JToken) rawValue).ToString(Formatting.None), NpgsqlDbType.Jsonb, "jsonb");
+            return new PgValue(((JToken) rawValue).ToString(Formatting.None), KDPgValueTypeJson.Instance);
           else
-            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), NpgsqlDbType.Jsonb, "jsonb");
+            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), KDPgValueTypeJson.Instance);
 
         default:
           throw new Exception($"ConvertToNpgsql: Type {type} not implemented");
