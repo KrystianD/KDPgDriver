@@ -111,6 +111,20 @@ namespace KDPgDriver.Builder
             TypedExpression left, right;
             RawQuery rq;
 
+            TypedExpression CreateSimpleBinaryOperator(string op)
+            {
+              rq = new RawQuery();
+
+              left = VisitInternal(be.Left);
+              right = VisitInternal(be.Right);
+
+              rq.AppendSurround(left.RawQuery);
+              rq.Append($" {op} ");
+              rq.AppendSurround(right.RawQuery);
+
+              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+            }
+
             switch (be.NodeType) {
               case ExpressionType.Equal:
                 left = VisitInternal(be.Left);
@@ -147,38 +161,29 @@ namespace KDPgDriver.Builder
 
                 return new TypedExpression(rq, KDPgValueTypeString.Instance);
 
-              // *
+              case ExpressionType.Subtract:
+                return CreateSimpleBinaryOperator("-");
+              
               case ExpressionType.Multiply:
-                rq = new RawQuery();
-                rq.AppendSurround(VisitInternal(be.Left).RawQuery);
-                rq.Append(" * ");
-                rq.AppendSurround(VisitInternal(be.Right).RawQuery);
-
-                return new TypedExpression(rq, KDPgValueTypeString.Instance);
+                return CreateSimpleBinaryOperator("*");
 
               case ExpressionType.AndAlso:
-                rq = new RawQuery();
-
-                left = VisitInternal(be.Left);
-                right = VisitInternal(be.Right);
-
-                rq.AppendSurround(left.RawQuery);
-                rq.Append(" AND ");
-                rq.AppendSurround(right.RawQuery);
-
-                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+                return CreateSimpleBinaryOperator("AND");
 
               case ExpressionType.OrElse:
-                rq = new RawQuery();
+                return CreateSimpleBinaryOperator("OR");
 
-                left = VisitInternal(be.Left);
-                right = VisitInternal(be.Right);
+              case ExpressionType.GreaterThan:
+                return CreateSimpleBinaryOperator(">");
 
-                rq.AppendSurround(left.RawQuery);
-                rq.Append(" OR ");
-                rq.AppendSurround(right.RawQuery);
+              case ExpressionType.GreaterThanOrEqual:
+                return CreateSimpleBinaryOperator(">=");
 
-                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+              case ExpressionType.LessThan:
+                return CreateSimpleBinaryOperator("<");
+
+              case ExpressionType.LessThanOrEqual:
+                return CreateSimpleBinaryOperator("<=");
 
               default:
                 throw new Exception($"unknown operator: {be.NodeType}");
@@ -266,7 +271,8 @@ namespace KDPgDriver.Builder
 
                 var arg = VisitInternal(call.Arguments[0]);
 
-                object[] args = {
+                object[] args =
+                {
                     arg,
                 };
                 return (TypedExpression) internalMethod.Invoke(null, args);

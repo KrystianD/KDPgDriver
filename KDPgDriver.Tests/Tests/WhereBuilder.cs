@@ -6,7 +6,7 @@ using Xunit;
 
 namespace KDPgDriver.Tests
 {
-  public class WhereLINQ
+  public class WhereBuilderUnitTests
   {
     // Data types
     [Fact]
@@ -87,6 +87,86 @@ namespace KDPgDriver.Tests
           WhereBuilder<MyModel>.Eq(x => x.Name, "test"));
 
       Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") = (1)) OR ((""name"") = ('test')))");
+    }
+
+    [Fact]
+    public void WhereBinaryMultiply()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id * x.Id == 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") * (""id"")) = (1))");
+    }
+
+    [Fact]
+    public void WhereBinaryAddNumbers()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id + x.Id == 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") + (""id"")) = (1))");
+    }
+
+    [Fact]
+    public void WhereBinaryAddStrings()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Name + x.Name == "X");
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""name"") || (""name"")) = ('X'))");
+    }
+
+    [Fact]
+    public void WhereBinarySubtract()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id - x.Id == 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") - (""id"")) = (1))");
+    }
+
+    [Fact]
+    public void WhereBinaryGreaterThan()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id > 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") > (1))");
+    }
+
+    [Fact]
+    public void WhereBinaryGreaterThanEquals()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id >= 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") >= (1))");
+    }
+
+    [Fact]
+    public void WhereBinaryLessThan()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id < 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") < (1))");
+    }
+
+    [Fact]
+    public void WhereBinaryLessThanEquals()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Id <= 1);
+      var q = builder.Select(x => new { x.Id });
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") <= (1))");
     }
 
     // Operators
