@@ -74,9 +74,15 @@ namespace KDPgDriver.Builder
 
     public RawQuery AppendSurround(Helper.PgValue value)
     {
-      Append("(");
-      Append(value);
-      Append(")");
+      if (value.value == null) {
+        Append("NULL");
+      }
+      else {
+        Append("(");
+        Append(value);
+        Append(")");
+      }
+
       return this;
     }
 

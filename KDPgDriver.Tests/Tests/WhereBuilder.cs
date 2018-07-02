@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using KDPgDriver.Builder;
 using KDPgDriver.Utils;
 using NpgsqlTypes;
@@ -180,6 +182,21 @@ namespace KDPgDriver.Tests
       var b = WhereBuilder<MyModel>.In(x => x.Name, new[] { "A", "B" });
 
       Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") IN (('A'),('B')))");
+    }
+
+    [Fact]
+    public void WhereOperatorInEnumerable()
+    {
+      var items = new List<string>() { null, "A1", "A2", "B3", "A4" };
+      var items2 = items.Where(x => x == null || x.StartsWith("A")).Distinct();
+
+      var builder = new QueryBuilder<MyModel>();
+      builder.Where(x => x.Name.PgIn(items2));
+      var q = builder.Select(x => new { x.Id });
+
+      var b = WhereBuilder<MyModel>.In(x => x.Name, items2);
+
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") IN (NULL,('A1'),('A2'),('A4')))");
     }
 
     [Fact]

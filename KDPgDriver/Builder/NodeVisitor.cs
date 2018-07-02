@@ -90,7 +90,7 @@ namespace KDPgDriver.Builder
 
           case ConstantExpression me:
           {
-            var npgValue = Helper.GetNpgsqlTypeFromObject(me.Type);
+            var npgValue = Helper.GetNpgsqlTypeFromType(me.Type);
             var pgValue = Helper.ConvertToNpgsql(npgValue, me.Value);
             return new TypedExpression(RawQuery.Create(pgValue), npgValue);
           }
@@ -163,7 +163,7 @@ namespace KDPgDriver.Builder
 
               case ExpressionType.Subtract:
                 return CreateSimpleBinaryOperator("-");
-              
+
               case ExpressionType.Multiply:
                 return CreateSimpleBinaryOperator("*");
 
