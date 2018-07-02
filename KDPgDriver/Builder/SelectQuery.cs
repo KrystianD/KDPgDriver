@@ -16,17 +16,14 @@ namespace KDPgDriver.Builder
 
   public class SelectQuery<TOut> : ISelectQuery
   {
-    // public readonly ParametersContainer Parameters;
-
     public IQueryBuilder Builder { get; }
 
     private List<ResultColumnDef> columns = new List<ResultColumnDef>();
     private StringBuilder selectPart = new StringBuilder();
     public bool isSingleValue = false;
 
-    public SelectQuery(IQueryBuilder queryBuilder /*, ParametersContainer parameters*/)
+    public SelectQuery(IQueryBuilder queryBuilder)
     {
-      // Parameters = parameters;
       Builder = queryBuilder;
     }
 
@@ -53,7 +50,6 @@ namespace KDPgDriver.Builder
       RawQuery rq = new RawQuery();
       rq.Append("SELECT ", selectStr, " FROM ", Helper.QuoteTable(Builder.TableName, schema));
 
-      // string q = $"SELECT {selectStr} FROM \"{schema}\".\"{Builder.TableName}\"";
       RawQuery wherePart = Builder.GetWherePart();
       if (!wherePart.IsEmpty) {
         rq.Append(" WHERE ");

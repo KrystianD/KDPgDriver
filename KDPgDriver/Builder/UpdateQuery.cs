@@ -11,32 +11,18 @@ namespace KDPgDriver.Builder
 
   public class UpdateQuery<TOut> : IUpdateQuery
   {
-    // public ParametersContainer Parameters { get; }
     public IQueryBuilder Builder { get; }
 
     public Dictionary<string, RawQuery> updateParts = new Dictionary<string, RawQuery>();
 
-    public UpdateQuery(IQueryBuilder queryBuilder /*, ParametersContainer parameters*/)
+    public UpdateQuery(IQueryBuilder queryBuilder)
     {
-      // Parameters = parameters;
       Builder = queryBuilder;
     }
 
     public RawQuery GetQuery(Driver driver)
     {
       string schema = Builder.SchemaName ?? driver.Schema;
-
-      // string q = $"\nUPDATE \"{schema}\".\"{Builder.TableName}\"\n";
-      //
-      // string setPart = string.Join(", ", updateParts.Select(x => $"{x.Key} = {x.Value}"));
-      // q += $"SET {setPart}\n";
-
-      // string wherePart = Builder.GetWherePart();
-      // if (wherePart.Length > 0)
-      //   q += $"WHERE {wherePart}";
-
-      // return q + "\n";
-
 
       RawQuery rq = new RawQuery();
       rq.Append("UPDATE ", Helper.QuoteTable(Builder.TableName, schema), "\n");
@@ -49,7 +35,7 @@ namespace KDPgDriver.Builder
 
         rq.Append(Helper.Quote(name), " = ");
         rq.Append(rawQuery);
-        
+
         first = false;
       }
 

@@ -12,7 +12,6 @@ namespace KDPgDriver.Builder
     public string TableName { get; }
     public string SchemaName { get; }
 
-    // public ParametersContainer Parameters { get; } = new ParametersContainer();
     private readonly RawQuery _wherePart = new RawQuery();
 
     public RawQuery GetWherePart() => _wherePart;
