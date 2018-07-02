@@ -48,5 +48,25 @@ namespace KDPgDriver.Tests
 
       Utils.AssertRawQuery(rq3, "id = 12 OR id = 34");
     }
+
+    [Fact]
+    public void NestedSurrounded()
+    {
+      var rq1 = new RawQuery();
+      rq1.Append("id = 12");
+
+      var rq2 = new RawQuery();
+      rq2.Append("id = 34");
+
+      var rq3 = new RawQuery();
+      rq3.AppendSurround(rq1);
+      rq3.Append(" OR ");
+      rq3.AppendSurround(rq2);
+
+      Utils.AssertRawQuery(rq1, "id = 12");
+      Utils.AssertRawQuery(rq2, "id = 34");
+
+      Utils.AssertRawQuery(rq3, "(id = 12) OR (id = 34)");
+    }
   }
 }
