@@ -26,7 +26,7 @@ namespace KDPgDriver
     public PropertyInfo PropertyInfo;
     public KDPgValueType KdPgColumnType;
   }
-  
+
   public class SelectQueryResult<T> : IDisposable where T : class
   {
     private readonly NpgsqlConnection _connection;
@@ -79,7 +79,11 @@ namespace KDPgDriver
         obj = (T) Activator.CreateInstance(t, fields);
       }
       else {
-        obj = (T) Activator.CreateInstance(t);
+        if (_builder.isSingleValue)
+          obj = null;
+        else
+          obj = (T) Activator.CreateInstance(t);
+        
         for (int i = 0; i < _reader.FieldCount; i++) {
           var columnProperty = _columns[i];
 
