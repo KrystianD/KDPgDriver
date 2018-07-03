@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Builder;
@@ -160,6 +161,13 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return await QueryAsyncInternal(selectQuery, connection, null, disposeConnection: true);
     }
 
+    public async Task<List<TOut>> QueryGetAllAsync<TOut>(SelectQuery<TOut> selectQuery) where TOut : class
+    {
+      var res = await QueryAsync(selectQuery);
+      var objects = await res.GetAll();
+      return objects;
+    }
+
     // public async Task<SelectQueryResult<TOut>> QueryAsync<TModel,TOut>(Func<QueryBuilder<TModel>, SelectQuery<TOut>> fn) where TOut : class
     // {
     //   var builder = CreateBuilder<TModel>();
@@ -194,7 +202,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       string query;
       ParametersContainer parameters;
       rq.Render(out query, out parameters);
-      
+
       Console.WriteLine(query);
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
@@ -217,7 +225,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       string query;
       ParametersContainer parameters;
       rq.Render(out query, out parameters);
-      
+
       Console.WriteLine(query);
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
