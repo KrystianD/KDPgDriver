@@ -47,31 +47,27 @@ namespace KDPgDriver.Builder
       }
     }
 
-    public static PropertyInfo GetPropertyInfo<TModel>(Expression<Func<TModel, object>> exp)
+    public static PropertyInfo EvaluateToPropertyInfo(Expression exp)
     {
-      switch (exp.Body) {
+      switch (exp) {
         case MemberExpression me:
           return (PropertyInfo) me.Member;
 
         case UnaryExpression un:
           switch (un.NodeType) {
             case ExpressionType.Convert:
-              // if (un.Type.IsGenericType && un.Type.GetGenericTypeDefinition() == typeof(Nullable<>)) {
-              // if (un.Type.IsNullable())
               return (PropertyInfo) ((MemberExpression) un.Operand).Member;
-
-            // throw new Exception($"unknown type: {un.Type}");
 
             default:
               throw new Exception($"unknown operator: {un.NodeType}");
           }
 
-          break;
-
         default:
           throw new Exception($"invalid node: {exp.NodeType}");
       }
     }
+
+    public static PropertyInfo EvaluateToPropertyInfo<TModel>(Expression<Func<TModel, object>> exp) => EvaluateToPropertyInfo(exp.Body);
 
     public static TypedExpression Visit(Expression expression /*, ParametersContainer parametersContainer*/)
     {

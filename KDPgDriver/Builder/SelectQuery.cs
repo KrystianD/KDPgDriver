@@ -81,29 +81,38 @@ namespace KDPgDriver.Builder
 
     public void Process(Expression prBody)
     {
-      switch (prBody.NodeType) {
-        case ExpressionType.MemberAccess:
-          var member = (PropertyInfo) ((MemberExpression) prBody).Member;
-          string columnName = Helper.GetColumn(member).Name;
+      var member = NodeVisitor.EvaluateToPropertyInfo(prBody);
+      string columnName = Helper.GetColumn(member).Name;
 
-          if (selectPart.Length > 0)
-            selectPart.Append(", ");
-          selectPart.Append(columnName);
+      if (selectPart.Length > 0)
+        selectPart.Append(", ");
+      selectPart.Append(columnName);
 
-          columns.Add(new ResultColumnDef()
-          {
-              PropertyInfo = member,
-              KdPgColumnType = Helper.GetColumnDataType(member).Type,
-          });
+      columns.Add(new ResultColumnDef()
+      {
+          PropertyInfo = member,
+          KdPgColumnType = Helper.GetColumnDataType(member).Type,
+      });
 
-          isSingleValue = true;
+      isSingleValue = true;
+    }
 
-          break;
-        case ExpressionType.New:
-          VisitForSelectNewType((NewExpression) prBody);
-          break;
-        default:
-          throw new Exception($"invalid node: {prBody.NodeType}");
+    public void ProcessListOfFields<TModel>(IEnumerable<Expression<Func<TModel, object>>> fieldsList)
+    {
+      foreach (var fieldExpression in fieldsList) {
+        var member = NodeVisitor.EvaluateToPropertyInfo(fieldExpression);
+
+        string columnName = Helper.GetColumn(member).Name;
+
+        if (selectPart.Length > 0)
+          selectPart.Append(", ");
+        selectPart.Append(columnName);
+
+        columns.Add(new ResultColumnDef()
+        {
+            PropertyInfo = member,
+            KdPgColumnType = Helper.GetColumnDataType(member).Type,
+        });
       }
     }
   }

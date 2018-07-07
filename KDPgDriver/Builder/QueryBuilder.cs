@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
@@ -58,6 +59,15 @@ namespace KDPgDriver.Builder
     {
       var us = new SelectQuery<TNewModel>(this);
       us.Process(pr.Body);
+      return us;
+    }
+
+    public SelectQuery<TModel> SelectFields(params Expression<Func<TModel, object>>[] fieldsList) => SelectFields(fieldsList);
+
+    public SelectQuery<TModel> SelectFields(IEnumerable<Expression<Func<TModel, object>>> fieldsList)
+    {
+      var us = new SelectQuery<TModel>(this);
+      us.ProcessListOfFields(fieldsList);
       return us;
     }
 

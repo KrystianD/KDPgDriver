@@ -33,7 +33,7 @@ namespace KDPgDriver.Builder
 
     public void UseField(Expression<Func<TModel, object>> field)
     {
-      PropertyInfo column = NodeVisitor.GetPropertyInfo(field);
+      PropertyInfo column = NodeVisitor.EvaluateToPropertyInfo(field);
       columns.Add(Helper.GetColumn(column));
     }
 
