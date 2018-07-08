@@ -69,7 +69,7 @@ namespace KDPgDriver.Builder
 
     public static PropertyInfo EvaluateToPropertyInfo<TModel>(Expression<Func<TModel, object>> exp) => EvaluateToPropertyInfo(exp.Body);
 
-    public static TypedExpression Visit(Expression expression /*, ParametersContainer parametersContainer*/)
+    public static TypedExpression Visit(Expression expression, string inputParameterName = null)
     {
       TypedExpression VisitInternal(Expression exp)
       {
@@ -103,7 +103,7 @@ namespace KDPgDriver.Builder
             TypedExpression left, right;
             RawQuery rq;
 
-            TypedExpression CreateSimpleBinaryOperator(string op)
+            TypedExpression CreateSimpleBinaryOperator(string op, bool isBoolean)
             {
               rq = new RawQuery();
 
@@ -114,7 +114,9 @@ namespace KDPgDriver.Builder
               rq.Append($" {op} ");
               rq.AppendSurround(right.RawQuery);
 
-              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+              var type = isBoolean ? KDPgValueTypeBoolean.Instance : left.Type;
+
+              return new TypedExpression(rq, type);
             }
 
             switch (be.NodeType) {
@@ -151,31 +153,31 @@ namespace KDPgDriver.Builder
 
                 rq.AppendSurround(right.RawQuery);
 
-                return new TypedExpression(rq, KDPgValueTypeString.Instance);
+                return new TypedExpression(rq, left.Type);
 
               case ExpressionType.Subtract:
-                return CreateSimpleBinaryOperator("-");
+                return CreateSimpleBinaryOperator("-", false);
 
               case ExpressionType.Multiply:
-                return CreateSimpleBinaryOperator("*");
+                return CreateSimpleBinaryOperator("*", false);
 
               case ExpressionType.AndAlso:
-                return CreateSimpleBinaryOperator("AND");
+                return CreateSimpleBinaryOperator("AND", true);
 
               case ExpressionType.OrElse:
-                return CreateSimpleBinaryOperator("OR");
+                return CreateSimpleBinaryOperator("OR", true);
 
               case ExpressionType.GreaterThan:
-                return CreateSimpleBinaryOperator(">");
+                return CreateSimpleBinaryOperator(">", true);
 
               case ExpressionType.GreaterThanOrEqual:
-                return CreateSimpleBinaryOperator(">=");
+                return CreateSimpleBinaryOperator(">=", true);
 
               case ExpressionType.LessThan:
-                return CreateSimpleBinaryOperator("<");
+                return CreateSimpleBinaryOperator("<", true);
 
               case ExpressionType.LessThanOrEqual:
-                return CreateSimpleBinaryOperator("<=");
+                return CreateSimpleBinaryOperator("<=", true);
 
               default:
                 throw new Exception($"unknown operator: {be.NodeType}");
@@ -279,7 +281,7 @@ namespace KDPgDriver.Builder
         }
       }
 
-      return VisitInternal(expression);
+      return VisitInternal(Evaluator.PartialEval(expression, inputParameterName));
     }
 
     public class JsonPropertyPath

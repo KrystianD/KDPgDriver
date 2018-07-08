@@ -18,6 +18,24 @@ namespace KDPgDriver.Tests
     }
 
     [Fact]
+    public void SelectSingleValue()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      var q = builder.Select(x => x.Id);
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model""");
+    }
+
+    [Fact]
+    public void SelectSingleValue2()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      var q = builder.Select(x => x.Id * 2);
+
+      Utils.AssertRawQuery(q, @"SELECT (""id"") * (2) FROM ""public"".""model""");
+    }
+
+    [Fact]
     public void SelectColumns()
     {
       var builder = new QueryBuilder<MyModel>();
@@ -62,7 +80,39 @@ namespace KDPgDriver.Tests
           OutName = x.Name.Substring(5, 10),
       });
 
-      Utils.AssertRawQuery(q.GetQuery(null), @"SELECT substring((""name"") from (5) for (10)) FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT substring((""name"") from (5) for (10)) FROM ""public"".""model""");
+    }
+
+    [Fact]
+    public void SelectColumnsFieldList()
+    {
+      var fieldsBuilder = new FieldListBuilder<MyModel>();
+
+      fieldsBuilder.AddField(x => x.Id)
+                   .AddField(x => x.Name);
+
+      var builder = new QueryBuilder<MyModel>();
+      var q = builder.Select(fieldsBuilder);
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"", ""name"" FROM ""public"".""model""");
+    }
+
+    [Fact]
+    public void SelectColumnsDirectFieldList1()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      var q = builder.SelectFields(x => x.Id);
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model""");
+    }
+
+    [Fact]
+    public void SelectColumnsDirectFieldList2()
+    {
+      var builder = new QueryBuilder<MyModel>();
+      var q = builder.SelectFields(x => x.Id, x => x.Name);
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"", ""name"" FROM ""public"".""model""");
     }
   }
 }

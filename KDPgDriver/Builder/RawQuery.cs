@@ -20,7 +20,6 @@ namespace KDPgDriver.Builder
 
     public bool IsEmpty => parts.Count == 0;
 
-
     public RawQuery Append(string text)
     {
       parts.Add(new QueryPart() { text = text, });
@@ -54,7 +53,6 @@ namespace KDPgDriver.Builder
       });
       return this;
     }
-
 
     public RawQuery AppendSurround(string text)
     {
@@ -94,7 +92,6 @@ namespace KDPgDriver.Builder
       return this;
     }
 
-
     public void Render(out string query, out ParametersContainer outParameters)
     {
       outParameters = new ParametersContainer();
@@ -120,33 +117,6 @@ namespace KDPgDriver.Builder
       }
 
       return sb.ToString();
-    }
-
-
-    public static RawQuery Create(params string[] texts)
-    {
-      var rq = new RawQuery();
-      rq.Append(texts);
-      return rq;
-    }
-
-    public static RawQuery Create(Helper.PgValue value)
-    {
-      var rq = new RawQuery();
-      rq.Append(value);
-      return rq;
-    }
-
-    // public static RawQuery Create(RawQuery rawQuery)
-    // {
-    //   var rq = new RawQuery();
-    //   rq.Append(rawQuery);
-    //   return rq;
-    // }
-
-    public static implicit operator RawQuery(string text)
-    {
-      return Create(text);
     }
 
     public string RenderSimple()
@@ -183,6 +153,34 @@ namespace KDPgDriver.Builder
       string query;
       Render(out query, out _);
       return query;
+    }
+
+    // operator
+    public static implicit operator RawQuery(string text)
+    {
+      return Create(text);
+    }
+
+    // static creationg
+    public static RawQuery Create(params string[] texts)
+    {
+      var rq = new RawQuery();
+      rq.Append(texts);
+      return rq;
+    }
+
+    public static RawQuery Create(Helper.PgValue value)
+    {
+      var rq = new RawQuery();
+      rq.Append(value);
+      return rq;
+    }
+
+    public static RawQuery CreateColumnName(string name)
+    {
+      var rq = new RawQuery();
+      rq.Append($"\"{name}\"");
+      return rq;
     }
   }
 }

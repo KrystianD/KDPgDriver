@@ -59,60 +59,54 @@ namespace KDPgDriver.Builder
       return rq;
     }
 
-    private void VisitForSelectNewType(NewExpression e)
+    private void AddSelectPart(RawQuery exp, PropertyInfo member, KDPgValueType type)
     {
-      var args = e.Arguments;
-      var members = e.Members;
-
-      foreach (var (member, arg) in members.Zip(args)) {
-        var exp = NodeVisitor.Visit(Evaluator.PartialEval(arg));
-
-        if (selectPart.Length > 0)
-          selectPart.Append(", ");
-        selectPart.Append(exp.RawQuery.RenderSimple());
-
-        columns.Add(new ResultColumnDef()
-        {
-            PropertyInfo = (PropertyInfo) member,
-            KdPgColumnType = exp.Type,
-        });
-      }
-    }
-
-    public void Process(Expression prBody)
-    {
-      var member = NodeVisitor.EvaluateToPropertyInfo(prBody);
-      string columnName = Helper.GetColumn(member).Name;
-
       if (selectPart.Length > 0)
         selectPart.Append(", ");
-      selectPart.Append(columnName);
+      selectPart.Append(exp.RenderSimple());
 
       columns.Add(new ResultColumnDef()
       {
           PropertyInfo = member,
-          KdPgColumnType = Helper.GetColumnDataType(member).Type,
+          KdPgColumnType = type,
       });
-
-      isSingleValue = true;
     }
 
-    public void ProcessListOfFields<TModel>(IEnumerable<Expression<Func<TModel, object>>> fieldsList)
+    public void ProcessSingleField<TModel>(Expression<Func<TModel, TOut>> prBody)
     {
-      foreach (var fieldExpression in fieldsList) {
-        var member = NodeVisitor.EvaluateToPropertyInfo(fieldExpression);
+      TypedExpression exp;
 
-        string columnName = Helper.GetColumn(member).Name;
-
-        if (selectPart.Length > 0)
-          selectPart.Append(", ");
-        selectPart.Append(columnName);
-
-        columns.Add(new ResultColumnDef()
+      switch (prBody.Body) {
+        case NewExpression newExpression:
         {
-            PropertyInfo = member,
-            KdPgColumnType = Helper.GetColumnDataType(member).Type,
-        });
+          var members = newExpression.Members.Cast<PropertyInfo>();
+          var args = newExpression.Arguments;
+
+          foreach (var (member, argExpression) in members.Zip(args)) {
+            exp = NodeVisitor.Visit(argExpression);
+            AddSelectPart(exp.RawQuery, member, exp.Type);
+          }
+
+          break;
+        }
+
+        default:
+          exp = NodeVisitor.Visit(prBody.Body);
+
+          AddSelectPart(exp.RawQuery, null, exp.Type);
+          isSingleValue = true;
+
+          break;
+      }
+    }
+
+    public void ProcessListOfFields<TModel>(FieldListBuilder<TModel> builder)
+    {
+      foreach (var fieldExpression in builder.Fields) {
+        var member = NodeVisitor.EvaluateToPropertyInfo(fieldExpression);
+        var column = Helper.GetColumn(member);
+
+        AddSelectPart(RawQuery.CreateColumnName(column.Name), member, column.Type);
       }
     }
   }

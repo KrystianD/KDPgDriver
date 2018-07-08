@@ -26,8 +26,7 @@ namespace KDPgDriver.Builder
 
     public QueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
     {
-      var e = Evaluator.PartialEval(exp.Body, exp.Parameters.First().Name);
-      var whereSql = NodeVisitor.Visit(e).RawQuery;
+      var whereSql = NodeVisitor.Visit(exp.Body, exp.Parameters.First().Name).RawQuery;
 
       if (!_wherePart.IsEmpty)
         _wherePart.Append(" AND ");
@@ -49,6 +48,8 @@ namespace KDPgDriver.Builder
       return this;
     }
 
+    public FieldListBuilder<TModel> CreateFieldListBuilder() => new FieldListBuilder<TModel>();
+
     public SelectQuery<TModel> Select()
     {
       var us = new SelectQuery<TModel>(this);
@@ -58,16 +59,22 @@ namespace KDPgDriver.Builder
     public SelectQuery<TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
       var us = new SelectQuery<TNewModel>(this);
-      us.Process(pr.Body);
+      us.ProcessSingleField(pr);
       return us;
     }
 
-    public SelectQuery<TModel> SelectFields(params Expression<Func<TModel, object>>[] fieldsList) => SelectFields(fieldsList);
+    public SelectQuery<TModel> SelectFields(params Expression<Func<TModel, object>>[] fieldsList)
+    {
+      var builder = CreateFieldListBuilder();
+      foreach (var expression in fieldsList)
+        builder.AddField(expression);
+      return Select(builder);
+    }
 
-    public SelectQuery<TModel> SelectFields(IEnumerable<Expression<Func<TModel, object>>> fieldsList)
+    public SelectQuery<TModel> Select(FieldListBuilder<TModel> builder)
     {
       var us = new SelectQuery<TModel>(this);
-      us.ProcessListOfFields(fieldsList);
+      us.ProcessListOfFields(builder);
       return us;
     }
 
