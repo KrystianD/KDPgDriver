@@ -16,9 +16,9 @@ namespace KDPgDriver.Tests
     {
       string s1 = "long string long string long string long string long string long string long string";
 
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Name == s1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name == s1)
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.Eq(x => x.Name, s1);
 
@@ -30,9 +30,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereString()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Name == "name");
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name == "name")
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.Eq(x => x.Name, "name");
 
@@ -42,9 +42,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereNumber()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id == 2);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id == 2)
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.Eq(x => x.Id, 2);
 
@@ -55,10 +55,10 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereAndMultiple()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id == 1);
-      builder.Where(x => x.Name == "test");
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id == 1)
+                               .Where(x => x.Name == "test")
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
     }
@@ -66,9 +66,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereAnd()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id == 1 && x.Name == "test");
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id == 1 && x.Name == "test")
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.And(
           WhereBuilder<MyModel>.Eq(x => x.Id, 1),
@@ -80,9 +80,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereOr()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id == 1 || x.Name == "test");
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id == 1 || x.Name == "test")
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.Or(
           WhereBuilder<MyModel>.Eq(x => x.Id, 1),
@@ -94,9 +94,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryMultiply()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id * x.Id == 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id * x.Id == 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") * (""id"")) = (1))");
     }
@@ -104,9 +104,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryAddNumbers()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id + x.Id == 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id + x.Id == 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") + (""id"")) = (1))");
     }
@@ -114,9 +114,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryAddStrings()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Name + x.Name == "X");
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name + x.Name == "X")
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""name"") || (""name"")) = ('X'))");
     }
@@ -124,9 +124,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinarySubtract()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id - x.Id == 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id - x.Id == 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") - (""id"")) = (1))");
     }
@@ -134,9 +134,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryGreaterThan()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id > 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id > 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") > (1))");
     }
@@ -144,9 +144,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryGreaterThanEquals()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id >= 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id >= 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") >= (1))");
     }
@@ -154,9 +154,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryLessThan()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id < 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id < 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") < (1))");
     }
@@ -164,9 +164,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereBinaryLessThanEquals()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Id <= 1);
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Id <= 1)
+                               .Select(x => new { x.Id });
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") <= (1))");
     }
@@ -175,9 +175,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereOperatorIn()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Name.PgIn("A", "B"));
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.PgIn("A", "B"))
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, new[] { "A", "B" });
 
@@ -190,9 +190,9 @@ namespace KDPgDriver.Tests
       var items = new List<string>() { null, "A1", "A2", "B3", "A4" };
       var items2 = items.Where(x => x == null || x.StartsWith("A")).Distinct();
 
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.Name.PgIn(items2));
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.PgIn(items2))
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, items2);
 
@@ -202,9 +202,9 @@ namespace KDPgDriver.Tests
     [Fact]
     public void WhereOperatorContainsAny()
     {
-      var builder = new QueryBuilder<MyModel>();
-      builder.Where(x => x.ListString.PgContainsAny("A", "B"));
-      var q = builder.Select(x => new { x.Id });
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.ListString.PgContainsAny("A", "B"))
+                               .Select(x => new { x.Id });
 
       var b = WhereBuilder<MyModel>.ContainsAny(x => x.ListString, new[] { "A", "B" });
 

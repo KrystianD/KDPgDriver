@@ -1,3 +1,4 @@
+using System;
 using KDPgDriver.Builder;
 using Xunit;
 
@@ -18,6 +19,8 @@ namespace KDPgDriver.Tests
 
     public static void AssertRawQuery(RawQuery rq, string expectedQuery, params Param[] parameters)
     {
+      if (expectedQuery == null) throw new ArgumentNullException(nameof(expectedQuery));
+      
       string query;
       ParametersContainer outParameters;
       rq.Render(out query, out outParameters);
@@ -32,15 +35,21 @@ namespace KDPgDriver.Tests
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(QueryBuilder<MyModel> builder, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IInsertQuery gen, string expectedQuery, params Param[] parameters)
     {
-      var gen = builder.Select(x => new { x.Id });
       RawQuery rq = gen.GetQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
     public static void AssertRawQuery(IUpdateQuery gen, string expectedQuery, params Param[] parameters)
     {
+      RawQuery rq = gen.GetQuery(null);
+      AssertRawQuery(rq, expectedQuery, parameters);
+    }
+
+    public static void AssertRawQuery(QueryBuilder<MyModel> builder, string expectedQuery, params Param[] parameters)
+    {
+      var gen = builder.Select(x => new { x.Id });
       RawQuery rq = gen.GetQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
     }

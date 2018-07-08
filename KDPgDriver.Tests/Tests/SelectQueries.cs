@@ -11,8 +11,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectSimple()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select();
+      var q = Builders<MyModel>.Query.Select();
 
       Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",""list_string"",""list_string2"" FROM ""public"".""model""");
     }
@@ -20,8 +19,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectSingleValue()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(x => x.Id);
+      var q = Builders<MyModel>.Query.Select(x => x.Id);
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model""");
     }
@@ -29,8 +27,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectSingleValue2()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(x => x.Id * 2);
+      var q = Builders<MyModel>.Query.Select(x => x.Id * 2);
 
       Utils.AssertRawQuery(q, @"SELECT (""id"") * (2) FROM ""public"".""model""");
     }
@@ -38,8 +35,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumns()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(x => new
+      var q = Builders<MyModel>.Query.Select(x => new
       {
           x.Name
       });
@@ -50,8 +46,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsExpressionString()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(x => new
+      var q = Builders<MyModel>.Query.Select(x => new
       {
           OutName = x.Name + "A" + "B"
       });
@@ -62,8 +57,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsExpressionNumber()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(x => new
+      var q = Builders<MyModel>.Query.Select(x => new
       {
           OutId = (x.Id + 2 * 3 + 4) * 5,
       });
@@ -74,8 +68,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsExpressionFunc()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(x => new
+      var q = Builders<MyModel>.Query.Select(x => new
       {
           OutName = x.Name.Substring(5, 10),
       });
@@ -91,8 +84,7 @@ namespace KDPgDriver.Tests
       fieldsBuilder.AddField(x => x.Id)
                    .AddField(x => x.Name);
 
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Select(fieldsBuilder);
+      var q = Builders<MyModel>.Query.Select(fieldsBuilder);
 
       Utils.AssertRawQuery(q, @"SELECT ""id"", ""name"" FROM ""public"".""model""");
     }
@@ -100,8 +92,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsDirectFieldList1()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.SelectFields(x => x.Id);
+      var q = Builders<MyModel>.Query.SelectFields(x => x.Id);
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model""");
     }
@@ -109,8 +100,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsDirectFieldList2()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.SelectFields(x => x.Id, x => x.Name);
+      var q = Builders<MyModel>.Query.SelectFields(x => x.Id, x => x.Name);
 
       Utils.AssertRawQuery(q, @"SELECT ""id"", ""name"" FROM ""public"".""model""");
     }

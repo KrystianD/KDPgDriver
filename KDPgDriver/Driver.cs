@@ -34,10 +34,6 @@ namespace KDPgDriver
     }
 
 
-    public InsertQuery<TModel> CreateInsert<TModel>() => Driver.CreateInsert<TModel>();
-
-    public QueryBuilder<TModel> CreateBuilder<TModel>() => Driver.CreateBuilder<TModel>();
-
     public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder) where TOut : class
     {
       return Driver.QueryAsyncInternal(builder, _connection, _transaction);
@@ -88,6 +84,7 @@ namespace KDPgDriver
     }
 
 
+    // ReSharper disable once UnusedMember.Global
     public async Task InitializeAsync()
     {
       using (var connection = await CreateConnection()) {
@@ -127,18 +124,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       var connection = await CreateConnection();
       var tr = connection.BeginTransaction();
       return new Transaction(this, connection, tr);
-    }
-
-    public InsertQuery<TModel> CreateInsert<TModel>()
-    {
-      var b = new InsertQuery<TModel>();
-      return b;
-    }
-
-    public QueryBuilder<TModel> CreateBuilder<TModel>()
-    {
-      var b = new QueryBuilder<TModel>();
-      return b;
     }
 
     public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> insertQuery) where TOut : class
@@ -181,12 +166,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans) where TOut : class
     {
-      string query = builder.GetQuery(this);
+      RawQuery rq = builder.GetQuery(this);
 
+      string query;
+      ParametersContainer parameters;
+      rq.Render(out query, out parameters);
+      
       Console.WriteLine(query);
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        builder.Parameters.AssignToCommand(cmd);
+        parameters.AssignToCommand(cmd);
         var lastInsertId = await cmd.ExecuteScalarAsync();
 
         return new InsertQueryResult((int) lastInsertId);

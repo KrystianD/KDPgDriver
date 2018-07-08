@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,15 +14,20 @@ namespace KDPgDriver.Builder
 {
   public class InsertQueryInit<TModel> { }
 
+  public interface IInsertQuery
+  {
+    RawQuery GetQuery(Driver driver);
+  }
 
-  public class InsertQuery<TModel>
+  public class InsertQuery<TModel> : IInsertQuery
   {
     private List<KdPgColumnDescriptor> columns = new List<KdPgColumnDescriptor>();
     private List<string> extractors = new List<string>();
 
     private List<TModel> objects = new List<TModel>();
 
-    private StringBuilder insertStr = new StringBuilder();
+    // private StringBuilder insertStr = new StringBuilder();
+    private RawQuery insertPartQuery = new RawQuery();
 
     public ParametersContainer Parameters { get; } = new ParametersContainer();
 
@@ -31,10 +37,11 @@ namespace KDPgDriver.Builder
 
     public InsertQuery() { }
 
-    public void UseField(Expression<Func<TModel, object>> field)
+    public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
       PropertyInfo column = NodeVisitor.EvaluateToPropertyInfo(field);
       columns.Add(Helper.GetColumn(column));
+      return this;
     }
 
     // public UpdateQuery<TModel> Insert(TModel obj)
@@ -50,7 +57,7 @@ namespace KDPgDriver.Builder
     //   return uq;
     // }
 
-    public void Add(TModel obj)
+    public InsertQuery<TModel> AddObject(TModel obj)
     {
       preparation = false;
 
@@ -61,9 +68,9 @@ namespace KDPgDriver.Builder
 
       objects.Add(obj);
 
-      if (insertStr.Length > 0)
-        insertStr.Append(",");
-      insertStr.Append("(");
+      if (!insertPartQuery.IsEmpty)
+        insertPartQuery.Append(",");
+      insertPartQuery.Append("(");
 
       for (int i = 0; i < columns.Count; i++) {
         var column = columns[i];
@@ -72,25 +79,48 @@ namespace KDPgDriver.Builder
         var npgValue = Helper.ConvertToNpgsql(column, val);
 
         if (i > 0)
-          insertStr.Append(",");
+          insertPartQuery.Append(",");
 
-        insertStr.Append(val == null ? "NULL" : Parameters.GetNextParam(npgValue));
+        insertPartQuery.Append(val == null ? "NULL" : Parameters.GetNextParam(npgValue));
       }
 
-      insertStr.Append(")");
+      insertPartQuery.Append(")");
+
+      return this;
     }
 
-    public string GetQuery(Driver driver)
+    public InsertQuery<TModel> AddMany(IEnumerable<TModel> objs)
     {
-      var columnsStr = columns.Select(x => x.Name).JoinString(",");
-      
-      string schema = Helper.GetTableSchema(typeof(TModel)) ?? driver.Schema;
+      foreach (var obj in objs)
+        AddObject(obj);
+      return this;
+    }
 
-      string tableName = Helper.GetTableName(typeof(TModel));
-      string q = $"INSERT INTO \"{schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";
+    public RawQuery GetQuery(Driver driver)
+    {
+      RawQuery q = new RawQuery();
+
+      q.Append("INSERT INTO ");
+      // var columnsStr = columns.Select(x => x.Name).JoinString(",");
+
+      q.AppendTableName(
+          tableName: Helper.GetTableName(typeof(TModel)),
+          schema: Helper.GetTableSchema(typeof(TModel)) ?? driver.Schema);
+
+      q.Append("(");
+      foreach (var column in columns) {
+        q.AppendColumnName(column.Name);
+      }
+      q.Append(")");
+
+      q.Append(" VALUES ");
+      q.Append(insertPartQuery);
+
+      // string q = $"INSERT INTO \"{schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";
 
       if (TableModel.PrimaryKey != null) {
-        q += $" RETURNING \"{TableModel.PrimaryKey.Name}\"";
+        q.Append(" RETURNING ");
+        q.AppendColumnName(TableModel.PrimaryKey.Name);
       }
 
       return q;

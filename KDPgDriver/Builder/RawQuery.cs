@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.Linq;
 using System.Text;
 using KDPgDriver.Utils;
 
@@ -10,7 +11,7 @@ namespace KDPgDriver.Builder
   {
     private class QueryPart
     {
-      public string text = null;
+      public StringBuilder text = null;
       public int paramIdx = -1;
       public RawQuery rawQuery = null;
     }
@@ -22,15 +23,22 @@ namespace KDPgDriver.Builder
 
     public RawQuery Append(string text)
     {
-      parts.Add(new QueryPart() { text = text, });
+      if (parts.Count > 0) {
+        var last = parts.Last();
+        if (last.text != null) {
+          last.text.Append(text);
+          return this;
+        }
+      }
+
+      parts.Add(new QueryPart() { text = new StringBuilder(text) });
       return this;
     }
 
     public RawQuery Append(params string[] texts)
     {
       foreach (var text in texts)
-        parts.Add(new QueryPart() { text = text, });
-
+        Append(text);
       return this;
     }
 
@@ -89,6 +97,21 @@ namespace KDPgDriver.Builder
       Append("(");
       Append(rawQuery);
       Append(")");
+      return this;
+    }
+
+    public RawQuery AppendTableName(string tableName, string schema = null)
+    {
+      if (schema == null)
+        Append($"\"{tableName}\"");
+      else
+        Append($"\"{schema}\".\"{tableName}\"");
+      return this;
+    }
+
+    public RawQuery AppendColumnName(string columnName)
+    {
+      Append($"\"{columnName}\"");
       return this;
     }
 
@@ -179,7 +202,7 @@ namespace KDPgDriver.Builder
     public static RawQuery CreateColumnName(string name)
     {
       var rq = new RawQuery();
-      rq.Append($"\"{name}\"");
+      rq.AppendColumnName(name);
       return rq;
     }
   }

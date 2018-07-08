@@ -12,36 +12,32 @@ namespace KDPgDriver.Tests
     [Fact]
     public void UpdateSetField()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Update(b => b.SetField(x => x.Name, "A"));
+      var q = Builders<MyModel>.Query.Update(b => b.SetField(x => x.Name, "A"));
 
       Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""name"" = 'A'");
     }
-    
+
     [Fact]
     public void UpdateAddToList()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Update(b => b.AddToList(x => x.ListString, "A"));
+      var q = Builders<MyModel>.Query.Update(b => b.AddToList(x => x.ListString, "A"));
 
       Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""list_string"" = array_cat(""list_string"", @1::text[])",
                            new Param(new List<string>() { "A" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
-    
+
     [Fact]
     public void UpdateRemoveFromList()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Update(b => b.RemoveFromList(x => x.ListString, "A"));
+      var q = Builders<MyModel>.Query.Update(b => b.RemoveFromList(x => x.ListString, "A"));
 
       Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""list_string"" = array_remove(""list_string"", 'A')");
     }
-    
+
     [Fact]
     public void UpdateListOperationsCombined()
     {
-      var builder = new QueryBuilder<MyModel>();
-      var q = builder.Update(b =>
+      var q = Builders<MyModel>.Query.Update(b =>
       {
         b.AddToList(x => x.ListString, "A");
         b.RemoveFromList(x => x.ListString, "B");
@@ -52,6 +48,5 @@ namespace KDPgDriver.Tests
                            new Param(new List<string>() { "A" }, NpgsqlDbType.Array | NpgsqlDbType.Text),
                            new Param(new List<string>() { "C" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
-    
   }
 }
