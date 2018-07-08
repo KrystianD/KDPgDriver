@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using KDPgDriver.Utils;
@@ -11,9 +9,9 @@ namespace KDPgDriver.Builder
   {
     private class QueryPart
     {
-      public StringBuilder text = null;
-      public int paramIdx = -1;
-      public RawQuery rawQuery = null;
+      public StringBuilder Text;
+      public int ParamIdx = -1;
+      public RawQuery RawQuery;
     }
 
     private List<QueryPart> parts = new List<QueryPart>();
@@ -25,13 +23,13 @@ namespace KDPgDriver.Builder
     {
       if (parts.Count > 0) {
         var last = parts.Last();
-        if (last.text != null) {
-          last.text.Append(text);
+        if (last.Text != null) {
+          last.Text.Append(text);
           return this;
         }
       }
 
-      parts.Add(new QueryPart() { text = new StringBuilder(text) });
+      parts.Add(new QueryPart() { Text = new StringBuilder(text) });
       return this;
     }
 
@@ -48,7 +46,7 @@ namespace KDPgDriver.Builder
       parameters.Add(value);
       parts.Add(new QueryPart()
       {
-          paramIdx = idx,
+          ParamIdx = idx,
       });
       return this;
     }
@@ -57,7 +55,7 @@ namespace KDPgDriver.Builder
     {
       parts.Add(new QueryPart()
       {
-          rawQuery = rawQuery,
+          RawQuery = rawQuery,
       });
       return this;
     }
@@ -126,16 +124,16 @@ namespace KDPgDriver.Builder
       var sb = new StringBuilder();
 
       foreach (var part in parts) {
-        if (part.text != null) {
-          sb.Append(part.text);
+        if (part.Text != null) {
+          sb.Append(part.Text);
         }
 
-        if (part.paramIdx != -1) {
-          sb.Append(outParameters.GetNextParam(parameters[part.paramIdx]));
+        if (part.ParamIdx != -1) {
+          sb.Append(outParameters.GetNextParam(parameters[part.ParamIdx]));
         }
 
-        if (part.rawQuery != null) {
-          sb.Append(part.rawQuery.RenderInto(outParameters));
+        if (part.RawQuery != null) {
+          sb.Append(part.RawQuery.RenderInto(outParameters));
         }
       }
 
@@ -147,28 +145,17 @@ namespace KDPgDriver.Builder
       var sb = new StringBuilder();
 
       foreach (var part in parts) {
-        if (part.text != null) {
-          sb.Append(part.text);
-        }
+        if (part.Text != null)
+          sb.Append(part.Text);
 
-        if (part.paramIdx != -1) {
-          var v = parameters[part.paramIdx].Value;
-          sb.Append(Helper.EscapePostgresValue(v));
-        }
+        else if (part.ParamIdx != -1)
+          sb.Append(Helper.EscapePostgresValue(parameters[part.ParamIdx].Value));
 
-        if (part.rawQuery != null) {
-          sb.Append(part.rawQuery.RenderSimple());
-        }
+        else if (part.RawQuery != null)
+          sb.Append(part.RawQuery.RenderSimple());
       }
 
       return sb.ToString();
-
-      // if (parameters.Count > 0)
-      //   throw new Exception("simple raw queries can't have parameters");
-      // string query;
-      // ParametersContainer outParameters;
-      // Render(out query, out outParameters);
-      // return query;
     }
 
     public override string ToString()
@@ -176,12 +163,6 @@ namespace KDPgDriver.Builder
       string query;
       Render(out query, out _);
       return query;
-    }
-
-    // operator
-    public static implicit operator RawQuery(string text)
-    {
-      return Create(text);
     }
 
     // static creationg

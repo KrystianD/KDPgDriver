@@ -40,7 +40,7 @@ namespace KDPgDriver.Builder
       var v = NodeVisitor.ProcessPath(field.Body as MemberExpression, out jsonPath);
 
       // var colDesc = Helper.GetColumn(field.Body as MemberExpression);
-      
+
       var valueArray = new[] { value };
       var pgValue = Helper.ConvertObjectToPgValue(valueArray);
       // var valueType = Helper.GetNpgsqlTypeFromObject(valueArray);
@@ -74,10 +74,10 @@ namespace KDPgDriver.Builder
       return this;
     }
 
-    private void AddUpdate(string src, Func<RawQuery, RawQuery> template)
+    private void AddUpdate(string columnName, Func<RawQuery, RawQuery> template)
     {
-      RawQuery newSrc = UpdateQuery.updateParts.GetValueOrDefault(src, Helper.Quote(src));
-      UpdateQuery.updateParts[src] = template(newSrc);
+      RawQuery newSrc = UpdateQuery.updateParts.GetValueOrDefault(columnName, RawQuery.CreateColumnName(columnName));
+      UpdateQuery.updateParts[columnName] = template(newSrc);
     }
   }
 }
