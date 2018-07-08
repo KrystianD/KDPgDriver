@@ -11,25 +11,25 @@ namespace KDPgDriver.Builder
 
   public class UpdateQuery<TOut> : IUpdateQuery
   {
-    public IQueryBuilder Builder { get; }
+    private readonly UpdateStatementsBuilder<TOut> _updateStatementsBuilder;
+    private readonly IQueryBuilder _builder;
 
-    public Dictionary<string, RawQuery> updateParts = new Dictionary<string, RawQuery>();
-
-    public UpdateQuery(IQueryBuilder queryBuilder)
+    public UpdateQuery(IQueryBuilder queryBuilder, UpdateStatementsBuilder<TOut> updateStatementsBuilder)
     {
-      Builder = queryBuilder;
+      _updateStatementsBuilder = updateStatementsBuilder;
+      _builder = queryBuilder;
     }
 
     public RawQuery GetQuery(Driver driver)
     {
-      string schema = Builder.SchemaName ?? driver.Schema;
+      string schema = _builder.SchemaName ?? driver.Schema;
 
       RawQuery rq = new RawQuery();
-      rq.Append("UPDATE ", Helper.QuoteTable(Builder.TableName, schema), "\n");
+      rq.Append("UPDATE ", Helper.QuoteTable(_builder.TableName, schema), "\n");
 
       rq.Append("SET ");
       bool first = true;
-      foreach (var (name, rawQuery) in updateParts) {
+      foreach (var (name, rawQuery) in _updateStatementsBuilder.UpdateParts) {
         if (!first)
           rq.Append(", ");
 
@@ -40,7 +40,7 @@ namespace KDPgDriver.Builder
       }
 
       // string q = $"SELECT {selectStr} FROM \"{schema}\".\"{Builder.TableName}\"";
-      RawQuery wherePart = Builder.GetWherePart();
+      RawQuery wherePart = _builder.GetWherePart();
       if (!wherePart.IsEmpty) {
         rq.Append(" WHERE ");
         rq.Append(wherePart);

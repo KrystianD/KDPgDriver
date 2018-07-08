@@ -11,13 +11,8 @@ namespace KDPgDriver.Builder
 {
   public class UpdateStatementsBuilder<TModel>
   {
-    public readonly UpdateQuery<TModel> UpdateQuery;
-
-    public UpdateStatementsBuilder(UpdateQuery<TModel> updateQuery)
-    {
-      UpdateQuery = updateQuery;
-    }
-
+    internal readonly Dictionary<string, RawQuery> UpdateParts = new Dictionary<string, RawQuery>();
+    
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       switch (field.Body) {
@@ -25,7 +20,7 @@ namespace KDPgDriver.Builder
           PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
           string colName = Helper.GetColumn(columnPropertyInfo).Name;
           var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
-          UpdateQuery.updateParts.Add(colName, RawQuery.Create(npgValue));
+          UpdateParts.Add(colName, RawQuery.Create(npgValue));
           break;
         default:
           throw new Exception($"invalid node: {field.Body.NodeType}");
@@ -76,8 +71,8 @@ namespace KDPgDriver.Builder
 
     private void AddUpdate(string columnName, Func<RawQuery, RawQuery> template)
     {
-      RawQuery newSrc = UpdateQuery.updateParts.GetValueOrDefault(columnName, RawQuery.CreateColumnName(columnName));
-      UpdateQuery.updateParts[columnName] = template(newSrc);
+      RawQuery newSrc = UpdateParts.GetValueOrDefault(columnName, RawQuery.CreateColumnName(columnName));
+      UpdateParts[columnName] = template(newSrc);
     }
   }
 }

@@ -48,8 +48,6 @@ namespace KDPgDriver.Builder
       return this;
     }
 
-    public FieldListBuilder<TModel> CreateFieldListBuilder() => new FieldListBuilder<TModel>();
-
     public SelectQuery<TModel> Select()
     {
       var us = new SelectQuery<TModel>(this);
@@ -65,7 +63,7 @@ namespace KDPgDriver.Builder
 
     public SelectQuery<TModel> SelectFields(params Expression<Func<TModel, object>>[] fieldsList)
     {
-      var builder = CreateFieldListBuilder();
+      var builder = new FieldListBuilder<TModel>();
       foreach (var expression in fieldsList)
         builder.AddField(expression);
       return Select(builder);
@@ -78,24 +76,26 @@ namespace KDPgDriver.Builder
       return us;
     }
 
-    public UpdateQuery<TModel> Update(Action<UpdateStatementsBuilder<TModel>> fn)
-    {
-      var uq = new UpdateQuery<TModel>(this);
-      var us = new UpdateStatementsBuilder<TModel>(uq);
-      fn(us);
-      return uq;
-    }
+    // public UpdateQuery<TModel> Update(Action<UpdateStatementsBuilder<TModel>> fn)
+    // {
+    //   var us = new UpdateStatementsBuilder<TModel>();
+    //   fn(us);
+    //   
+    //   var uq = new UpdateQuery<TModel>(this, us);
+    //   return uq;
+    // }
 
     public UpdateQuery<TModel> Update(UpdateStatementsBuilder<TModel> builder)
     {
-      return builder.UpdateQuery;
+      var uq = new UpdateQuery<TModel>(this, builder);
+      return uq;
     }
 
-    public UpdateStatementsBuilder<TModel> CreateUpdateStatementBuilder()
-    {
-      var uq = new UpdateQuery<TModel>(this);
-      var us = new UpdateStatementsBuilder<TModel>(uq);
-      return us;
-    }
+    // public UpdateStatementsBuilder<TModel> CreateUpdateStatementBuilder()
+    // {
+    //   var uq = new UpdateQuery<TModel>(this);
+    //   var us = new UpdateStatementsBuilder<TModel>(uq);
+    //   return us;
+    // }
   }
 }
