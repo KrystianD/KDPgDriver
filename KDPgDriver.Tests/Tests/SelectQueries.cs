@@ -18,7 +18,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.Select();
 
-      Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,enum::text,list_enum::text[],enum2::text FROM public.model");
+      Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,enum::text,list_enum::text[],enum2::text,datetime FROM public.model");
     }
 
     [Fact]

@@ -56,6 +56,20 @@ namespace KDPgDriver.Tests
       Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((id) = (2))");
     }
 
+    [Fact]
+    public void WhereDateTime()
+    {
+      var date = DateTime.Parse("2018-01-01 12:34");
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.DateTime == date)
+                               .Select(x => new { x.Id });
+
+      var b = WhereBuilder<MyModel>.Eq(x => x.DateTime, date);
+
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((datetime) = (@1::timestamp))",
+                           new Param(date, NpgsqlDbType.Timestamp));
+    }
+
     // Logic
     [Fact]
     public void WhereAndMultiple()

@@ -24,6 +24,18 @@ namespace KDPgDriver.Tests
     }
 
     [Fact]
+    public void UpdateSetFieldDateTime()
+    {
+      var date = (DateTime?)DateTime.Parse("2018-01-01 12:34");
+      
+      var q = Builders<MyModel>.Query.Update(
+          Builders<MyModel>.UpdateOp.SetField(x => x.DateTime, date));
+
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET datetime = @1::timestamp",
+                           new Param(date, NpgsqlDbType.Timestamp));
+    }
+
+    [Fact]
     public void UpdateAddToList()
     {
       var q = Builders<MyModel>.Query.Update(

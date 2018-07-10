@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace KDPgDriver.Tests
 {
@@ -43,6 +44,9 @@ namespace KDPgDriver.Tests
     
     [KDPgColumn("enum2")]
     public MyEnum2 Enum2 { get; set; }
+    
+    [KDPgColumn("datetime")]
+    public DateTime DateTime { get; set; }
 
   }
 }

@@ -16,16 +16,10 @@ namespace KDPgDriver.Builder
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
-      switch (field.Body) {
-        case MemberExpression memberExpression:
-          PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
-          var column = Helper.GetColumn(columnPropertyInfo);
-          var npgValue = Helper.ConvertToNpgsql(column.Type, value);
-          UpdateParts.Add(column.Name, RawQuery.Create(npgValue));
-          break;
-        default:
-          throw new Exception($"invalid node: {field.Body.NodeType}");
-      }
+      PropertyInfo columnPropertyInfo = NodeVisitor.EvaluateToPropertyInfo(field.Body);
+      var column = Helper.GetColumn(columnPropertyInfo);
+      var npgValue = Helper.ConvertToNpgsql(column.Type, value);
+      UpdateParts.Add(column.Name, RawQuery.Create(npgValue));
 
       return this;
     }

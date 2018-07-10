@@ -36,7 +36,8 @@ CREATE TABLE model (
   list_string2 text[],
   enum enum,
   enum2 enum2,
-  list_enum enum[]
+  list_enum enum[],
+  datetime timestamp
 );
 
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');

@@ -68,7 +68,6 @@ namespace KDPgDriver.Tests
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
-
     [Fact]
     public void InsertEnumSchema()
     {
@@ -82,6 +81,23 @@ namespace KDPgDriver.Tests
 
       Utils.AssertRawQuery(q, @"INSERT INTO public.model(enum2) VALUES (@1::""Schema1"".enum2) RETURNING id",
                            new Param("A", NpgsqlDbType.Text));
+    }
+
+    [Fact]
+    public void InsertDateTime()
+    {
+      var date = DateTime.Parse("2018-01-01 12:34");
+      
+      var obj = new MyModel {
+          DateTime = date,
+      };
+
+      var q = Builders<MyModel>.Insert
+                               .UseField(x => x.DateTime)
+                               .AddObject(obj);
+
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(datetime) VALUES (@1::timestamp) RETURNING id",
+                           new Param(date, NpgsqlDbType.Timestamp));
     }
   }
 }
