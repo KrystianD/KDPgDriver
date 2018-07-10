@@ -12,26 +12,38 @@ namespace KDPgDriver.Builder
   {
     private readonly List<Tuple<object, NpgsqlDbType?>> _params = new List<Tuple<object, NpgsqlDbType?>>();
 
+    public static bool TryInline(Helper.PgValue pgValue, out string inlined)
+    {
+      inlined = null;
+      
+      object value = pgValue.Value;
+
+      switch (value) {
+        case string s when s.Length < 30:
+          inlined = Helper.EscapePostgresValue(s);
+          return true;
+        case int v:
+          inlined = Helper.EscapePostgresValue(v);
+          return true;
+        case null:
+          inlined = "NULL";
+          return true;
+        case true:
+          inlined = "TRUE";
+          return true;
+        case false:
+          inlined = "FALSE";
+          return true;
+      }
+
+      return false;
+    }
+
     public string GetNextParam(Helper.PgValue pgValue)
     {
       object value = pgValue.Value;
 
       var idx = _params.Count + 1;
-
-      if (value is string s) {
-        if (s.Length < 30) {
-          return Helper.EscapePostgresValue(s);
-        }
-      }
-
-      if (value is int v) {
-        return Helper.EscapePostgresValue(v);
-      }
-
-      if (value == null)
-        return "NULL";
-
-      if (value.GetType().IsGenericEumerable()) { }
 
       var name = $"@{idx}";
       if (pgValue.Type != null)

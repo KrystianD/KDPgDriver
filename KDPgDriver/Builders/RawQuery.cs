@@ -42,11 +42,17 @@ namespace KDPgDriver.Builder
 
     public RawQuery Append(Helper.PgValue value)
     {
-      int idx = parameters.Count;
-      parameters.Add(value);
-      parts.Add(new QueryPart() {
-          ParamIdx = idx,
-      });
+      if (ParametersContainer.TryInline(value, out string inlined)) {
+        Append(inlined);
+      }
+      else {
+        int idx = parameters.Count;
+        parameters.Add(value);
+        parts.Add(new QueryPart() {
+            ParamIdx = idx,
+        });
+      }
+
       return this;
     }
 
@@ -120,6 +126,7 @@ namespace KDPgDriver.Builder
         AppendColumnName(columnName);
         first = false;
       }
+
       return this;
     }
 
