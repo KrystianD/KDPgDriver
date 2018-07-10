@@ -194,7 +194,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
         parameters.AssignToCommand(cmd);
         var lastInsertId = await cmd.ExecuteScalarAsync();
 
-        return new InsertQueryResult((int) lastInsertId);
+        return new InsertQueryResult((int?)lastInsertId);
       }
     }
 
