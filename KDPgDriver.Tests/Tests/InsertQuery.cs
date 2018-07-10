@@ -37,18 +37,21 @@ namespace KDPgDriver.Tests
           new MyModel()
           {
               Id = 1,
+              Name = "A",
           },
           new MyModel()
           {
               Id = 2,
+              Name = "B",
           },
       };
 
       var q = Builders<MyModel>.Insert
                                .UseField(x => x.Id)
+                               .UseField(x => x.Name)
                                .AddMany(objs);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".""model""(""id"") VALUES (1),(2) RETURNING ""id""");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".""model""(""id"",""name"") VALUES (1,'A'),(2,'B') RETURNING ""id""");
     }
   }
 }

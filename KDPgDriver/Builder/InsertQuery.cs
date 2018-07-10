@@ -41,19 +41,6 @@ namespace KDPgDriver.Builder
       return this;
     }
 
-    // public UpdateQuery<TModel> Insert(TModel obj)
-    // {
-    //   return new InsertQuery<TModel>(this, Parameters, obj);
-    // }
-    //
-    // public UpdateQuery<TModel> Insert(Action<InsertStatementsBuilder<TModel>> fn)
-    // {
-    //   var uq = new UpdateQuery<TModel>(this, Parameters);
-    //   var us = new InsertStatementsBuilder<TModel>(uq);
-    //   fn(us);
-    //   return uq;
-    // }
-
     public InsertQuery<TModel> AddObject(TModel obj)
     {
       preparation = false;
@@ -98,22 +85,15 @@ namespace KDPgDriver.Builder
       RawQuery q = new RawQuery();
 
       q.Append("INSERT INTO ");
-      // var columnsStr = columns.Select(x => x.Name).JoinString(",");
 
       q.AppendTableName(
           tableName: Helper.GetTableName(typeof(TModel)),
           schema: Helper.GetTableSchema(typeof(TModel)) ?? driver.Schema);
 
-      q.Append("(");
-      foreach (var column in columns) {
-        q.AppendColumnName(column.Name);
-      }
-      q.Append(")");
+      q.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
 
       q.Append(" VALUES ");
       q.Append(insertPartQuery);
-
-      // string q = $"INSERT INTO \"{schema}\".\"{tableName}\"({columnsStr}) VALUES {insertStr}";
 
       if (TableModel.PrimaryKey != null) {
         q.Append(" RETURNING ");

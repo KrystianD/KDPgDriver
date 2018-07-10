@@ -111,6 +111,18 @@ namespace KDPgDriver.Builder
       return this;
     }
 
+    public RawQuery AppendColumnNames(IEnumerable<string> columnNames)
+    {
+      bool first = true;
+      foreach (var columnName in columnNames) {
+        if (!first)
+          Append(",");
+        AppendColumnName(columnName);
+        first = false;
+      }
+      return this;
+    }
+
     public RawQuery AppendColumnNameWithCast(string columnName, string castType = null)
     {
       AppendColumnName(columnName);
