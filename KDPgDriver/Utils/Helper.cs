@@ -273,7 +273,7 @@ namespace KDPgDriver.Utils
           return new PgValue(((DateTime) rawValue).Date, type);
 
         case KDPgValueTypeArray arrayType:
-          var objs = ReflectionUtils.CreateListInstance(arrayType.CSharpType);
+          var objs = arrayType.CreateToPgList();
           foreach (var rawItem in (IEnumerable) rawValue) {
             objs.Add(ConvertToNpgsql(arrayType.ItemType, rawItem).Value);
           }

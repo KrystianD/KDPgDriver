@@ -27,7 +27,7 @@ namespace KDPgDriver
     public KDPgValueType KdPgColumnType;
   }
 
-  public class SelectQueryResult<T> : IDisposable where T : class
+  public class SelectQueryResult<T> : IDisposable 
   {
     private readonly NpgsqlConnection _connection;
 
@@ -59,7 +59,7 @@ namespace KDPgDriver
     public T GetCurrentResult()
     {
       var t = typeof(T);
-      T obj;
+      T obj = default;
 
       object[] fields = new object[_reader.FieldCount];
 
@@ -77,9 +77,7 @@ namespace KDPgDriver
         obj = (T) Activator.CreateInstance(t, fields);
       }
       else {
-        if (_builder.isSingleValue)
-          obj = null;
-        else
+        if (!_builder.isSingleValue)
           obj = (T) Activator.CreateInstance(t);
 
         for (int i = 0; i < _reader.FieldCount; i++) {
@@ -117,7 +115,7 @@ namespace KDPgDriver
     public async Task<T> GetSingleOrDefault()
     {
       bool hasResult = await HasNextResult();
-      var res = hasResult ? GetCurrentResult() : null;
+      var res = hasResult ? GetCurrentResult() : default;
       Dispose();
       return res;
     }

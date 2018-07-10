@@ -12,7 +12,8 @@ namespace KDPgDriver.Builder
   public class UpdateStatementsBuilder<TModel>
   {
     internal readonly Dictionary<string, RawQuery> UpdateParts = new Dictionary<string, RawQuery>();
-    
+    public bool IsEmpty => UpdateParts.Count == 0;
+
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       switch (field.Body) {

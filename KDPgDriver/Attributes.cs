@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using KDLib;
 using Newtonsoft.Json.Linq;
 using Npgsql.PostgresTypes;
 using NpgsqlTypes;
@@ -222,6 +224,11 @@ namespace KDPgDriver
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Array | ItemType.NpgsqlType;
     public override string PostgresType => $"{ItemType.PostgresType}[]";
     public override string PostgresFetchType => $"{ItemType.PostgresFetchType}[]";
+
+    public IList CreateToPgList()
+    {
+      return ReflectionUtils.CreateListInstance(ItemType.PgNativeType);
+    }
 
     public KDPgValueTypeArray(KDPgValueType itemType, Type nativeItemType, Type listType) : base(KDPgValueTypeKind.Array)
     {

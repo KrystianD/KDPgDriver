@@ -87,6 +87,8 @@ namespace KDPgDriver.Builder
 
     public UpdateQuery<TModel> Update(UpdateStatementsBuilder<TModel> builder)
     {
+      if (builder.IsEmpty)
+        throw new Exception("Empty update statement builder");
       var uq = new UpdateQuery<TModel>(this, builder);
       return uq;
     }
