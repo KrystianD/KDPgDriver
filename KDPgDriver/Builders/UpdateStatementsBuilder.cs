@@ -19,9 +19,9 @@ namespace KDPgDriver.Builder
       switch (field.Body) {
         case MemberExpression memberExpression:
           PropertyInfo columnPropertyInfo = (PropertyInfo) memberExpression.Member;
-          string colName = Helper.GetColumn(columnPropertyInfo).Name;
-          var npgValue = Helper.ConvertToNpgsql(columnPropertyInfo, value);
-          UpdateParts.Add(colName, RawQuery.Create(npgValue));
+          var column = Helper.GetColumn(columnPropertyInfo);
+          var npgValue = Helper.ConvertToNpgsql(column.Type, value);
+          UpdateParts.Add(column.Name, RawQuery.Create(npgValue));
           break;
         default:
           throw new Exception($"invalid node: {field.Body.NodeType}");

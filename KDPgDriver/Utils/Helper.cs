@@ -238,18 +238,6 @@ namespace KDPgDriver.Utils
       return pgValue;
     }
 
-    public static PgValue ConvertToNpgsql(KdPgColumnDescriptor column, object rawValue)
-    {
-      return ConvertToNpgsql(column.PropertyInfo, rawValue);
-    }
-
-    public static PgValue ConvertToNpgsql(PropertyInfo columnProperty, object rawValue)
-    {
-      var column = GetColumnDataType(columnProperty);
-
-      return ConvertToNpgsql(column.Type, rawValue);
-    }
-
     public static PgValue ConvertToNpgsql(KDPgValueType type, object rawValue)
     {
       if (rawValue == null)

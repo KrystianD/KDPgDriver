@@ -18,57 +18,46 @@ namespace KDPgDriver.Builder
 
   public class InsertQuery<TModel> : IInsertQuery
   {
-    private List<KdPgColumnDescriptor> columns = new List<KdPgColumnDescriptor>();
-    private List<string> extractors = new List<string>();
+    private static readonly KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
+    
+    private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
-    private List<TModel> objects = new List<TModel>();
+    private readonly List<TModel> _objects = new List<TModel>();
 
-    // private StringBuilder insertStr = new StringBuilder();
-    private RawQuery insertPartQuery = new RawQuery();
-
-    public ParametersContainer Parameters { get; } = new ParametersContainer();
-
-    private KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
-
-    private bool preparation = true;
-
-    public InsertQuery() { }
+    private readonly RawQuery _insertPartQuery = new RawQuery();
 
     public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
       PropertyInfo column = NodeVisitor.EvaluateToPropertyInfo(field);
-      columns.Add(Helper.GetColumn(column));
+      _columns.Add(Helper.GetColumn(column));
       return this;
     }
 
     public InsertQuery<TModel> AddObject(TModel obj)
     {
-      preparation = false;
-
-      if (columns.Count == 0) {
-        columns.AddRange(Helper.GetTable(typeof(TModel)).Columns
+      if (_columns.Count == 0) {
+        _columns.AddRange(Helper.GetTable(typeof(TModel)).Columns
                                .Where(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) == 0));
       }
 
-      objects.Add(obj);
+      _objects.Add(obj);
 
-      if (!insertPartQuery.IsEmpty)
-        insertPartQuery.Append(",");
-      insertPartQuery.Append("(");
+      if (!_insertPartQuery.IsEmpty)
+        _insertPartQuery.Append(",");
+      _insertPartQuery.Append("(");
 
-      for (int i = 0; i < columns.Count; i++) {
-        var column = columns[i];
+      for (int i = 0; i < _columns.Count; i++) {
+        var column = _columns[i];
         object val = Helper.GetModelValueByColumn(obj, column);
-
-        var npgValue = Helper.ConvertToNpgsql(column, val);
+        var npgValue = Helper.ConvertToNpgsql(column.Type, val);
 
         if (i > 0)
-          insertPartQuery.Append(",");
+          _insertPartQuery.Append(",");
 
-        insertPartQuery.Append(val == null ? "NULL" : Parameters.GetNextParam(npgValue));
+        _insertPartQuery.Append(npgValue);
       }
 
-      insertPartQuery.Append(")");
+      _insertPartQuery.Append(")");
 
       return this;
     }
@@ -90,10 +79,10 @@ namespace KDPgDriver.Builder
           tableName: Helper.GetTableName(typeof(TModel)),
           schema: Helper.GetTableSchema(typeof(TModel)) ?? driver.Schema);
 
-      q.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
+      q.Append("(").AppendColumnNames(_columns.Select(x => x.Name)).Append(")");
 
       q.Append(" VALUES ");
-      q.Append(insertPartQuery);
+      q.Append(_insertPartQuery);
 
       if (TableModel.PrimaryKey != null) {
         q.Append(" RETURNING ");
