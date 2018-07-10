@@ -50,14 +50,20 @@ namespace KDPgDriver.Builder
 
     public SelectQuery<TModel> Select()
     {
-      var us = new SelectQuery<TModel>(this);
-      return us;
+      return new SelectQuery<TModel>(this);
     }
 
     public SelectQuery<TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
       var us = new SelectQuery<TNewModel>(this);
       us.ProcessSingleField(pr);
+      return us;
+    }
+
+    public SelectQuery<TModel> Select(FieldListBuilder<TModel> builder)
+    {
+      var us = new SelectQuery<TModel>(this);
+      us.ProcessListOfFields(builder);
       return us;
     }
 
@@ -69,22 +75,6 @@ namespace KDPgDriver.Builder
       return Select(builder);
     }
 
-    public SelectQuery<TModel> Select(FieldListBuilder<TModel> builder)
-    {
-      var us = new SelectQuery<TModel>(this);
-      us.ProcessListOfFields(builder);
-      return us;
-    }
-
-    // public UpdateQuery<TModel> Update(Action<UpdateStatementsBuilder<TModel>> fn)
-    // {
-    //   var us = new UpdateStatementsBuilder<TModel>();
-    //   fn(us);
-    //   
-    //   var uq = new UpdateQuery<TModel>(this, us);
-    //   return uq;
-    // }
-
     public UpdateQuery<TModel> Update(UpdateStatementsBuilder<TModel> builder)
     {
       if (builder.IsEmpty)
@@ -93,11 +83,9 @@ namespace KDPgDriver.Builder
       return uq;
     }
 
-    // public UpdateStatementsBuilder<TModel> CreateUpdateStatementBuilder()
-    // {
-    //   var uq = new UpdateQuery<TModel>(this);
-    //   var us = new UpdateStatementsBuilder<TModel>(uq);
-    //   return us;
-    // }
+    public DeleteQuery<TModel> Delete()
+    {
+      return new DeleteQuery<TModel>(this);
+    }
   }
 }

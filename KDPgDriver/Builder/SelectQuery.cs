@@ -9,10 +9,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builder
 {
-  public interface ISelectQuery
-  {
-    RawQuery GetQuery(Driver driver);
-  }
+  public interface ISelectQuery : IQuery { }
 
   public class SelectQuery<TOut> : ISelectQuery
   {

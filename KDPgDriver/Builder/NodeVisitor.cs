@@ -100,24 +100,24 @@ namespace KDPgDriver.Builder
             }
 
           case BinaryExpression be:
-            TypedExpression left, right;
-            RawQuery rq;
-
             TypedExpression CreateSimpleBinaryOperator(string op, bool isBoolean)
             {
-              rq = new RawQuery();
+              var rq2 = new RawQuery();
 
-              left = VisitInternal(be.Left);
-              right = VisitInternal(be.Right);
+              TypedExpression left2 = VisitInternal(be.Left);
+              TypedExpression right2 = VisitInternal(be.Right);
 
-              rq.AppendSurround(left.RawQuery);
-              rq.Append($" {op} ");
-              rq.AppendSurround(right.RawQuery);
+              rq2.AppendSurround(left2.RawQuery);
+              rq2.Append($" {op} ");
+              rq2.AppendSurround(right2.RawQuery);
 
-              var type = isBoolean ? KDPgValueTypeBoolean.Instance : left.Type;
+              var type = isBoolean ? KDPgValueTypeBoolean.Instance : left2.Type;
 
-              return new TypedExpression(rq, type);
+              return new TypedExpression(rq2, type);
             }
+            
+            TypedExpression left, right;
+            RawQuery rq;
 
             switch (be.NodeType) {
               case ExpressionType.Equal:

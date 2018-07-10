@@ -35,23 +35,11 @@ namespace KDPgDriver.Tests
       ParametersContainer outParameters;
       rq.Render(out query, out outParameters);
 
-      Assert.Equal(expectedQuery, query.Replace("\n", " "));
+      Assert.Equal(expectedQuery, query.Replace("\n", " ").Trim());
       CompareParameters(outParameters, parameters);
     }
 
-    public static void AssertRawQuery(ISelectQuery gen, string expectedQuery, params Param[] parameters)
-    {
-      RawQuery rq = gen.GetQuery(null);
-      AssertRawQuery(rq, expectedQuery, parameters);
-    }
-
-    public static void AssertRawQuery(IInsertQuery gen, string expectedQuery, params Param[] parameters)
-    {
-      RawQuery rq = gen.GetQuery(null);
-      AssertRawQuery(rq, expectedQuery, parameters);
-    }
-
-    public static void AssertRawQuery(IUpdateQuery gen, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery gen, string expectedQuery, params Param[] parameters)
     {
       RawQuery rq = gen.GetQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
@@ -64,14 +52,14 @@ namespace KDPgDriver.Tests
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(ISelectQuery gen, RawQuery rq2, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery gen, RawQuery rq2, string expectedQuery, params Param[] parameters)
     {
       RawQuery rq = gen.GetQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
       AssertRawQuery(rq2, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(ISelectQuery gen, WhereBuilder<MyModel> b2, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery gen, WhereBuilder<MyModel> b2, string expectedQuery, params Param[] parameters)
     {
       var q2 = new QueryBuilder<MyModel>().Where(b2).Select(x => new { x.Id }).GetQuery(null);
       AssertRawQuery(gen, q2, expectedQuery, parameters);

@@ -14,10 +14,7 @@ namespace KDPgDriver.Builder
 {
   public class InsertQueryInit<TModel> { }
 
-  public interface IInsertQuery
-  {
-    RawQuery GetQuery(Driver driver);
-  }
+  public interface IInsertQuery : IQuery { }
 
   public class InsertQuery<TModel> : IInsertQuery
   {

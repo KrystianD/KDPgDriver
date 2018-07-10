@@ -4,10 +4,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builder
 {
-  public interface IUpdateQuery
-  {
-    RawQuery GetQuery(Driver driver);
-  }
+  public interface IUpdateQuery : IQuery { }
 
   public class UpdateQuery<TOut> : IUpdateQuery
   {
