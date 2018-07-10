@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using KDLib;
+using KDPgDriver.Utils;
 using Newtonsoft.Json.Linq;
 using Npgsql.PostgresTypes;
 using NpgsqlTypes;
@@ -138,7 +139,7 @@ namespace KDPgDriver
 
   public class KDPgValueTypeEnum : KDPgValueType
   {
-    private readonly string _name;
+    private readonly string _postgresType;
     public TypeRegistry.EnumEntry EnumEntry { get; }
 
     public override Type CSharpType => EnumEntry.type;
@@ -146,26 +147,12 @@ namespace KDPgDriver
     public override string PostgresFetchType => "text";
 
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Text;
-    public override string PostgresType => _name;
+    public override string PostgresType => _postgresType;
 
-    public KDPgValueTypeEnum(string name, TypeRegistry.EnumEntry enumEntry) : base(KDPgValueTypeKind.Enum)
+    public KDPgValueTypeEnum(TypeRegistry.EnumEntry enumEntry) : base(KDPgValueTypeKind.Enum)
     {
-      _name = name;
       EnumEntry = enumEntry;
-    }
-
-    // cache
-    private static Dictionary<string, KDPgValueTypeEnum> Instances = new Dictionary<string, KDPgValueTypeEnum>();
-
-    public static KDPgValueTypeEnum GetInstance(string name, TypeRegistry.EnumEntry enumEntry)
-    {
-      if (Instances.ContainsKey(name))
-        return Instances[name];
-      else {
-        var i = new KDPgValueTypeEnum(name, enumEntry);
-        Instances[name] = i;
-        return i;
-      }
+      _postgresType = Helper.QuoteTable(enumEntry.enumName, enumEntry.schema);
     }
   }
 

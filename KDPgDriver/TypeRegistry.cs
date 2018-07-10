@@ -14,6 +14,8 @@ namespace KDPgDriver
       public Func<object, string> enumToNameFunc;
       public Func<string, object> nameToEnumFunc;
       public string schema;
+      
+      public KDPgValueTypeEnum Type;
     }
 
     private static List<EnumEntry> entries = new List<EnumEntry>();
@@ -26,6 +28,8 @@ namespace KDPgDriver
       entry.enumToNameFunc = o => enumToNameFunc((T) o);
       entry.nameToEnumFunc = name => nameToEnumFunc(name);
       entry.schema = schema;
+
+      entry.Type = new KDPgValueTypeEnum(entry);
 
       entries.Add(entry);
     }

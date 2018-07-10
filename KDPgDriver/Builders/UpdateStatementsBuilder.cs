@@ -49,7 +49,7 @@ namespace KDPgDriver.Builder
                   src => RawQuery.Create("array_cat(").Append(src).Append(", ").Append(pgValue).Append(")"));
       }
       else if (v.Type is KDPgValueTypeJson) {
-        string jsonPathStr1 = jsonPath.jsonPath.Select(x => $"'{x}'").JoinString(",");
+        string jsonPathStr1 = jsonPath.jsonPath.Select(x => Helper.QuoteObjectName(x)).JoinString(",");
         AddUpdate(jsonPath.columnName,
                   src => RawQuery.Create("kdpg_jsonb_add(").Append(src).Append(", ").Append($"array[{jsonPathStr1}], to_jsonb(").Append(pgValue).Append(")"));
       }
@@ -72,7 +72,7 @@ namespace KDPgDriver.Builder
 
     private void AddUpdate(string columnName, Func<RawQuery, RawQuery> template)
     {
-      RawQuery newSrc = UpdateParts.GetValueOrDefault(columnName, RawQuery.CreateColumnName(columnName));
+      RawQuery newSrc = UpdateParts.GetValueOrDefault(columnName, RawQuery.Create(columnName));
       UpdateParts[columnName] = template(newSrc);
     }
   }

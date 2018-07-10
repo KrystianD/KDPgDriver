@@ -105,15 +105,15 @@ namespace KDPgDriver.Builder
     public RawQuery AppendTableName(string tableName, string schema = null)
     {
       if (schema == null)
-        Append($"\"{tableName}\"");
+        Append(Helper.QuoteObjectName(tableName));
       else
-        Append($"\"{schema}\".\"{tableName}\"");
+        Append($"{Helper.QuoteObjectName(schema)}.{Helper.QuoteObjectName(tableName)}");
       return this;
     }
 
     public RawQuery AppendColumnName(string columnName)
     {
-      Append($"\"{columnName}\"");
+      Append(Helper.QuoteObjectName(columnName));
       return this;
     }
 

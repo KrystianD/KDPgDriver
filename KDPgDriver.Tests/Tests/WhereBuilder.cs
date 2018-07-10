@@ -28,7 +28,7 @@ namespace KDPgDriver.Tests
       var b = WhereBuilder<MyModel>.Eq(x => x.Name, s1);
 
       Utils.AssertRawQuery(q, b,
-                           @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = (@1::text))",
+                           @"SELECT id FROM public.model WHERE ((name) = (@1::text))",
                            new Param(s1, NpgsqlDbType.Text));
     }
 
@@ -41,7 +41,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.Eq(x => x.Name, "name");
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ('name'))");
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((name) = ('name'))");
     }
 
     [Fact]
@@ -53,7 +53,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.Eq(x => x.Id, 2);
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") = (2))");
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((id) = (2))");
     }
 
     // Logic
@@ -65,7 +65,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Name == "test")
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE ((id) = (1)) AND ((name) = ('test'))");
     }
 
     [Fact]
@@ -79,7 +79,7 @@ namespace KDPgDriver.Tests
           WhereBuilder<MyModel>.Eq(x => x.Id, 1),
           WhereBuilder<MyModel>.Eq(x => x.Name, "test"));
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") = (1)) AND ((""name"") = ('test')))");
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE (((id) = (1)) AND ((name) = ('test')))");
     }
 
     [Fact]
@@ -93,7 +93,7 @@ namespace KDPgDriver.Tests
           WhereBuilder<MyModel>.Eq(x => x.Id, 1),
           WhereBuilder<MyModel>.Eq(x => x.Name, "test"));
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") = (1)) OR ((""name"") = ('test')))");
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE (((id) = (1)) OR ((name) = ('test')))");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id * x.Id == 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") * (""id"")) = (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (((id) * (id)) = (1))");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id + x.Id == 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") + (""id"")) = (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (((id) + (id)) = (1))");
     }
 
     [Fact]
@@ -123,7 +123,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Name + x.Name == "X")
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""name"") || (""name"")) = ('X'))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (((name) || (name)) = ('X'))");
     }
 
     [Fact]
@@ -133,7 +133,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id - x.Id == 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE (((""id"") - (""id"")) = (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (((id) - (id)) = (1))");
     }
 
     [Fact]
@@ -143,7 +143,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id > 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") > (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE ((id) > (1))");
     }
 
     [Fact]
@@ -153,7 +153,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id >= 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") >= (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE ((id) >= (1))");
     }
 
     [Fact]
@@ -163,7 +163,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id < 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") < (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE ((id) < (1))");
     }
 
     [Fact]
@@ -173,7 +173,7 @@ namespace KDPgDriver.Tests
                                .Where(x => x.Id <= 1)
                                .Select(x => new { x.Id });
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""id"") <= (1))");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE ((id) <= (1))");
     }
 
     // Operators
@@ -186,7 +186,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, new[] { "A", "B" });
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((name) = ANY(@1::text[]))",
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -201,7 +201,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, items);
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((name) = ANY(@1::text[]))",
                            new Param(new[] { null, "A1", "A2", "B3", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -216,7 +216,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, items);
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((name) = ANY(@1::text[]))",
                            new Param(new[] { null, "A1", "A2", "B3", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -232,7 +232,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, items2);
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((name) = ANY(@1::text[]))",
                            new Param(new[] { null, "A1", "A2", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -245,7 +245,7 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.ContainsAny(x => x.ListString, new[] { "A", "B" });
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((@1::text[]) && (""list_string""))",
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE ((@1::text[]) && (list_string))",
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
   }

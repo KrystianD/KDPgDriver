@@ -15,11 +15,11 @@ namespace KDPgDriver.Builder
     public static bool TryInline(Helper.PgValue pgValue, out string inlined)
     {
       inlined = null;
-      
+
       object value = pgValue.Value;
 
       switch (value) {
-        case string s when s.Length < 30:
+        case string s when pgValue.Type == KDPgValueTypeString.Instance && s.Length < 30:
           inlined = Helper.EscapePostgresValue(s);
           return true;
         case int v:

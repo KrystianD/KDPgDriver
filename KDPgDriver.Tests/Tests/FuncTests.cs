@@ -24,8 +24,10 @@ namespace KDPgDriver.Tests
       await dr.QueryRawAsync(@"
 DROP TABLE IF EXISTS model;
 DROP TYPE IF EXISTS enum;
+DROP TYPE IF EXISTS enum2;
 
 CREATE TYPE enum AS ENUM ('A', 'B', 'C');
+CREATE TYPE enum2 AS ENUM ('A', 'B', 'C');
 
 CREATE TABLE model (
   id int PRIMARY KEY,
@@ -33,6 +35,7 @@ CREATE TABLE model (
   list_string text[],
   list_string2 text[],
   enum enum,
+  enum2 enum2,
   list_enum enum[]
 );
 

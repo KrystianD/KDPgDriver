@@ -30,7 +30,7 @@ namespace KDPgDriver.Builder
         if (!first)
           rq.Append(", ");
 
-        rq.Append(Helper.Quote(name), " = ");
+        rq.Append(Helper.QuoteObjectName(name), " = ");
         rq.Append(rawQuery);
 
         first = false;

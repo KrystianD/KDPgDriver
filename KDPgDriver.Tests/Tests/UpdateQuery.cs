@@ -20,7 +20,7 @@ namespace KDPgDriver.Tests
       var q = Builders<MyModel>.Query.Update(
           Builders<MyModel>.UpdateOp.SetField(x => x.Name, "A"));
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""name"" = 'A'");
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET name = 'A'");
     }
 
     [Fact]
@@ -29,7 +29,7 @@ namespace KDPgDriver.Tests
       var q = Builders<MyModel>.Query.Update(
           Builders<MyModel>.UpdateOp.AddToList(x => x.ListString, "A"));
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""list_string"" = array_cat(""list_string"", @1::text[])",
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_cat(list_string, @1::text[])",
                            new Param(new List<string>() { "A" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -39,7 +39,7 @@ namespace KDPgDriver.Tests
       var q = Builders<MyModel>.Query.Update(
           Builders<MyModel>.UpdateOp.RemoveFromList(x => x.ListString, "A"));
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""list_string"" = array_remove(""list_string"", 'A')");
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_remove(list_string, 'A')");
     }
 
     [Fact]
@@ -52,7 +52,7 @@ namespace KDPgDriver.Tests
                            .AddToList(x => x.ListString2, "C")
       );
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".""model"" SET ""list_string"" = array_remove(array_cat(""list_string"", @1::text[]), 'B'), ""list_string2"" = array_cat(""list_string2"", @2::text[])",
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_remove(array_cat(list_string, @1::text[]), 'B'), list_string2 = array_cat(list_string2, @2::text[])",
                            new Param(new List<string>() { "A" }, NpgsqlDbType.Array | NpgsqlDbType.Text),
                            new Param(new List<string>() { "C" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }

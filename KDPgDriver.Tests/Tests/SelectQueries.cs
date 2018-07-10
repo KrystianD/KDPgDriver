@@ -18,7 +18,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.Select();
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",""list_string"",""list_string2"",""enum""::text,""list_enum""::text[] FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,enum::text,list_enum::text[],enum2::text FROM public.model");
     }
 
     [Fact]
@@ -26,7 +26,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.Select(x => x.Id);
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model");
     }
 
     [Fact]
@@ -34,7 +34,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.Select(x => x.Id * 2);
 
-      Utils.AssertRawQuery(q, @"SELECT (""id"") * (2) FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT (id) * (2) FROM public.model");
     }
 
     [Fact]
@@ -44,7 +44,7 @@ namespace KDPgDriver.Tests
           x.Name
       });
 
-      Utils.AssertRawQuery(q, @"SELECT ""name"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT name FROM public.model");
     }
 
     [Fact]
@@ -54,7 +54,7 @@ namespace KDPgDriver.Tests
           OutName = x.Name + "A" + "B"
       });
 
-      Utils.AssertRawQuery(q, @"SELECT ((""name"") || ('A')) || ('B') FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT ((name) || ('A')) || ('B') FROM public.model");
     }
 
     [Fact]
@@ -64,7 +64,7 @@ namespace KDPgDriver.Tests
           OutId = (x.Id + 2 * 3 + 4) * 5,
       });
 
-      Utils.AssertRawQuery(q, @"SELECT (((""id"") + (6)) + (4)) * (5) FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT (((id) + (6)) + (4)) * (5) FROM public.model");
     }
 
     [Fact]
@@ -74,7 +74,7 @@ namespace KDPgDriver.Tests
           OutName = x.Name.Substring(5, 10),
       });
 
-      Utils.AssertRawQuery(q, @"SELECT substring((""name"") from (5) for (10)) FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT substring((name) from (5) for (10)) FROM public.model");
     }
 
     [Fact]
@@ -87,7 +87,7 @@ namespace KDPgDriver.Tests
 
       var q = Builders<MyModel>.Query.Select(fieldsBuilder);
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
 
     [Fact]
@@ -95,7 +95,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.SelectFields(x => x.Id);
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.SelectFields(x => x.Id, x => x.Name);
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
 
     [Fact]
@@ -114,7 +114,7 @@ namespace KDPgDriver.Tests
           x.Enum
       });
 
-      Utils.AssertRawQuery(q, @"SELECT (""enum"")::text FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT (enum)::text FROM public.model");
     }
 
     [Fact]
@@ -125,7 +125,7 @@ namespace KDPgDriver.Tests
           x.ListEnum
       });
 
-      Utils.AssertRawQuery(q, @"SELECT (""list_enum"")::text[] FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT (list_enum)::text[] FROM public.model");
     }
   }
 }

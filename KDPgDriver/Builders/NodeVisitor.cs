@@ -100,6 +100,7 @@ namespace KDPgDriver.Builder
             }
 
           case BinaryExpression be:
+
             TypedExpression CreateSimpleBinaryOperator(string op, bool isBoolean)
             {
               var rq2 = new RawQuery();
@@ -115,7 +116,7 @@ namespace KDPgDriver.Builder
 
               return new TypedExpression(rq2, type);
             }
-            
+
             TypedExpression left, right;
             RawQuery rq;
 
@@ -201,6 +202,7 @@ namespace KDPgDriver.Builder
               else {
                 throw new Exception($"invalid array: {value.GetType()}");
               }
+
               rq.Append(")");
 
               return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
@@ -299,8 +301,9 @@ namespace KDPgDriver.Builder
 
       if (isColumn) {
         var column = Helper.GetColumn(propertyInfo);
-        jsonPath.columnName = $"\"{column.Name}\"";
-        return new TypedExpression($"\"{column.Name}\"", column.Type);
+        var quotedName = Helper.QuoteObjectName(column.Name);
+        jsonPath.columnName = quotedName;
+        return new TypedExpression(quotedName, column.Type);
       }
       else {
         string fieldName = Helper.GetJsonPropertyName(propertyInfo);
@@ -312,7 +315,7 @@ namespace KDPgDriver.Builder
           jsonPath.jsonPath.Add(fieldName);
           return new TypedExpression($"{parentField.RawQuery}->'{fieldName}'", KDPgValueTypeJson.Instance);
         }
-        else { throw new Exception($"invalid path"); }
+        else { throw new Exception("invalid path"); }
       }
     }
   }

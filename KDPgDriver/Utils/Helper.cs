@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices.ComTypes;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.RegularExpressions;
 using System.Threading;
 using KDLib;
 using Newtonsoft.Json;
@@ -95,10 +96,8 @@ namespace KDPgDriver.Utils
             nativeItemType: itemType);
       }
 
-      if (TypeRegistry.HasEnumType(type)) {
-        var entry = TypeRegistry.GetEnumEntryForType(type);
-        return KDPgValueTypeEnum.GetInstance(entry.enumName, entry);
-      }
+      if (TypeRegistry.HasEnumType(type))
+        return TypeRegistry.GetEnumEntryForType(type).Type;
 
       throw new Exception($"GetNpgsqlTypeFromObject: Type {type} not implemented");
     }
@@ -326,7 +325,7 @@ namespace KDPgDriver.Utils
 
           case KDPgValueTypeKind.Enum:
             var entry = TypeRegistry.GetEnumEntryForType(propertyType);
-            return KDPgValueTypeEnum.GetInstance(entry.enumName, entry);
+            return entry.Type;
 
           case KDPgValueTypeKind.Json:
             return new KDPgValueTypeJson(propertyType);
@@ -357,14 +356,19 @@ namespace KDPgDriver.Utils
           propertyInfo: columnPropertyInfo);
     }
 
-    public static string Quote(string str)
+    private static readonly HashSet<char> ValidObjectNameChars = "abcdefghijklmnoprstuwxyz0123456789_".ToHashSet();
+
+    public static string QuoteObjectName(string str)
     {
-      return "\"" + str + "\"";
+      if (str.ToHashSet().IsSubsetOf(ValidObjectNameChars))
+        return str;
+      else
+        return "\"" + str + "\"";
     }
 
     public static string QuoteTable(string tableName, string schema = null)
     {
-      return schema == null ? Quote(tableName) : $"{Quote(schema)}.{Quote(tableName)}";
+      return schema == null ? QuoteObjectName(tableName) : $"{QuoteObjectName(schema)}.{QuoteObjectName(tableName)}";
     }
 
     public static string EscapePostgresValue(object value)

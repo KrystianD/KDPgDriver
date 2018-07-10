@@ -32,7 +32,7 @@ namespace KDPgDriver.Builder
       var pgValue = Helper.ConvertObjectToPgValue(value);
 
       var b = new WhereBuilder<TModel>();
-      b.RawQuery.AppendSurround(Helper.Quote(name)).Append(" = ").AppendSurround(pgValue);
+      b.RawQuery.AppendSurround(Helper.QuoteObjectName(name)).Append(" = ").AppendSurround(pgValue);
 
       return b;
     }
@@ -42,7 +42,7 @@ namespace KDPgDriver.Builder
       var name = NodeVisitor.VisitProperty(field.Body);
 
       var b = new WhereBuilder<TModel>();
-      b.RawQuery.AppendSurround(Helper.Quote(name)).Append(" = ANY(");
+      b.RawQuery.AppendSurround(Helper.QuoteObjectName(name)).Append(" = ANY(");
       b.RawQuery.Append(Helper.ConvertObjectToPgValue(array));
       b.RawQuery.Append(")");
 
@@ -57,7 +57,7 @@ namespace KDPgDriver.Builder
       var name = NodeVisitor.VisitProperty(field.Body);
 
       var b = new WhereBuilder<TModel>();
-      b.RawQuery.AppendSurround(Helper.ConvertObjectToPgValue(array)).Append(" && ").AppendSurround(Helper.Quote(name));
+      b.RawQuery.AppendSurround(Helper.ConvertObjectToPgValue(array)).Append(" && ").AppendSurround(Helper.QuoteObjectName(name));
 
       return b;
     }

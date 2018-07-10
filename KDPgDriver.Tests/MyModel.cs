@@ -13,6 +13,13 @@ namespace KDPgDriver.Tests
     C
   }
 
+  public enum MyEnum2
+  {
+    A,
+    B,
+    C
+  }
+
   [KDPgTable("model", schema: "public")]
   public class MyModel
   {
@@ -33,5 +40,9 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("list_enum")]
     public List<MyEnum> ListEnum { get; set; }
+    
+    [KDPgColumn("enum2")]
+    public MyEnum2 Enum2 { get; set; }
+
   }
 }

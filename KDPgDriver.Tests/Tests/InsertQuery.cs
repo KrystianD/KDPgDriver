@@ -25,7 +25,7 @@ namespace KDPgDriver.Tests
                                .UseField(x => x.Id)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".""model""(""id"") VALUES (4) RETURNING ""id""");
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(id) VALUES (4) RETURNING id");
     }
 
     [Fact]
@@ -47,7 +47,7 @@ namespace KDPgDriver.Tests
                                .UseField(x => x.Name)
                                .AddMany(objs);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".""model""(""id"",""name"") VALUES (1,'A'),(2,'B') RETURNING ""id""");
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(id,name) VALUES (1,'A'),(2,'B') RETURNING id");
     }
 
     [Fact]
@@ -63,9 +63,25 @@ namespace KDPgDriver.Tests
                                .UseField(x => x.ListString)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".""model""(""list_enum"",""list_string"") VALUES (@1::enum[],@2::text[]) RETURNING ""id""",
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(list_enum,list_string) VALUES (@1::enum[],@2::text[]) RETURNING id",
                            new Param(new[] { "A", "C" }, NpgsqlDbType.Array | NpgsqlDbType.Text),
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+    }
+
+
+    [Fact]
+    public void InsertEnumSchema()
+    {
+      var obj = new MyModel {
+          Enum2 = MyEnum2.A,
+      };
+
+      var q = Builders<MyModel>.Insert
+                               .UseField(x => x.Enum2)
+                               .AddObject(obj);
+
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(enum2) VALUES (@1::""Schema1"".enum2) RETURNING id",
+                           new Param("A", NpgsqlDbType.Text));
     }
   }
 }
