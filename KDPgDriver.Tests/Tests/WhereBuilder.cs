@@ -10,6 +10,11 @@ namespace KDPgDriver.Tests
 {
   public class WhereBuilderUnitTests
   {
+    static WhereBuilderUnitTests()
+    {
+      MyInit.Init();
+    }
+
     // Data types
     [Fact]
     public void WhereLongString()

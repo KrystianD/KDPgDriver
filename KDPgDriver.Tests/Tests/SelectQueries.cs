@@ -8,12 +8,17 @@ namespace KDPgDriver.Tests
 {
   public class SelectQueriesUnitTests
   {
+    static SelectQueriesUnitTests()
+    {
+      MyInit.Init();
+    }
+
     [Fact]
     public void SelectSimple()
     {
       var q = Builders<MyModel>.Query.Select();
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",""list_string"",""list_string2"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",""list_string"",""list_string2"",""enum""::text,""list_enum""::text[] FROM ""public"".""model""");
     }
 
     [Fact]
@@ -35,8 +40,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumns()
     {
-      var q = Builders<MyModel>.Query.Select(x => new
-      {
+      var q = Builders<MyModel>.Query.Select(x => new {
           x.Name
       });
 
@@ -46,8 +50,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsExpressionString()
     {
-      var q = Builders<MyModel>.Query.Select(x => new
-      {
+      var q = Builders<MyModel>.Query.Select(x => new {
           OutName = x.Name + "A" + "B"
       });
 
@@ -57,8 +60,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsExpressionNumber()
     {
-      var q = Builders<MyModel>.Query.Select(x => new
-      {
+      var q = Builders<MyModel>.Query.Select(x => new {
           OutId = (x.Id + 2 * 3 + 4) * 5,
       });
 
@@ -68,8 +70,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsExpressionFunc()
     {
-      var q = Builders<MyModel>.Query.Select(x => new
-      {
+      var q = Builders<MyModel>.Query.Select(x => new {
           OutName = x.Name.Substring(5, 10),
       });
 
@@ -86,7 +87,7 @@ namespace KDPgDriver.Tests
 
       var q = Builders<MyModel>.Query.Select(fieldsBuilder);
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"", ""name"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"" FROM ""public"".""model""");
     }
 
     [Fact]
@@ -102,7 +103,29 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.SelectFields(x => x.Id, x => x.Name);
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"", ""name"" FROM ""public"".""model""");
+      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"" FROM ""public"".""model""");
+    }
+
+    [Fact]
+    public void SelectEnum()
+    {
+      MyInit.Init();
+      var q = Builders<MyModel>.Query.Select(x => new {
+          x.Enum
+      });
+
+      Utils.AssertRawQuery(q, @"SELECT (""enum"")::text FROM ""public"".""model""");
+    }
+
+    [Fact]
+    public void SelectEnumArray()
+    {
+      MyInit.Init();
+      var q = Builders<MyModel>.Query.Select(x => new {
+          x.ListEnum
+      });
+
+      Utils.AssertRawQuery(q, @"SELECT (""list_enum"")::text[] FROM ""public"".""model""");
     }
   }
 }

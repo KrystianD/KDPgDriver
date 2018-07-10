@@ -11,24 +11,72 @@ namespace KDPgDriver.Tests
 {
   public class FuncTests
   {
+    static FuncTests()
+    {
+      MyInit.Init();
+    }
+
     private async Task<Driver> CreateDriver()
     {
       var dr = new Driver("postgresql://test:test@localhost:5432/kdpgdriver_test", "public");
       await dr.InitializeAsync();
 
-      await dr.QueryRawAsync("DROP TABLE IF EXISTS model");
-      await dr.QueryRawAsync(@"CREATE TABLE model (
+      await dr.QueryRawAsync(@"
+DROP TABLE IF EXISTS model;
+DROP TYPE IF EXISTS enum;
+
+CREATE TYPE enum AS ENUM ('A', 'B', 'C');
+
+CREATE TABLE model (
   id int PRIMARY KEY,
   name text,
   list_string text[],
-  list_string2 text[]
-)");
-      await dr.QueryRawAsync(@"
-INSERT INTO model(id, name, list_string) VALUES(1, 'test1', '{a,b,c}');
-INSERT INTO model(id, name, list_string) VALUES(2, 'test2', '{a,b}');
-INSERT INTO model(id, name, list_string) VALUES(3, 'test3', '{a}');");
+  list_string2 text[],
+  enum enum,
+  list_enum enum[]
+);
+
+INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');
+INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(2, 'test2', '{a,b}', 'B', '{B}');
+INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a}', 'C', '{B,C}');
+");
 
       return dr;
+    }
+
+    [Fact]
+    public async Task WhereEnumFetch()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.QueryGetAllAsync(Builders<MyModel>.Query.Select(x => new {
+          x.Enum
+      }));
+
+      Assert.Collection(res,
+                        item => { Assert.Equal(MyEnum.A, item.Enum); },
+                        item => { Assert.Equal(MyEnum.B, item.Enum); },
+                        item => { Assert.Equal(MyEnum.C, item.Enum); });
+    }
+
+    [Fact]
+    public async Task WhereEnumArrayFetch()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.QueryGetAllAsync(Builders<MyModel>.Query.Select(x => new {
+          x.ListEnum
+      }));
+
+      Assert.Collection(res,
+                        item => { Assert.Collection(item.ListEnum, x => { Assert.Equal(MyEnum.A, x); }); },
+                        item => { Assert.Collection(item.ListEnum, x => { Assert.Equal(MyEnum.B, x); }); },
+                        item =>
+                        {
+                          Assert.Collection(item.ListEnum,
+                                            x => { Assert.Equal(MyEnum.B, x); },
+                                            x => { Assert.Equal(MyEnum.C, x); });
+                        });
     }
 
     [Fact]
@@ -46,6 +94,9 @@ INSERT INTO model(id, name, list_string) VALUES(3, 'test3', '{a}');");
         Assert.Collection(item.ListString,
                           subitem => { Assert.Equal("a", subitem); },
                           subitem => { Assert.Equal("b", subitem); });
+
+        Assert.Collection(item.ListEnum,
+                          subitem => { Assert.Equal(MyEnum.B, subitem); });
       });
     }
 

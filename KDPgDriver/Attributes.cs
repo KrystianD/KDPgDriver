@@ -78,9 +78,11 @@ namespace KDPgDriver
   {
     // public KDPgValueTypeKind BaseType;
 
-    public abstract Type NativeType { get; }
+    public abstract Type CSharpType { get; }
+    public virtual Type PgNativeType => CSharpType;
     public abstract NpgsqlDbType NpgsqlType { get; }
     public abstract string PostgresType { get; }
+    public virtual string PostgresFetchType => PostgresType;
 
     public KDPgValueType(KDPgValueTypeKind baseType)
     {
@@ -92,7 +94,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeBoolean Instance = new KDPgValueTypeBoolean();
 
-    public override Type NativeType => typeof(bool);
+    public override Type CSharpType => typeof(bool);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Boolean;
     public override string PostgresType => "bool";
 
@@ -103,7 +105,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeDate Instance = new KDPgValueTypeDate();
 
-    public override Type NativeType => typeof(DateTime);
+    public override Type CSharpType => typeof(DateTime);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Date;
     public override string PostgresType => "date";
 
@@ -114,7 +116,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeTime Instance = new KDPgValueTypeTime();
 
-    public override Type NativeType => typeof(DateTime);
+    public override Type CSharpType => typeof(DateTime);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Time;
     public override string PostgresType => "time";
 
@@ -125,7 +127,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeDateTime Instance = new KDPgValueTypeDateTime();
 
-    public override Type NativeType => typeof(TimeSpan);
+    public override Type CSharpType => typeof(TimeSpan);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Timestamp;
     public override string PostgresType => "timestamp";
 
@@ -137,7 +139,20 @@ namespace KDPgDriver
     private readonly string _name;
     public TypeRegistry.EnumEntry EnumEntry { get; }
 
-    public override Type NativeType => typeof(TypeRegistry.EnumEntry);
+    public override Type CSharpType => EnumEntry.type;
+    public override Type PgNativeType => typeof(string);
+    public override string PostgresFetchType => "text";
+
+    public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Text;
+    public override string PostgresType => _name;
+
+    public KDPgValueTypeEnum(string name, TypeRegistry.EnumEntry enumEntry) : base(KDPgValueTypeKind.Enum)
+    {
+      _name = name;
+      EnumEntry = enumEntry;
+    }
+
+    // cache
     private static Dictionary<string, KDPgValueTypeEnum> Instances = new Dictionary<string, KDPgValueTypeEnum>();
 
     public static KDPgValueTypeEnum GetInstance(string name, TypeRegistry.EnumEntry enumEntry)
@@ -150,22 +165,13 @@ namespace KDPgDriver
         return i;
       }
     }
-
-    public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Text;
-    public override string PostgresType => _name;
-
-    public KDPgValueTypeEnum(string name, TypeRegistry.EnumEntry enumEntry) : base(KDPgValueTypeKind.Enum)
-    {
-      _name = name;
-      EnumEntry = enumEntry;
-    }
   }
 
   public class KDPgValueTypeInteger : KDPgValueType
   {
     public static KDPgValueTypeInteger Instance = new KDPgValueTypeInteger();
 
-    public override Type NativeType => typeof(int);
+    public override Type CSharpType => typeof(int);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Integer;
     public override string PostgresType => "int";
 
@@ -176,7 +182,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeDecimal Instance = new KDPgValueTypeDecimal();
 
-    public override Type NativeType => typeof(decimal);
+    public override Type CSharpType => typeof(decimal);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Numeric;
     public override string PostgresType => "numeric";
 
@@ -187,7 +193,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeString Instance = new KDPgValueTypeString();
 
-    public override Type NativeType => typeof(string);
+    public override Type CSharpType => typeof(string);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Text;
     public override string PostgresType => "text";
 
@@ -198,7 +204,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeUUID Instance = new KDPgValueTypeUUID();
 
-    public override Type NativeType => typeof(Guid);
+    public override Type CSharpType => typeof(Guid);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Uuid;
     public override string PostgresType => "uuid";
 
@@ -212,9 +218,10 @@ namespace KDPgDriver
     public KDPgValueType ItemType { get; }
     public Type ListType { get; }
 
-    public override Type NativeType => _nativeType;
+    public override Type CSharpType => _nativeType;
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Array | ItemType.NpgsqlType;
     public override string PostgresType => $"{ItemType.PostgresType}[]";
+    public override string PostgresFetchType => $"{ItemType.PostgresFetchType}[]";
 
     public KDPgValueTypeArray(KDPgValueType itemType, Type nativeItemType, Type listType) : base(KDPgValueTypeKind.Array)
     {
@@ -228,7 +235,7 @@ namespace KDPgDriver
   {
     public static KDPgValueTypeJson Instance = new KDPgValueTypeJson();
 
-    public override Type NativeType => typeof(JToken);
+    public override Type CSharpType => typeof(JToken);
     public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Jsonb;
     public override string PostgresType => "jsonb";
 

@@ -100,8 +100,6 @@ namespace KDPgDriver.Utils
         return KDPgValueTypeEnum.GetInstance(entry.enumName, entry);
       }
 
-      if (type is IEnumerable enumerable) { }
-
       throw new Exception($"GetNpgsqlTypeFromObject: Type {type} not implemented");
     }
 
@@ -195,7 +193,7 @@ namespace KDPgDriver.Utils
 
         case KDPgValueTypeArray arrayType:
           var rawItems = (IList) rawValue;
-          var outputList = ReflectionUtils.CreateListInstance(arrayType.NativeType);
+          var outputList = ReflectionUtils.CreateListInstance(arrayType.CSharpType);
           foreach (var rawItem in rawItems) {
             outputList.Add(ConvertFromNpgsql(arrayType.ItemType, rawItem));
           }
@@ -275,7 +273,7 @@ namespace KDPgDriver.Utils
           return new PgValue(((DateTime) rawValue).Date, type);
 
         case KDPgValueTypeArray arrayType:
-          var objs = ReflectionUtils.CreateListInstance(arrayType.NativeType);
+          var objs = ReflectionUtils.CreateListInstance(arrayType.CSharpType);
           foreach (var rawItem in (IEnumerable) rawValue) {
             objs.Add(ConvertToNpgsql(arrayType.ItemType, rawItem).Value);
           }

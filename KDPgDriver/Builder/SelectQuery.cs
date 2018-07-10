@@ -19,7 +19,7 @@ namespace KDPgDriver.Builder
     public IQueryBuilder Builder { get; }
 
     private List<ResultColumnDef> columns = new List<ResultColumnDef>();
-    private StringBuilder selectPart = new StringBuilder();
+    private RawQuery selectPart = new RawQuery();
     public bool isSingleValue = false;
 
     public SelectQuery(IQueryBuilder queryBuilder)
@@ -30,8 +30,7 @@ namespace KDPgDriver.Builder
     public IList<ResultColumnDef> GetColumns()
     {
       return columns.Count == 0
-          ? Helper.GetTable(typeof(TOut)).Columns.Select(x => new ResultColumnDef()
-          {
+          ? Helper.GetTable(typeof(TOut)).Columns.Select(x => new ResultColumnDef() {
               PropertyInfo = x.PropertyInfo,
               KdPgColumnType = x.Type,
           }).ToList()
@@ -40,15 +39,18 @@ namespace KDPgDriver.Builder
 
     public RawQuery GetQuery(Driver driver)
     {
-      string selectStr = selectPart.ToString();
-      if (selectStr.Length == 0) {
-        selectStr = Helper.GetTable(typeof(TOut)).Columns.Select(x => Helper.Quote(x.Name)).JoinString(",");
+      if (selectPart.IsEmpty) {
+        foreach (var column in Helper.GetTable(typeof(TOut)).Columns) {
+          if (!selectPart.IsEmpty)
+            selectPart.Append(",");
+          selectPart.AppendColumnNameWithCast(column.Name, column.Type.PostgresFetchType == column.Type.PostgresType ? null : column.Type.PostgresFetchType);
+        }
       }
 
       string schema = Builder.SchemaName ?? driver.Schema;
 
       RawQuery rq = new RawQuery();
-      rq.Append("SELECT ", selectStr, " FROM ", Helper.QuoteTable(Builder.TableName, schema));
+      rq.Append("SELECT ").Append(selectPart).Append(" FROM ", Helper.QuoteTable(Builder.TableName, schema));
 
       RawQuery wherePart = Builder.GetWherePart();
       if (!wherePart.IsEmpty) {
@@ -61,12 +63,11 @@ namespace KDPgDriver.Builder
 
     private void AddSelectPart(RawQuery exp, PropertyInfo member, KDPgValueType type)
     {
-      if (selectPart.Length > 0)
-        selectPart.Append(", ");
-      selectPart.Append(exp.RenderSimple());
+      if (!selectPart.IsEmpty)
+        selectPart.Append(",");
+      selectPart.AppendWithCast(exp.RenderSimple(), type.PostgresFetchType == type.PostgresType ? null : type.PostgresFetchType);
 
-      columns.Add(new ResultColumnDef()
-      {
+      columns.Add(new ResultColumnDef() {
           PropertyInfo = member,
           KdPgColumnType = type,
       });

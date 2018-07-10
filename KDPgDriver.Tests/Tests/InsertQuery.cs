@@ -9,6 +9,11 @@ namespace KDPgDriver.Tests
 {
   public class InsertQuery
   {
+    static InsertQuery()
+    {
+      MyInit.Init();
+    }
+    
     [Fact]
     public void InsertSingle()
     {

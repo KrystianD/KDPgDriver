@@ -44,8 +44,7 @@ namespace KDPgDriver.Builder
     {
       int idx = parameters.Count;
       parameters.Add(value);
-      parts.Add(new QueryPart()
-      {
+      parts.Add(new QueryPart() {
           ParamIdx = idx,
       });
       return this;
@@ -53,8 +52,7 @@ namespace KDPgDriver.Builder
 
     public RawQuery Append(RawQuery rawQuery)
     {
-      parts.Add(new QueryPart()
-      {
+      parts.Add(new QueryPart() {
           RawQuery = rawQuery,
       });
       return this;
@@ -110,6 +108,28 @@ namespace KDPgDriver.Builder
     public RawQuery AppendColumnName(string columnName)
     {
       Append($"\"{columnName}\"");
+      return this;
+    }
+
+    public RawQuery AppendColumnNameWithCast(string columnName, string castType = null)
+    {
+      AppendColumnName(columnName);
+      if (castType != null)
+        Append("::", castType);
+
+      return this;
+    }
+
+    public RawQuery AppendWithCast(string columnName, string castType = null)
+    {
+      if (castType == null) {
+        Append(columnName);
+      }
+      else {
+        AppendSurround(columnName);
+        Append("::", castType);
+      }
+
       return this;
     }
 

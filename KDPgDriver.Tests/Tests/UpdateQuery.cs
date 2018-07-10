@@ -9,6 +9,11 @@ namespace KDPgDriver.Tests
 {
   public class UpdateQuery
   {
+    static UpdateQuery()
+    {
+      MyInit.Init();
+    }
+
     [Fact]
     public void UpdateSetField()
     {

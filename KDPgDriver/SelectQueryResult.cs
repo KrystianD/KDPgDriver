@@ -64,12 +64,10 @@ namespace KDPgDriver
       object[] fields = new object[_reader.FieldCount];
 
       for (int i = 0; i < _reader.FieldCount; i++) {
-        var rawValue = _reader.GetValue(i);
-
-        if (_reader.IsDBNull(i))
-          rawValue = null;
-
         var columnProperty = _columns[i];
+
+        object rawValue = _reader.IsDBNull(i) ? null : _reader.GetValue(i);
+
         object outputValue = Helper.ConvertFromNpgsql(columnProperty.KdPgColumnType, rawValue);
 
         fields[i] = outputValue;
@@ -83,7 +81,7 @@ namespace KDPgDriver
           obj = null;
         else
           obj = (T) Activator.CreateInstance(t);
-        
+
         for (int i = 0; i < _reader.FieldCount; i++) {
           var columnProperty = _columns[i];
 

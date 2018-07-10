@@ -20,6 +20,11 @@ namespace KDPgDriver.Tests
 
   public class RawQueryUnitTests
   {
+    static RawQueryUnitTests()
+    {
+      MyInit.Init();
+    }
+
     [Fact]
     public void Simple()
     {

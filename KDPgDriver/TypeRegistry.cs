@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Npgsql;
+using Npgsql.NameTranslation;
 
 namespace KDPgDriver
 {
