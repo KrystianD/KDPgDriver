@@ -173,7 +173,7 @@ namespace KDPgDriver.Tests
 
     // Operators
     [Fact]
-    public void WhereOperatorIn()
+    public void WhereOperatorInDirect()
     {
       var q = Builders<MyModel>.Query
                                .Where(x => x.Name.PgIn("A", "B"))
@@ -181,7 +181,38 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, new[] { "A", "B" });
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") IN (('A'),('B')))");
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+                           new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+    }
+
+    [Fact]
+    public void WhereOperatorInArray()
+    {
+      var items = new[] { null, "A1", "A2", "B3", "A4" };
+
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.PgIn(items))
+                               .Select(x => new { x.Id });
+
+      var b = WhereBuilder<MyModel>.In(x => x.Name, items);
+
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+                           new Param(new[] { null, "A1", "A2", "B3", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+    }
+
+    [Fact]
+    public void WhereOperatorInList()
+    {
+      var items = new List<string>() { null, "A1", "A2", "B3", "A4" };
+
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.PgIn(items))
+                               .Select(x => new { x.Id });
+
+      var b = WhereBuilder<MyModel>.In(x => x.Name, items);
+
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+                           new Param(new[] { null, "A1", "A2", "B3", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
     [Fact]
@@ -196,7 +227,8 @@ namespace KDPgDriver.Tests
 
       var b = WhereBuilder<MyModel>.In(x => x.Name, items2);
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") IN (NULL,('A1'),('A2'),('A4')))");
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".""model"" WHERE ((""name"") = ANY(@1::text[]))",
+                           new Param(new[] { null, "A1", "A2", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
     [Fact]

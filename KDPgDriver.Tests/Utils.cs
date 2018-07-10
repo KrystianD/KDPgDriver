@@ -1,10 +1,11 @@
 using System;
+using KDLib;
 using KDPgDriver.Builder;
 using Xunit;
 
 namespace KDPgDriver.Tests
 {
-  public class Utils
+  public static class Utils
   {
     public static void CompareParameters(ParametersContainer parametersContainer, params Param[] parameters)
     {
@@ -12,7 +13,16 @@ namespace KDPgDriver.Tests
       Assert.Equal(list.Count, parameters.Length);
 
       for (var i = 0; i < parameters.Length; i++) {
-        Assert.Equal(parameters[i].value, list[i].Item1);
+        object expected = parameters[i].value;
+
+        if (expected.GetType().IsArray) {
+          var expectedList = ReflectionUtils.CreateListInstance(expected.GetType().GetElementType());
+          foreach (var item in (Array) expected) expectedList.Add(item);
+          expected = expectedList;
+        }
+
+        var actual = list[i].Item1;
+        Assert.Equal(expected, actual);
         Assert.Equal(parameters[i].type, list[i].Item2);
       }
     }
@@ -20,7 +30,7 @@ namespace KDPgDriver.Tests
     public static void AssertRawQuery(RawQuery rq, string expectedQuery, params Param[] parameters)
     {
       if (expectedQuery == null) throw new ArgumentNullException(nameof(expectedQuery));
-      
+
       string query;
       ParametersContainer outParameters;
       rq.Render(out query, out outParameters);

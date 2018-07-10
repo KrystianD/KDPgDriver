@@ -194,22 +194,13 @@ namespace KDPgDriver.Builder
               // var valueType = Helper.GetNpgsqlTypeFromObject(value);
 
               rq = new RawQuery();
-              rq.AppendSurround(callObjectStr).Append(" IN (");
-
-              if (value is IEnumerable array) {
-                bool first = true;
-                foreach (var item in array) {
-                  if (!first)
-                    rq.Append(",");
-                  rq.AppendSurround(Helper.ConvertObjectToPgValue(item));
-
-                  first = false;
-                }
+              rq.AppendSurround(callObjectStr).Append(" = ANY(");
+              if (value is IEnumerable col) {
+                rq.Append(Helper.ConvertObjectToPgValue(col));
               }
               else {
                 throw new Exception($"invalid array: {value.GetType()}");
               }
-
               rq.Append(")");
 
               return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
@@ -265,8 +256,7 @@ namespace KDPgDriver.Builder
 
                 var arg = VisitInternal(call.Arguments[0]);
 
-                object[] args =
-                {
+                object[] args = {
                     arg,
                 };
                 return (TypedExpression) internalMethod.Invoke(null, args);

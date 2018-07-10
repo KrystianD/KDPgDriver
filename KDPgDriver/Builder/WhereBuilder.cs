@@ -42,17 +42,8 @@ namespace KDPgDriver.Builder
       var name = NodeVisitor.VisitProperty(field.Body);
 
       var b = new WhereBuilder<TModel>();
-      b.RawQuery.AppendSurround(Helper.Quote(name)).Append(" IN (");
-
-      bool first = true;
-      foreach (var item in array) {
-        if (!first)
-          b.RawQuery.Append(",");
-        b.RawQuery.AppendSurround(Helper.ConvertObjectToPgValue(item));
-
-        first = false;
-      }
-
+      b.RawQuery.AppendSurround(Helper.Quote(name)).Append(" = ANY(");
+      b.RawQuery.Append(Helper.ConvertObjectToPgValue(array));
       b.RawQuery.Append(")");
 
       return b;
@@ -79,7 +70,7 @@ namespace KDPgDriver.Builder
       foreach (var statement in statements) {
         if (statement.RawQuery.IsEmpty)
           continue;
-        
+
         if (!first)
           b.RawQuery.Append(" OR ");
 
@@ -98,7 +89,7 @@ namespace KDPgDriver.Builder
       foreach (var statement in statements) {
         if (statement.RawQuery.IsEmpty)
           continue;
-        
+
         if (!first)
           b.RawQuery.Append(" AND ");
 

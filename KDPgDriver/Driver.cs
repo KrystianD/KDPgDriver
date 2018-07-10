@@ -153,15 +153,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return objects;
     }
 
-    // public async Task<SelectQueryResult<TOut>> QueryAsync<TModel,TOut>(Func<QueryBuilder<TModel>, SelectQuery<TOut>> fn) where TOut : class
-    // {
-    //   var builder = CreateBuilder<TModel>();
-    //   var q = fn(builder);
-    //   
-    //   var connection = await CreateConnection();
-    //   return await QueryAsyncInternal(q, connection, null, disposeConnection: true);
-    // }
-
     internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder,
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans) where TOut : class
@@ -222,6 +213,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
         var reader = await cmd.ExecuteReaderAsync();
 
         return new SelectQueryResult<TOut>(connection, cmd, reader, builder, columns, disposeConnection);
+      }
+    }
+
+    public async Task QueryRawAsync(string query)
+    {
+      using (var connection = await CreateConnection()) {
+        using (var t = connection.CreateCommand()) {
+          t.CommandText = query;
+          await t.ExecuteNonQueryAsync();
+        }
       }
     }
   }
