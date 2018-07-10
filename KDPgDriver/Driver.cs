@@ -33,6 +33,10 @@ namespace KDPgDriver
       return _transaction.CommitAsync();
     }
 
+    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder)
+    {
+      return Driver.QueryAsyncInternal(builder, _connection, _transaction, disposeConnection: false);
+    }
 
     public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder)
     {
@@ -44,9 +48,9 @@ namespace KDPgDriver
       return Driver.QueryAsyncInternal(builder, _connection, _transaction);
     }
 
-    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder)
+    public Task<DeleteQueryResult> QueryAsync(DeleteQuery builder)
     {
-      return Driver.QueryAsyncInternal(builder, _connection, _transaction, disposeConnection: false);
+      return Driver.QueryAsyncInternal(builder, _connection, _transaction);
     }
   }
 
@@ -145,6 +149,35 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return await QueryAsyncInternal(selectQuery, connection, null, disposeConnection: true);
     }
 
+    public async Task<DeleteQueryResult> QueryAsync(DeleteQuery updateQuery)
+    {
+      using (var connection = await CreateConnection()) {
+        return await QueryAsyncInternal(updateQuery, connection, null);
+      }
+    }
+
+    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(SelectQuery<TOut> builder,
+                                                                          NpgsqlConnection connection,
+                                                                          NpgsqlTransaction trans,
+                                                                          bool disposeConnection)
+    {
+      var columns = builder.GetColumns();
+      RawQuery rq = builder.GetQuery(this);
+
+      string query;
+      ParametersContainer parameters;
+      rq.Render(out query, out parameters);
+
+      Console.WriteLine(query);
+
+      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
+        parameters.AssignToCommand(cmd);
+        var reader = await cmd.ExecuteReaderAsync();
+
+        return new SelectQueryResult<TOut>(connection, cmd, reader, builder, columns, disposeConnection);
+      }
+    }
+
     internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder,
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans)
@@ -185,13 +218,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return null;
     }
 
-    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(
-        SelectQuery<TOut> builder,
-        NpgsqlConnection connection,
-        NpgsqlTransaction trans,
-        bool disposeConnection)
+    internal async Task<DeleteQueryResult> QueryAsyncInternal(DeleteQuery builder,
+                                                              NpgsqlConnection connection,
+                                                              NpgsqlTransaction trans)
     {
-      var columns = builder.GetColumns();
       RawQuery rq = builder.GetQuery(this);
 
       string query;
@@ -202,10 +232,10 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         parameters.AssignToCommand(cmd);
-        var reader = await cmd.ExecuteReaderAsync();
-
-        return new SelectQueryResult<TOut>(connection, cmd, reader, builder, columns, disposeConnection);
+        await cmd.ExecuteNonQueryAsync();
       }
+
+      return null;
     }
 
     public async Task QueryRawAsync(string query)

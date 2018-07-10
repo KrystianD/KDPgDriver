@@ -6,7 +6,7 @@ namespace KDPgDriver.Builder
 {
   public interface IDeleteQuery : IQuery { }
 
-  public class DeleteQuery<TOut> : IDeleteQuery
+  public class DeleteQuery : IDeleteQuery
   {
     private readonly IQueryBuilder _builder;
 

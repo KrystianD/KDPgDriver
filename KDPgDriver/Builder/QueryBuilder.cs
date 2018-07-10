@@ -83,9 +83,9 @@ namespace KDPgDriver.Builder
       return uq;
     }
 
-    public DeleteQuery<TModel> Delete()
+    public DeleteQuery Delete()
     {
-      return new DeleteQuery<TModel>(this);
+      return new DeleteQuery(this);
     }
   }
 }
