@@ -96,9 +96,9 @@ namespace KDPgDriver.Builder
             switch (un.NodeType) {
               case ExpressionType.Convert:
                 // if (un.Type.IsNullable())
-                  return VisitInternal(un.Operand);
+                return VisitInternal(un.Operand);
 
-                // throw new Exception($"unknown type: {un.Type}");
+              // throw new Exception($"unknown type: {un.Type}");
 
               default:
                 throw new Exception($"unknown operator: {un.NodeType}");
@@ -233,9 +233,37 @@ namespace KDPgDriver.Builder
                 rq.Append(" = ANY(", callObjectStr, ")");
                 return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
               }
+              else if (callObject.Type is KDPgValueTypeString) {
+                string txt = VisitInternal(call.Arguments[0]).RawQuery.RenderSimple();
+
+                rq = new RawQuery();
+                rq.Append(callObjectStr);
+                rq.Append(" LIKE ('%' || kdpg_escape_like(");
+                rq.Append(txt);
+                rq.Append(") || '%')");
+                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+              }
               else {
                 throw new Exception($"Contains cannot be used on non-list");
               }
+            }
+            else if (call.Method.Name == "PgLike") {
+              var callObject1 = VisitInternal(call.Arguments[0]).RawQuery;
+              var param1 = VisitInternal(call.Arguments[1]).RawQuery;
+
+              rq = new RawQuery();
+              rq.Append(callObject1).Append(" LIKE ('%' || kdpg_escape_like(").Append(param1).Append(") || '%')");
+
+              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+            }
+            else if (call.Method.Name == "PgILike") {
+              var callObject1 = VisitInternal(call.Arguments[0]).RawQuery;
+              var param1 = VisitInternal(call.Arguments[1]).RawQuery;
+
+              rq = new RawQuery();
+              rq.Append(callObject1).Append(" ILIKE ('%' || kdpg_escape_like(").Append(param1).Append(") || '%')");
+
+              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
             }
             else if (call.Method.Name == "PgContainsAny") {
               callObject = VisitInternal(call.Arguments[0]);

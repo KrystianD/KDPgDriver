@@ -21,6 +21,7 @@ namespace KDPgDriver.Tests
       Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,(enum)::text,(list_enum)::text[],(enum2)::text,datetime FROM public.model");
     }
 
+    // Single values
     [Fact]
     public void SelectSingleValue()
     {
@@ -37,6 +38,7 @@ namespace KDPgDriver.Tests
       Utils.AssertRawQuery(q, @"SELECT (id) * (2) FROM public.model");
     }
 
+    // Columns
     [Fact]
     public void SelectColumns()
     {
@@ -106,6 +108,7 @@ namespace KDPgDriver.Tests
       Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
 
+    // Enums
     [Fact]
     public void SelectEnum()
     {

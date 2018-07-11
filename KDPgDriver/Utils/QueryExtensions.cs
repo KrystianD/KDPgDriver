@@ -24,5 +24,15 @@ namespace KDPgDriver
     {
       throw new Exception("do not use directly");
     }
+
+    public static bool PgLike(this string source, string value)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static bool PgILike(this string source, string value)
+    {
+      throw new Exception("do not use directly");
+    }
   }
 }

@@ -262,5 +262,44 @@ namespace KDPgDriver.Tests
       Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE (@1::text[]) && (list_string)",
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
+
+    [Fact]
+    public void WhereOperatorStringContains()
+    {
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.Contains("A"))
+                               .Select(x => new { x.Id });
+
+      // TODO
+      // var b = WhereBuilder<MyModel>.Contains(x => x.ListString, new[] { "A", "B" });
+
+      Utils.AssertRawQuery(q,  @"SELECT id FROM public.model WHERE name LIKE ('%' || kdpg_escape_like('A') || '%')");
+    }
+
+    [Fact]
+    public void WhereOperatorStringLike()
+    {
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.PgLike("A"))
+                               .Select(x => new { x.Id });
+
+      // TODO
+      // var b = WhereBuilder<MyModel>.Contains(x => x.ListString, new[] { "A", "B" });
+
+      Utils.AssertRawQuery(q,  @"SELECT id FROM public.model WHERE name LIKE ('%' || kdpg_escape_like('A') || '%')");
+    }
+
+    [Fact]
+    public void WhereOperatorStringILike()
+    {
+      var q = Builders<MyModel>.Query
+                               .Where(x => x.Name.PgILike("A"))
+                               .Select(x => new { x.Id });
+
+      // TODO
+      // var b = WhereBuilder<MyModel>.Contains(x => x.ListString, new[] { "A", "B" });
+
+      Utils.AssertRawQuery(q,  @"SELECT id FROM public.model WHERE name ILIKE ('%' || kdpg_escape_like('A') || '%')");
+    }
   }
 }
