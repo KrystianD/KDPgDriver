@@ -23,8 +23,8 @@ namespace KDPgDriver
 
   public class ResultColumnDef
   {
-    public PropertyInfo PropertyInfo;
-    public KDPgValueType KdPgColumnType;
+    public PropertyInfo EndModelProperty;
+    public KDPgValueType Type;
   }
 
   public class SelectQueryResult<T> : IDisposable 
@@ -68,7 +68,7 @@ namespace KDPgDriver
 
         object rawValue = _reader.IsDBNull(i) ? null : _reader.GetValue(i);
 
-        object outputValue = Helper.ConvertFromNpgsql(columnProperty.KdPgColumnType, rawValue);
+        object outputValue = Helper.ConvertFromNpgsql(columnProperty.Type, rawValue);
 
         fields[i] = outputValue;
       }
@@ -77,16 +77,16 @@ namespace KDPgDriver
         obj = (T) Activator.CreateInstance(t, fields);
       }
       else {
-        if (!_builder.isSingleValue)
+        if (!_builder.IsSingleValue)
           obj = (T) Activator.CreateInstance(t);
 
         for (int i = 0; i < _reader.FieldCount; i++) {
           var columnProperty = _columns[i];
 
-          if (_builder.isSingleValue)
+          if (_builder.IsSingleValue)
             obj = (T) fields[i];
           else
-            columnProperty.PropertyInfo.SetValue(obj, fields[i]);
+            columnProperty.EndModelProperty.SetValue(obj, fields[i]);
         }
       }
 
@@ -106,7 +106,7 @@ namespace KDPgDriver
     {
       bool hasResult = await HasNextResult();
       if (!hasResult)
-        throw new Exception("no reults found");
+        throw new Exception("no results found");
       var res = GetCurrentResult();
       Dispose();
       return res;

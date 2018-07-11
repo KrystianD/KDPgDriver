@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Builder;
@@ -162,7 +164,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                                           bool disposeConnection)
     {
       var columns = builder.GetColumns();
-      RawQuery rq = builder.GetQuery(this);
+      RawQuery rq = builder.GetRawQuery(Schema);
 
       string query;
       ParametersContainer parameters;
@@ -182,7 +184,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans)
     {
-      RawQuery rq = builder.GetQuery(this);
+      RawQuery rq = builder.GetRawQuery(Schema);
 
       string query;
       ParametersContainer parameters;
@@ -194,7 +196,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
         parameters.AssignToCommand(cmd);
         var lastInsertId = await cmd.ExecuteScalarAsync();
 
-        return new InsertQueryResult((int?)lastInsertId);
+        return new InsertQueryResult((int?) lastInsertId);
       }
     }
 
@@ -202,7 +204,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans)
     {
-      RawQuery rq = builder.GetQuery(this);
+      RawQuery rq = builder.GetRawQuery(Schema);
 
       string query;
       ParametersContainer parameters;
@@ -222,7 +224,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                               NpgsqlConnection connection,
                                                               NpgsqlTransaction trans)
     {
-      RawQuery rq = builder.GetQuery(this);
+      RawQuery rq = builder.GetRawQuery(Schema);
 
       string query;
       ParametersContainer parameters;
@@ -261,6 +263,12 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       var res = await QueryAsync(selectQuery);
       var obj = await res.GetSingle();
       return obj;
+    }
+
+    // Chains
+    public SelectQueryFluentBuilder1<TModel> From<TModel>()
+    {
+      return new SelectQueryFluentBuilder1<TModel>(this);
     }
   }
 }

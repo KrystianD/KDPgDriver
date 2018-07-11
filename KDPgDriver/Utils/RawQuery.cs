@@ -64,6 +64,12 @@ namespace KDPgDriver.Builder
       return this;
     }
 
+    public void AppendSeparatorIfNotEmpty()
+    {
+      if (!IsEmpty)
+        Append(",");
+    }
+
     public RawQuery AppendSurround(string text)
     {
       Append("(");

@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using KDPgDriver.Utils;
-
-namespace KDPgDriver.Builder
+﻿namespace KDPgDriver.Builder
 {
   public interface IDeleteQuery : IQuery { }
 
@@ -15,17 +11,18 @@ namespace KDPgDriver.Builder
       _builder = queryBuilder;
     }
 
-    public RawQuery GetQuery(Driver driver)
+    public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = _builder.SchemaName ?? driver.Schema;
+      string schema = _builder.SchemaName ?? defaultSchema;
 
       RawQuery rq = new RawQuery();
-      rq.Append("DELETE FROM ", Helper.QuoteTable(_builder.TableName, schema));
+      rq.Append("DELETE FROM ")
+        .AppendTableName(_builder.TableName, schema);
 
-      RawQuery wherePart = _builder.GetWherePart();
-      if (!wherePart.IsEmpty) {
+      var whereRawQuery = _builder.GetWhereBuilder().GetRawQuery();
+      if (!whereRawQuery.IsEmpty) {
         rq.Append(" WHERE ");
-        rq.Append(wherePart);
+        rq.Append(whereRawQuery);
       }
 
       return rq;

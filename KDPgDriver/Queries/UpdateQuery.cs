@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using KDPgDriver.Utils;
-
-namespace KDPgDriver.Builder
+﻿namespace KDPgDriver.Builder
 {
   public interface IUpdateQuery : IQuery { }
 
@@ -17,12 +13,14 @@ namespace KDPgDriver.Builder
       _builder = queryBuilder;
     }
 
-    public RawQuery GetQuery(Driver driver)
+    public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = _builder.SchemaName ?? driver.Schema;
+      string schema = _builder.SchemaName ?? defaultSchema;
 
       RawQuery rq = new RawQuery();
-      rq.Append("UPDATE ", Helper.QuoteTable(_builder.TableName, schema), "\n");
+      rq.Append("UPDATE ")
+        .AppendTableName(_builder.TableName, schema)
+        .Append("\n");
 
       rq.Append("SET ");
       bool first = true;
@@ -30,17 +28,19 @@ namespace KDPgDriver.Builder
         if (!first)
           rq.Append(", ");
 
-        rq.Append(Helper.QuoteObjectName(name), " = ");
-        rq.Append(rawQuery);
+        rq.AppendColumnName(name)
+          .Append(" = ")
+          .Append(rawQuery);
 
         first = false;
       }
+      
+      rq.Append("\n");
 
-      // string q = $"SELECT {selectStr} FROM \"{schema}\".\"{Builder.TableName}\"";
-      RawQuery wherePart = _builder.GetWherePart();
-      if (!wherePart.IsEmpty) {
-        rq.Append(" WHERE ");
-        rq.Append(wherePart);
+      var whereRawQuery = _builder.GetWhereBuilder().GetRawQuery();
+      if (!whereRawQuery.IsEmpty) {
+        rq.Append("WHERE ")
+          .Append(whereRawQuery);
       }
 
       return rq;

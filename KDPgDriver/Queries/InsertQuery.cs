@@ -69,7 +69,7 @@ namespace KDPgDriver.Builder
       return this;
     }
 
-    public RawQuery GetQuery(Driver driver)
+    public RawQuery GetRawQuery(string defaultSchema = null)
     {
       RawQuery q = new RawQuery();
 
@@ -77,7 +77,7 @@ namespace KDPgDriver.Builder
 
       q.AppendTableName(
           tableName: Helper.GetTableName(typeof(TModel)),
-          schema: Helper.GetTableSchema(typeof(TModel)) ?? driver.Schema);
+          schema: Helper.GetTableSchema(typeof(TModel)) ?? defaultSchema);
 
       q.Append("(").AppendColumnNames(_columns.Select(x => x.Name)).Append(")");
 

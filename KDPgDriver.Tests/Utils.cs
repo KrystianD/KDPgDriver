@@ -41,27 +41,27 @@ namespace KDPgDriver.Tests
 
     public static void AssertRawQuery(IQuery gen, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = gen.GetQuery(null);
+      RawQuery rq = gen.GetRawQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
     public static void AssertRawQuery(QueryBuilder<MyModel> builder, string expectedQuery, params Param[] parameters)
     {
       var gen = builder.Select(x => new { x.Id });
-      RawQuery rq = gen.GetQuery(null);
+      RawQuery rq = gen.GetRawQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
     public static void AssertRawQuery(IQuery gen, RawQuery rq2, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = gen.GetQuery(null);
+      RawQuery rq = gen.GetRawQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
       AssertRawQuery(rq2, expectedQuery, parameters);
     }
 
     public static void AssertRawQuery(IQuery gen, WhereBuilder<MyModel> b2, string expectedQuery, params Param[] parameters)
     {
-      var q2 = new QueryBuilder<MyModel>().Where(b2).Select(x => new { x.Id }).GetQuery(null);
+      var q2 = new QueryBuilder<MyModel>().Where(b2).Select(x => new { x.Id }).GetRawQuery(null);
       AssertRawQuery(gen, q2, expectedQuery, parameters);
     }
   }

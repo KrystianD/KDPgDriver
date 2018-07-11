@@ -18,7 +18,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.Select();
 
-      Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,enum::text,list_enum::text[],enum2::text,datetime FROM public.model");
+      Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,(enum)::text,(list_enum)::text[],(enum2)::text,datetime FROM public.model");
     }
 
     [Fact]
@@ -85,7 +85,7 @@ namespace KDPgDriver.Tests
       fieldsBuilder.AddField(x => x.Id)
                    .AddField(x => x.Name);
 
-      var q = Builders<MyModel>.Query.Select(fieldsBuilder);
+      var q = Builders<MyModel>.Query.SelectOnly(fieldsBuilder);
 
       Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
@@ -93,7 +93,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsDirectFieldList1()
     {
-      var q = Builders<MyModel>.Query.SelectFields(x => x.Id);
+      var q = Builders<MyModel>.Query.SelectOnly(x => x.Id);
 
       Utils.AssertRawQuery(q, @"SELECT id FROM public.model");
     }
@@ -101,7 +101,7 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectColumnsDirectFieldList2()
     {
-      var q = Builders<MyModel>.Query.SelectFields(x => x.Id, x => x.Name);
+      var q = Builders<MyModel>.Query.SelectOnly(x => x.Id, x => x.Name);
 
       Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
@@ -109,7 +109,6 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectEnum()
     {
-      MyInit.Init();
       var q = Builders<MyModel>.Query.Select(x => new {
           x.Enum
       });
@@ -120,12 +119,33 @@ namespace KDPgDriver.Tests
     [Fact]
     public void SelectEnumArray()
     {
-      MyInit.Init();
       var q = Builders<MyModel>.Query.Select(x => new {
           x.ListEnum
       });
 
       Utils.AssertRawQuery(q, @"SELECT (list_enum)::text[] FROM public.model");
+    }
+
+    // Order
+    [Fact]
+    public void SelectOrderBy()
+    {
+      var q = Builders<MyModel>.Select(x => x.Id)
+                               .OrderBy(x => x.Id + 2)
+                               .OrderByDescending(x => x.DateTime);
+
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model ORDER BY (id) + (2),datetime DESC");
+    }
+
+    // Limit
+    [Fact]
+    public void SelectLimit()
+    {
+      var q = Builders<MyModel>.Select(x => x.Id)
+                               .Limit(1)
+                               .Offset(2);
+
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model LIMIT 1 OFFSET 2");
     }
   }
 }

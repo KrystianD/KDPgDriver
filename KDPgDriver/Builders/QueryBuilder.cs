@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Security.Cryptography;
 using System.Text;
 using KDPgDriver.Utils;
 
@@ -9,70 +10,52 @@ namespace KDPgDriver.Builder
 {
   public class QueryBuilder<TModel> : IQueryBuilder
   {
-    // public Driver Driver { get; }
     public string TableName { get; }
     public string SchemaName { get; }
 
-    private readonly RawQuery _wherePart = new RawQuery();
+    private readonly WhereBuilder<TModel> _wherePart = WhereBuilder<TModel>.Empty;
 
-    public RawQuery GetWherePart() => _wherePart;
+    public IWhereBuilder GetWhereBuilder() => _wherePart;
 
     public QueryBuilder()
     {
-      // Driver = driver;
       TableName = Helper.GetTableName(typeof(TModel));
       SchemaName = Helper.GetTableSchema(typeof(TModel));
     }
 
     public QueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
     {
-      var whereSql = NodeVisitor.Visit(exp.Body, exp.Parameters.First().Name).RawQuery;
-
-      if (!_wherePart.IsEmpty)
-        _wherePart.Append(" AND ");
-      _wherePart.Append("(");
-      _wherePart.Append(whereSql);
-      _wherePart.Append(")");
-
+      _wherePart.AndWith(WhereBuilder<TModel>.FromExpression(exp));
       return this;
     }
 
     public QueryBuilder<TModel> Where(WhereBuilder<TModel> builder)
     {
-      if (!_wherePart.IsEmpty)
-        _wherePart.Append(" AND ");
-      _wherePart.Append("(");
-      _wherePart.Append(builder.RawQuery);
-      _wherePart.Append(")");
-
+      _wherePart.AndWith(builder);
       return this;
     }
 
     public SelectQuery<TModel> Select()
     {
-      return new SelectQuery<TModel>(this);
+      return new SelectQuery<TModel>(this, SelectFromBuilder<TModel>.AllColumns(), null, null);
     }
 
     public SelectQuery<TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      var us = new SelectQuery<TNewModel>(this);
-      us.ProcessSingleField(pr);
-      return us;
+      return new SelectQuery<TNewModel>(this, SelectFromBuilder<TNewModel>.FromExpression(pr), null, null);
     }
 
-    public SelectQuery<TModel> Select(FieldListBuilder<TModel> builder)
+    public SelectQuery<TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      var us = new SelectQuery<TModel>(this);
-      us.ProcessListOfFields(builder);
-      return us;
+      return new SelectQuery<TModel>(this, SelectFromBuilder<TModel>.FromFieldListBuilder(builder), null, null);
     }
 
-    public SelectQuery<TModel> SelectFields(params Expression<Func<TModel, object>>[] fieldsList)
+    public SelectQuery<TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
     {
       var builder = new FieldListBuilder<TModel>();
       foreach (var expression in fieldsList)
         builder.AddField(expression);
-      return Select(builder);
+      return SelectOnly(builder);
     }
 
     public UpdateQuery<TModel> Update(UpdateStatementsBuilder<TModel> builder)

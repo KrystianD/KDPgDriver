@@ -69,6 +69,11 @@ namespace KDPgDriver.Builder
 
     public static PropertyInfo EvaluateToPropertyInfo<TModel>(Expression<Func<TModel, object>> exp) => EvaluateToPropertyInfo(exp.Body);
 
+    public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp)
+    {
+      return Visit(exp.Body, exp.Parameters.First().Name);
+    }
+
     public static TypedExpression Visit(Expression expression, string inputParameterName = null)
     {
       TypedExpression VisitInternal(Expression exp)
@@ -90,10 +95,10 @@ namespace KDPgDriver.Builder
           case UnaryExpression un:
             switch (un.NodeType) {
               case ExpressionType.Convert:
-                if (un.Type.IsNullable())
+                // if (un.Type.IsNullable())
                   return VisitInternal(un.Operand);
 
-                throw new Exception($"unknown type: {un.Type}");
+                // throw new Exception($"unknown type: {un.Type}");
 
               default:
                 throw new Exception($"unknown operator: {un.NodeType}");

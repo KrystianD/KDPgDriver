@@ -116,5 +116,30 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
                         item => { Assert.Equal(2, item.Id); },
                         item => { Assert.Equal(3, item.Id); });
     }
+
+    [Fact]
+    public async Task Test1()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .Select()
+                        .Where(x => x.Id == 2)
+                        .OrderBy(x => x.DateTime)
+                        .ToListAsync();
+
+      Assert.Collection(res, item =>
+      {
+        Assert.Equal(2, item.Id);
+        Assert.Equal("test2", item.Name);
+
+        Assert.Collection(item.ListString,
+                          subitem => { Assert.Equal("a", subitem); },
+                          subitem => { Assert.Equal("b", subitem); });
+
+        Assert.Collection(item.ListEnum,
+                          subitem => { Assert.Equal(MyEnum.B, subitem); });
+      });
+    }
   }
 }

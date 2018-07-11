@@ -27,7 +27,7 @@ namespace KDPgDriver.Tests
     {
       var q = Builders<MyModel>.Query.Where(x => x.Id == 2).Delete();
 
-      Utils.AssertRawQuery(q, @"DELETE FROM public.model WHERE ((id) = (2))");
+      Utils.AssertRawQuery(q, @"DELETE FROM public.model WHERE (id) = (2)");
     }
   }
 }

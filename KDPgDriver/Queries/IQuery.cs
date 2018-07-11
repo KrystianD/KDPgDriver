@@ -1,6 +1,7 @@
-﻿namespace KDPgDriver.Builder {
+﻿namespace KDPgDriver.Builder
+{
   public interface IQuery
   {
-    RawQuery GetQuery(Driver driver);
+    RawQuery GetRawQuery(string defaultSchema = null);
   }
 }
