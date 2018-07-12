@@ -13,14 +13,20 @@ namespace KDPgDriver.Builders
     {
       RawQuery rq = new RawQuery();
       rq.AppendSurround(left.RawQuery);
-      rq.Append(" = ");
-      if (left.Type == KDPgValueTypeJson.Instance && right.Type != KDPgValueTypeNull.Instance) {
-        rq.Append("to_jsonb(");
-        rq.AppendSurround(right.RawQuery);
-        rq.Append(")");
+
+      if (right.Type == KDPgValueTypeNull.Instance) {
+        rq.Append(" IS NULL");
       }
       else {
-        rq.AppendSurround(right.RawQuery);
+        rq.Append(" = ");
+        if (left.Type == KDPgValueTypeJson.Instance) {
+          rq.Append("to_jsonb(");
+          rq.AppendSurround(right.RawQuery);
+          rq.Append(")");
+        }
+        else {
+          rq.AppendSurround(right.RawQuery);
+        }
       }
 
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
@@ -199,7 +205,7 @@ namespace KDPgDriver.Builders
 
       return new TypedExpression(rq, array.Type);
     }
-    
+
     public static TypedExpression ArrayRemoveItem<T>(TypedExpression array, T item)
     {
       var pgValue = Helper.ConvertObjectToPgValue(item);
@@ -225,11 +231,11 @@ namespace KDPgDriver.Builders
       var pgValue = Helper.ConvertObjectToPgValue(item);
       return KDPgJsonbAdd(array, jsonPath, TypedExpression.FromPgValue(pgValue));
     }
-    
+
     public static TypedExpression KDPgJsonbAdd(TypedExpression array, IEnumerable<string> jsonPath, TypedExpression item)
     {
       string jsonPathStr = jsonPath.Select(Helper.QuoteObjectName).JoinString(",");
-      
+
       if (!(array.Type is KDPgValueTypeJson))
         throw new Exception("array parameter must be json");
 

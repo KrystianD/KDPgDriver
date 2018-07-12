@@ -30,7 +30,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == null);
 
-      Utils.AssertExpression(exp, @"(name) = (NULL)");
+      Utils.AssertExpression(exp, @"(name) IS NULL");
     }
 
     [Fact]
@@ -38,7 +38,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel == null);
 
-      Utils.AssertExpression(exp, @"(json_model) = (NULL)");
+      Utils.AssertExpression(exp, @"(json_model) IS NULL");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonObject1 == null);
 
-      Utils.AssertExpression(exp, @"(json_object1) = (NULL)");
+      Utils.AssertExpression(exp, @"(json_object1) IS NULL");
     }
 
     [Fact]
