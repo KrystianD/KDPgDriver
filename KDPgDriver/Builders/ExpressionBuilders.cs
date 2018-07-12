@@ -14,7 +14,7 @@ namespace KDPgDriver.Builders
       RawQuery rq = new RawQuery();
       rq.AppendSurround(left.RawQuery);
       rq.Append(" = ");
-      if (left.Type is KDPgValueTypeJson) {
+      if (left.Type == KDPgValueTypeJson.Instance && right.Type != KDPgValueTypeNull.Instance) {
         rq.Append("to_jsonb(");
         rq.AppendSurround(right.RawQuery);
         rq.Append(")");

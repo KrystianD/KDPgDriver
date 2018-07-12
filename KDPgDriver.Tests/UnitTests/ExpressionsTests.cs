@@ -26,6 +26,30 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void ExpressionEqNull()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == null);
+
+      Utils.AssertExpression(exp, @"(name) = (NULL)");
+    }
+
+    [Fact]
+    public void ExpressionEqJsonModelNull()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel == null);
+
+      Utils.AssertExpression(exp, @"(json_model) = (NULL)");
+    }
+
+    [Fact]
+    public void ExpressionEqJsonObjectNull()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonObject1 == null);
+
+      Utils.AssertExpression(exp, @"(json_object1) = (NULL)");
+    }
+
+    [Fact]
     public void ExpressionEqLongString()
     {
       string s1 = "long string long string long string long string long string long string long string";

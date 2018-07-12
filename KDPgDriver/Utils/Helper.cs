@@ -246,7 +246,7 @@ namespace KDPgDriver.Utils
         Type = type;
       }
 
-      public static readonly PgValue Null = new PgValue(null, null);
+      public static readonly PgValue Null = new PgValue(null, KDPgValueTypeNull.Instance);
     }
 
     public static PgValue ConvertObjectToPgValue(object rawValue)

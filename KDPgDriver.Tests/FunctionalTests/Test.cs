@@ -146,7 +146,7 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
       var dr = await CreateDriver();
 
       var res = await dr.From<MyModel>()
-                        .Select(x => (bool?)(x.JsonModel.MySubsubmodel.Number == 2))
+                        .Select(x => (bool?) (x.JsonModel.MySubsubmodel.Number == 2))
                         .ToListAsync();
 
       Assert.Equal(3, res.Count);

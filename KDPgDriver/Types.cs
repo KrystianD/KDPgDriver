@@ -19,7 +19,8 @@ namespace KDPgDriver
     Time,
     UUID,
     Decimal,
-    Enum
+    Enum,
+    Null,
   }
 
   public abstract class KDPgValueType
@@ -36,6 +37,17 @@ namespace KDPgDriver
     {
       // BaseType = baseType;
     }
+  }
+
+  public class KDPgValueTypeNull : KDPgValueType
+  {
+    public static KDPgValueTypeNull Instance = new KDPgValueTypeNull();
+
+    public override Type CSharpType => throw new Exception("no type");
+    public override NpgsqlDbType NpgsqlType => NpgsqlDbType.Unknown;
+    public override string PostgresType => throw new Exception("no type");
+
+    public KDPgValueTypeNull() : base(KDPgValueTypeKind.Null) { }
   }
 
   public class KDPgValueTypeBoolean : KDPgValueType
