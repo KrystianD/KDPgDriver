@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using KDPgDriver.Builder;
 using KDPgDriver.Utils;
+using Newtonsoft.Json.Linq;
 using NpgsqlTypes;
 using Xunit;
 
@@ -234,6 +235,53 @@ namespace KDPgDriver.Tests
 
       Utils.AssertExpression(exp, @"(datetime) = (@1::timestamp)",
                              new Param(date, NpgsqlDbType.Timestamp));
+    }
+
+    // JSON
+    [Fact]
+    public void ExpressionJsonString()
+    {
+      var val = JToken.FromObject("A");
+
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonObject1["A"] == val);
+
+      Utils.AssertExpression(exp, @"((json_object1)->'A') = to_jsonb((@1::jsonb))",
+                             new Param("\"A\"", NpgsqlDbType.Jsonb));
+    }
+
+    [Fact]
+    public void ExpressionJsonNumber()
+    {
+      var val = JToken.FromObject(2);
+
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonObject1["A"] == val);
+
+      Utils.AssertExpression(exp, @"((json_object1)->'A') = to_jsonb((@1::jsonb))",
+                             new Param("2", NpgsqlDbType.Jsonb));
+    }
+
+    [Fact]
+    public void ExpressionJsonModel()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Name);
+
+      Utils.AssertExpression(exp, @"((json_model)->'name')::text");
+    }
+
+    [Fact]
+    public void ExpressionJsonModelFunc()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Name.Substring(1, 2));
+
+      Utils.AssertExpression(exp, @"substring((((json_model)->'name')::text) from 1 for 2)");
+    }
+
+    [Fact]
+    public void ExpressionJsonSubModelFunc()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.MySubsubmodel.Number == 2);
+      
+      Utils.AssertExpression(exp, @"((((json_model)->'inner')->'number')::text::int) = (2)");
     }
   }
 }

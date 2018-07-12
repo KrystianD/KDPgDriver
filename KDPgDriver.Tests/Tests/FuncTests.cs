@@ -37,7 +37,9 @@ CREATE TABLE model (
   enum enum,
   enum2 enum2,
   list_enum enum[],
-  datetime timestamp
+  datetime timestamp,
+  json_object1 jsonb,
+  json_model jsonb
 );
 
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');
@@ -140,6 +142,18 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
         Assert.Collection(item.ListEnum,
                           subitem => { Assert.Equal(MyEnum.B, subitem); });
       });
+    }
+
+    [Fact]
+    public async Task TestJson1()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .Select(x => (bool?)(x.JsonModel.MySubsubmodel.Number == 2))
+                        .ToListAsync();
+
+      Assert.Equal(3, res.Count);
     }
   }
 }

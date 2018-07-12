@@ -81,7 +81,7 @@ namespace KDPgDriver.Utils
       if (type == typeof(decimal))
         return KDPgValueTypeDecimal.Instance;
 
-      if (type == typeof(JToken) || type == typeof(JArray) || type == typeof(JObject))
+      if (type == typeof(JToken) || type == typeof(JArray) || type == typeof(JObject) || type == typeof(JValue))
         return KDPgValueTypeJson.Instance;
 
       if (type.IsGenericList() || type.IsGenericEumerable()) {
@@ -134,6 +134,24 @@ namespace KDPgDriver.Utils
         throw new Exception("no prop info");
 
       return ((JsonPropertyAttribute) q[0]).PropertyName;
+    }
+
+    public static KDPgValueType GetJsonPropertyType(PropertyInfo memberInfo)
+    {
+      var q = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), false);
+
+      if (q.Length == 0)
+        throw new Exception("no prop info");
+
+      var type = memberInfo.PropertyType;
+      if (type == typeof(string))
+        return KDPgValueTypeString.Instance;
+      if (type == typeof(int))
+        return KDPgValueTypeInteger.Instance;
+      if (type == typeof(bool))
+        return KDPgValueTypeBoolean.Instance;
+      
+      return KDPgValueTypeJson.Instance;
     }
 
     public static bool IsColumn(MemberInfo memberType)
@@ -290,6 +308,9 @@ namespace KDPgDriver.Utils
           return;
 
         var tableAttribute = tableType.GetCustomAttribute<KDPgTableAttribute>();
+
+        if (tableAttribute == null)
+          return;
 
         var table = new KdPgTableDescriptor(
             name: tableAttribute.Name,

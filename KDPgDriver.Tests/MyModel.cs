@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace KDPgDriver.Tests
@@ -18,6 +19,27 @@ namespace KDPgDriver.Tests
     A,
     B,
     C
+  }
+
+  public class MySubsubmodel
+  {
+    [JsonProperty("number")]
+    public int Number { get; set; }
+
+    [JsonProperty("name")]
+    public string Name { get; set; }
+  }
+
+  public class MySubmodel
+  {
+    [JsonProperty("number")]
+    public int Number { get; set; }
+
+    [JsonProperty("name")]
+    public string Name { get; set; }
+
+    [JsonProperty("inner")]
+    public MySubsubmodel MySubsubmodel { get; set; }
   }
 
   [KDPgTable("model", schema: "public")]
@@ -46,5 +68,12 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("datetime")]
     public DateTime DateTime { get; set; }
+
+    [KDPgColumn("json_object1")]
+    public JObject JsonObject1 { get; set; }
+
+    [KDPgColumn("json_model")]
+    [KDPgColumnType(KDPgValueTypeKind.Json)]
+    public MySubmodel JsonModel { get; set; }
   }
 }
