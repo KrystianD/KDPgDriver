@@ -38,17 +38,17 @@ namespace KDPgDriver.Builders
 
     public SelectQuery<TModel> Select()
     {
-      return new SelectQuery<TModel>(this, SelectFromBuilder<TModel>.AllColumns(), null, null);
+      return new SelectQuery<TModel>(this, SelectFromBuilder.AllColumns<TModel>(), null, null);
     }
 
     public SelectQuery<TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQuery<TNewModel>(this, SelectFromBuilder<TNewModel>.FromExpression(pr), null, null);
+      return new SelectQuery<TNewModel>(this, SelectFromBuilder.FromExpression(pr), null, null);
     }
 
     public SelectQuery<TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      return new SelectQuery<TModel>(this, SelectFromBuilder<TModel>.FromFieldListBuilder(builder), null, null);
+      return new SelectQuery<TModel>(this, SelectFromBuilder.FromFieldListBuilder(builder), null, null);
     }
 
     public SelectQuery<TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)

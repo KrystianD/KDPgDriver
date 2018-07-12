@@ -22,24 +22,37 @@ namespace KDPgDriver.Fluent
 
     public SelectQueryFluentBuilder2<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder2<TModel, TModel>(SelectFromBuilder<TModel>.AllColumns(), _executor);
+      return new SelectQueryFluentBuilder2<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), _executor);
     }
 
     public SelectQueryFluentBuilder2<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder2<TModel, TNewModel>(SelectFromBuilder<TNewModel>.FromExpression(pr), _executor);
+      return new SelectQueryFluentBuilder2<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), _executor);
+    }
+
+    public SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
+    {
+      return new SelectQueryFluentBuilder2<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), _executor);
+    }
+
+    public SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
+    {
+      var builder = new FieldListBuilder<TModel>();
+      foreach (var expression in fieldsList)
+        builder.AddField(expression);
+      return SelectOnly(builder);
     }
   }
 
   public class SelectQueryFluentBuilder2<TModel, TNewModel> : IQuery
   {
     private readonly IQueryExecutor _executor;
-    private readonly SelectFromBuilder<TNewModel> _selectFromBuilder;
+    private readonly SelectFromBuilder _selectFromBuilder;
     private readonly OrderBuilder<TModel> _orderBuilder = new OrderBuilder<TModel>();
     private readonly QueryBuilder<TModel> _queryBuilder = Builders<TModel>.Query;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
 
-    public SelectQueryFluentBuilder2(SelectFromBuilder<TNewModel> selectFromBuilder, IQueryExecutor executor = null)
+    public SelectQueryFluentBuilder2(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
     {
       _executor = executor;
       _selectFromBuilder = selectFromBuilder;

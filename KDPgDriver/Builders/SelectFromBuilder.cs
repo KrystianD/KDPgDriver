@@ -16,7 +16,7 @@ namespace KDPgDriver.Builders
     RawQuery GetRawQuery();
   }
 
-  public class SelectFromBuilder<TOut> : ISelectFromBuilder
+  public class SelectFromBuilder : ISelectFromBuilder
   {
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
     private readonly RawQuery _selectPart = new RawQuery();
@@ -25,9 +25,9 @@ namespace KDPgDriver.Builders
     public List<ResultColumnDef> GetColumns() => _columns;
     public RawQuery GetRawQuery() => _selectPart;
 
-    public static SelectFromBuilder<TOut> FromExpression<TModel>(Expression<Func<TModel, TOut>> prBody)
+    public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)
     {
-      var b = new SelectFromBuilder<TOut>();
+      var b = new SelectFromBuilder();
       TypedExpression exp;
 
       switch (prBody.Body) {
@@ -55,9 +55,9 @@ namespace KDPgDriver.Builders
       return b;
     }
 
-    public static SelectFromBuilder<TOut> FromFieldListBuilder(FieldListBuilder<TOut> builder)
+    public static SelectFromBuilder FromFieldListBuilder<TModel>(FieldListBuilder<TModel> builder)
     {
-      var b = new SelectFromBuilder<TOut>();
+      var b = new SelectFromBuilder();
       foreach (var fieldExpression in builder.Fields) {
         var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
         b.AddSelectPart(RawQuery.CreateColumnName(column.Name), column.PropertyInfo, column.Type);
@@ -66,10 +66,10 @@ namespace KDPgDriver.Builders
       return b;
     }
 
-    public static SelectFromBuilder<TOut> AllColumns()
+    public static SelectFromBuilder AllColumns<TModel>()
     {
-      var b = new SelectFromBuilder<TOut>();
-      foreach (var column in Helper.GetTable(typeof(TOut)).Columns)
+      var b = new SelectFromBuilder();
+      foreach (var column in Helper.GetTable(typeof(TModel)).Columns)
         b.AddSelectPart(RawQuery.CreateColumnName(column.Name), column.PropertyInfo, column.Type);
       return b;
     }

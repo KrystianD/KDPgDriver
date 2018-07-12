@@ -6,26 +6,31 @@ using KDPgDriver.Queries;
 
 namespace KDPgDriver
 {
-  public static class Builders<T>
+  public static class Builders<TModel>
   {
-    public static QueryBuilder<T> Query => new QueryBuilder<T>();
-    public static InsertQuery<T> Insert => new InsertQuery<T>();
-    public static UpdateStatementsBuilder<T> UpdateOp => new UpdateStatementsBuilder<T>();
-
-    public static SelectQueryFluentBuilder1<T> From()
-    {
-      return new SelectQueryFluentBuilder1<T>();
-    }
+    public static QueryBuilder<TModel> Query => new QueryBuilder<TModel>();
+    public static InsertQuery<TModel> Insert => new InsertQuery<TModel>();
+    public static UpdateStatementsBuilder<TModel> UpdateOp => new UpdateStatementsBuilder<TModel>();
 
     // Select
-    public static SelectQueryFluentBuilder2<T, T> Select()
+    public static SelectQueryFluentBuilder2<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder2<T, T>(SelectFromBuilder<T>.AllColumns());
+      return new SelectQueryFluentBuilder1<TModel>().Select();
     }
 
-    public static SelectQueryFluentBuilder2<T, TNewModel> Select<TNewModel>(Expression<Func<T, TNewModel>> pr)
+    public static SelectQueryFluentBuilder2<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder2<T, TNewModel>(SelectFromBuilder<TNewModel>.FromExpression(pr));
+      return new SelectQueryFluentBuilder1<TModel>().Select(pr);
+    }
+
+    public static SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
+    {
+      return new SelectQueryFluentBuilder1<TModel>().SelectOnly(builder);
+    }
+
+    public static SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
+    {
+      return new SelectQueryFluentBuilder1<TModel>().SelectOnly(fieldsList);
     }
   }
 }
