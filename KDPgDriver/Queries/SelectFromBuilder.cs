@@ -49,7 +49,7 @@ namespace KDPgDriver.Builder
           var args = newExpression.Arguments;
 
           foreach (var (member, argExpression) in members.Zip(args)) {
-            exp = NodeVisitor.Visit(argExpression);
+            exp = NodeVisitor.VisitToTypedExpression(argExpression);
             b.AddSelectPart(exp.RawQuery, member, exp.Type);
           }
 
@@ -57,7 +57,7 @@ namespace KDPgDriver.Builder
         }
 
         default:
-          exp = NodeVisitor.Visit(prBody.Body);
+          exp = NodeVisitor.VisitToTypedExpression(prBody.Body);
 
           b.AddSelectPart(exp.RawQuery, null, exp.Type);
           b.IsSingleValue = true;

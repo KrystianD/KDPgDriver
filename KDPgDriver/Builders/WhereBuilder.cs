@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel.Design;
 using System.Linq;
@@ -17,10 +16,17 @@ namespace KDPgDriver.Builder
   public class WhereBuilder<TModel> : IWhereBuilder
   {
     public static WhereBuilder<TModel> Empty => new WhereBuilder<TModel>();
-    
+
     private RawQuery _rawQuery = new RawQuery();
 
     public RawQuery GetRawQuery() => _rawQuery;
+
+    public WhereBuilder() { }
+
+    public WhereBuilder(RawQuery rq)
+    {
+      _rawQuery = rq;
+    }
 
     public WhereBuilder<TModel> AndWith(WhereBuilder<TModel> other)
     {
@@ -42,52 +48,35 @@ namespace KDPgDriver.Builder
 
     public static WhereBuilder<TModel> FromExpression(Expression<Func<TModel, bool>> exp)
     {
-      var b = new WhereBuilder<TModel>();
-      b._rawQuery = NodeVisitor.Visit(exp.Body, exp.Parameters.First().Name).RawQuery;
-      return b;
+      return FromTypedExpression(NodeVisitor.VisitFuncExpression(exp));
     }
 
     public static WhereBuilder<TModel> Eq<T>(Expression<Func<TModel, T>> field, T value)
     {
-      var name = NodeVisitor.VisitProperty(field.Body);
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
       var pgValue = Helper.ConvertObjectToPgValue(value);
 
-      var b = new WhereBuilder<TModel>();
-      b._rawQuery
-       .AppendSurround(Helper.QuoteObjectName(name))
-       .Append(" = ")
-       .AppendSurround(pgValue);
+      var right = TypedExpression.FromPgValue(pgValue);
 
-      return b;
+      return FromTypedExpression(ExpressionBuilders.Eq(column.TypedExpression, right));
     }
 
     public static WhereBuilder<TModel> In<T>(Expression<Func<TModel, T>> field, IEnumerable<T> array)
     {
-      var name = NodeVisitor.VisitProperty(field.Body);
-
-      var b = new WhereBuilder<TModel>();
-      b._rawQuery
-       .AppendSurround(Helper.QuoteObjectName(name)).Append(" = ANY(")
-       .Append(Helper.ConvertObjectToPgValue(array))
-       .Append(")");
-
-      return b;
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      return FromTypedExpression(ExpressionBuilders.In(column.TypedExpression, array));
     }
 
     public static WhereBuilder<TModel> ContainsAny<T>(Expression<Func<TModel, IList<T>>> field, params T[] values)
-      => ContainsAny(field, (IEnumerable<T>) values);
+    {
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      return FromTypedExpression(ExpressionBuilders.ContainsAny(column.TypedExpression, values));
+    }
 
     public static WhereBuilder<TModel> ContainsAny<T>(Expression<Func<TModel, IList<T>>> field, IEnumerable<T> array)
     {
-      var name = NodeVisitor.VisitProperty(field.Body);
-
-      var b = new WhereBuilder<TModel>();
-      b._rawQuery
-       .AppendSurround(Helper.ConvertObjectToPgValue(array))
-       .Append(" && ")
-       .AppendSurround(Helper.QuoteObjectName(name));
-
-      return b;
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      return FromTypedExpression(ExpressionBuilders.ContainsAny(column.TypedExpression, array));
     }
 
     public static WhereBuilder<TModel> Or(params WhereBuilder<TModel>[] statements)
@@ -126,6 +115,11 @@ namespace KDPgDriver.Builder
       }
 
       return b;
+    }
+
+    internal static WhereBuilder<TModel> FromTypedExpression(TypedExpression exp)
+    {
+      return new WhereBuilder<TModel>(exp.RawQuery);
     }
   }
 }

@@ -23,8 +23,6 @@ namespace KDPgDriver.Builder
       }
     }
 
-    public static string VisitProperty<TModel>(Expression<Func<TModel, object>> exp) => VisitProperty(exp.Body);
-
     public static string VisitProperty(Expression exp)
     {
       switch (exp) {
@@ -36,15 +34,9 @@ namespace KDPgDriver.Builder
       }
     }
 
-    public static TypedExpression VisitProperty2(Expression exp)
+    public static KdPgColumnDescriptor EvaluateExpressionToColumn(Expression exp)
     {
-      switch (exp) {
-        case MemberExpression me:
-          return ProcessPath(me.Expression, me.Member);
-
-        default:
-          throw new Exception($"invalid node: {exp.NodeType}");
-      }
+      return Helper.GetColumn(NodeVisitor.EvaluateToPropertyInfo(exp));
     }
 
     public static PropertyInfo EvaluateToPropertyInfo(Expression exp)
@@ -71,10 +63,15 @@ namespace KDPgDriver.Builder
 
     public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp)
     {
-      return Visit(exp.Body, exp.Parameters.First().Name);
+      return VisitToTypedExpression(exp.Body, exp.Parameters.First().Name);
     }
 
-    public static TypedExpression Visit(Expression expression, string inputParameterName = null)
+    public static TypedExpression VisitFuncExpression<TModel, T>(Expression<Func<TModel, T>> exp)
+    {
+      return VisitToTypedExpression(exp.Body, exp.Parameters.First().Name);
+    }
+
+    public static TypedExpression VisitToTypedExpression(Expression expression, string inputParameterName = null)
     {
       TypedExpression VisitInternal(Expression exp)
       {
@@ -105,179 +102,65 @@ namespace KDPgDriver.Builder
             }
 
           case BinaryExpression be:
-
-            TypedExpression CreateSimpleBinaryOperator(string op, bool isBoolean)
-            {
-              var rq2 = new RawQuery();
-
-              TypedExpression left2 = VisitInternal(be.Left);
-              TypedExpression right2 = VisitInternal(be.Right);
-
-              rq2.AppendSurround(left2.RawQuery);
-              rq2.Append($" {op} ");
-              rq2.AppendSurround(right2.RawQuery);
-
-              var type = isBoolean ? KDPgValueTypeBoolean.Instance : left2.Type;
-
-              return new TypedExpression(rq2, type);
-            }
-
-            TypedExpression left, right;
-            RawQuery rq;
+            TypedExpression left = VisitInternal(be.Left);
+            TypedExpression right = VisitInternal(be.Right);
 
             switch (be.NodeType) {
-              case ExpressionType.Equal:
-                left = VisitInternal(be.Left);
-                right = VisitInternal(be.Right);
-
-                rq = new RawQuery();
-                rq.AppendSurround(left.RawQuery);
-                rq.Append(" = ");
-                if (left.Type is KDPgValueTypeJson) {
-                  rq.Append("to_jsonb(");
-                  rq.AppendSurround(right.RawQuery);
-                  rq.Append(")");
-                }
-                else {
-                  rq.AppendSurround(right.RawQuery);
-                }
-
-                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
-
-              // +
-              case ExpressionType.Add:
-                left = VisitInternal(be.Left);
-                right = VisitInternal(be.Right);
-
-                rq = new RawQuery();
-                rq.AppendSurround(left.RawQuery);
-
-                if (left.Type == KDPgValueTypeString.Instance && right.Type == KDPgValueTypeString.Instance)
-                  rq.Append(" || ");
-                else
-                  rq.Append(" + ");
-
-                rq.AppendSurround(right.RawQuery);
-
-                return new TypedExpression(rq, left.Type);
-
-              case ExpressionType.Subtract:
-                return CreateSimpleBinaryOperator("-", false);
-
-              case ExpressionType.Multiply:
-                return CreateSimpleBinaryOperator("*", false);
-
-              case ExpressionType.AndAlso:
-                return CreateSimpleBinaryOperator("AND", true);
-
-              case ExpressionType.OrElse:
-                return CreateSimpleBinaryOperator("OR", true);
-
-              case ExpressionType.GreaterThan:
-                return CreateSimpleBinaryOperator(">", true);
-
-              case ExpressionType.GreaterThanOrEqual:
-                return CreateSimpleBinaryOperator(">=", true);
-
-              case ExpressionType.LessThan:
-                return CreateSimpleBinaryOperator("<", true);
-
-              case ExpressionType.LessThanOrEqual:
-                return CreateSimpleBinaryOperator("<=", true);
-
-              default:
-                throw new Exception($"unknown operator: {be.NodeType}");
+              case ExpressionType.Equal: return ExpressionBuilders.Eq(left, right);
+              case ExpressionType.Add: return ExpressionBuilders.Add(left, right);
+              case ExpressionType.Subtract: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "-", right, false);
+              case ExpressionType.Multiply: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "*", right, false);
+              case ExpressionType.AndAlso: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "AND", right, true);
+              case ExpressionType.OrElse: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "OR", right, true);
+              case ExpressionType.GreaterThan: return ExpressionBuilders.CreateSimpleBinaryOperator(left, ">", right, true);
+              case ExpressionType.GreaterThanOrEqual: return ExpressionBuilders.CreateSimpleBinaryOperator(left, ">=", right, true);
+              case ExpressionType.LessThan: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "<", right, true);
+              case ExpressionType.LessThanOrEqual: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "<=", right, true);
+              default: throw new Exception($"unknown operator: {be.NodeType}");
             }
 
           case MethodCallExpression call:
             var callObject = call.Object != null ? VisitInternal(call.Object) : null;
-            string callObjectStr = callObject?.RawQuery.RenderSimple();
 
             if (call.Method.Name == "PgIn") {
               callObject = VisitInternal(call.Arguments[0]);
-              callObjectStr = callObject?.RawQuery.RenderSimple();
               var value = GetConstant(call.Arguments[1]);
-              // var valueType = Helper.GetNpgsqlTypeFromObject(value);
 
-              rq = new RawQuery();
-              rq.AppendSurround(callObjectStr).Append(" = ANY(");
-              if (value is IEnumerable col) {
-                rq.Append(Helper.ConvertObjectToPgValue(col));
-              }
-              else {
-                throw new Exception($"invalid array: {value.GetType()}");
-              }
-
-              rq.Append(")");
-
-              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+              return ExpressionBuilders.In(callObject, (IEnumerable) value);
             }
             else if (call.Method.Name == "Substring") {
-              string start = VisitInternal(call.Arguments[0]).RawQuery.RenderSimple();
-              string length = VisitInternal(call.Arguments[1]).RawQuery.RenderSimple();
-              return new TypedExpression($"substring(({callObjectStr}) from ({start}) for ({length}))", KDPgValueTypeString.Instance);
+              TypedExpression start = VisitInternal(call.Arguments[0]);
+              TypedExpression length = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.Substring(callObject, start, length);
             }
             else if (call.Method.Name == "StartsWith") {
-              string txt = VisitInternal(call.Arguments[0]).RawQuery.RenderSimple();
-              return new TypedExpression($"({callObjectStr}) LIKE (kdpg_escape_like({txt}) || '%')", KDPgValueTypeBoolean.Instance);
+              TypedExpression value2 = VisitInternal(call.Arguments[0]);
+              return ExpressionBuilders.StartsWith(callObject, value2);
             }
             else if (call.Method.Name == "get_Item") {
+              string callObjectStr = callObject?.RawQuery.RenderSimple();
               string txt = VisitInternal(call.Arguments[0]).RawQuery.RenderSimple();
 
               return new TypedExpression($"({callObjectStr})->{txt}", KDPgValueTypeJson.Instance);
             }
             else if (call.Method.Name == "Contains") {
-              if (callObject.Type is KDPgValueTypeArray) {
-                rq = new RawQuery();
-                rq.Append(VisitInternal(call.Arguments[0]).RawQuery);
-                rq.Append(" = ANY(", callObjectStr, ")");
-                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
-              }
-              else if (callObject.Type is KDPgValueTypeString) {
-                string txt = VisitInternal(call.Arguments[0]).RawQuery.RenderSimple();
-
-                rq = new RawQuery();
-                rq.Append(callObjectStr);
-                rq.Append(" LIKE ('%' || kdpg_escape_like(");
-                rq.Append(txt);
-                rq.Append(") || '%')");
-                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
-              }
-              else {
-                throw new Exception($"Contains cannot be used on non-list");
-              }
+              var arg1 = VisitInternal(call.Arguments[0]);
+              return ExpressionBuilders.Contains(callObject, arg1);
             }
             else if (call.Method.Name == "PgLike") {
-              var callObject1 = VisitInternal(call.Arguments[0]).RawQuery;
-              var param1 = VisitInternal(call.Arguments[1]).RawQuery;
-
-              rq = new RawQuery();
-              rq.Append(callObject1).Append(" LIKE ('%' || kdpg_escape_like(").Append(param1).Append(") || '%')");
-
-              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+              var callObject1 = VisitInternal(call.Arguments[0]);
+              TypedExpression value2 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.Like(callObject1, value2);
             }
             else if (call.Method.Name == "PgILike") {
-              var callObject1 = VisitInternal(call.Arguments[0]).RawQuery;
-              var param1 = VisitInternal(call.Arguments[1]).RawQuery;
-
-              rq = new RawQuery();
-              rq.Append(callObject1).Append(" ILIKE ('%' || kdpg_escape_like(").Append(param1).Append(") || '%')");
-
-              return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+              var callObject1 = VisitInternal(call.Arguments[0]);
+              TypedExpression value2 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.ILike(callObject1, value2);
             }
             else if (call.Method.Name == "PgContainsAny") {
-              callObject = VisitInternal(call.Arguments[0]);
-              callObjectStr = callObject?.RawQuery.RenderSimple();
-              if (callObject.Type is KDPgValueTypeArray) {
-                rq = new RawQuery();
-                rq.AppendSurround(VisitInternal(call.Arguments[1]).RawQuery);
-                rq.Append(" && ");
-                rq.AppendSurround(callObjectStr);
-                return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
-              }
-              else {
-                throw new Exception($"Contains cannot be used on non-list");
-              }
+              var callObject1 = VisitInternal(call.Arguments[0]);
+              var arg = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.ContainsAny(callObject1, arg);
             }
             else {
               string methodName = call.Method.Name;

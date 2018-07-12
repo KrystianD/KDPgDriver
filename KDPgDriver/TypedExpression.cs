@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections;
 using KDPgDriver.Builder;
+using KDPgDriver.Utils;
 
 namespace KDPgDriver {
   public class TypedExpression
@@ -22,6 +24,11 @@ namespace KDPgDriver {
     public override string ToString()
     {
       return $"{RawQuery}, {Type}";
+    }
+
+    public static TypedExpression FromPgValue(Helper.PgValue value)
+    {
+      return new TypedExpression(RawQuery.Create(value), value.Type);
     }
   }
 }

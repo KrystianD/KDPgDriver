@@ -40,12 +40,16 @@ namespace KDPgDriver.Utils
     public KDPgValueType Type { get; }
     public PropertyInfo PropertyInfo { get; }
 
+    public readonly TypedExpression TypedExpression;
+
     public KdPgColumnDescriptor(string name, KDPgColumnFlagsEnum flags, KDPgValueType type, PropertyInfo propertyInfo)
     {
       Name = name;
       Flags = flags;
       Type = type;
       PropertyInfo = propertyInfo;
+
+      TypedExpression = new TypedExpression(Helper.QuoteObjectName(name), type);
     }
   }
 

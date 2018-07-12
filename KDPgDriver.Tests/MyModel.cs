@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace KDPgDriver.Tests
 {
-  public static class Init
-  {
-  }
+  public static class Init { }
 
   public enum MyEnum
   {
@@ -41,12 +40,11 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("list_enum")]
     public List<MyEnum> ListEnum { get; set; }
-    
+
     [KDPgColumn("enum2")]
     public MyEnum2 Enum2 { get; set; }
-    
+
     [KDPgColumn("datetime")]
     public DateTime DateTime { get; set; }
-
   }
 }

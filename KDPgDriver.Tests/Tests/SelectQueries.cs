@@ -60,26 +60,6 @@ namespace KDPgDriver.Tests
     }
 
     [Fact]
-    public void SelectColumnsExpressionNumber()
-    {
-      var q = Builders<MyModel>.Query.Select(x => new {
-          OutId = (x.Id + 2 * 3 + 4) * 5,
-      });
-
-      Utils.AssertRawQuery(q, @"SELECT (((id) + (6)) + (4)) * (5) FROM public.model");
-    }
-
-    [Fact]
-    public void SelectColumnsExpressionFunc()
-    {
-      var q = Builders<MyModel>.Query.Select(x => new {
-          OutName = x.Name.Substring(5, 10),
-      });
-
-      Utils.AssertRawQuery(q, @"SELECT substring((name) from (5) for (10)) FROM public.model");
-    }
-
-    [Fact]
     public void SelectColumnsFieldList()
     {
       var fieldsBuilder = new FieldListBuilder<MyModel>();
