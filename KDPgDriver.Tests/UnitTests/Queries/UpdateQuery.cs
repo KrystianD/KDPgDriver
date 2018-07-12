@@ -62,7 +62,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
-    public void UpdateListOperationsCombined()
+    public void UpdateListOperationsCombined1()
     {
       var q = Builders<MyModel>.Query.Update(
           Builders<MyModel>.UpdateOp
@@ -75,6 +75,22 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 UPDATE public.model
 SET list_string = array_remove(array_cat(list_string, array['A']), 'B'),
     list_string2 = array_cat(list_string2, array['C'])");
+    }
+
+    [Fact]
+    public void UpdateListOperationsCombined2()
+    {
+      var q = Builders<MyModel>.Query.Update(
+          Builders<MyModel>.UpdateOp
+                           .SetField(x => x.ListString, new List<string>() { "a1", "a2" })
+                           .AddToList(x => x.ListString, "A")
+                           .RemoveFromList(x => x.ListString, "B")
+      );
+
+      Utils.AssertRawQuery(q, @"
+UPDATE public.model
+SET list_string = array_remove(array_cat(@1::text[], array['A']), 'B')",
+                           new Param(new List<string>() { "a1", "a2" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
   }
 }

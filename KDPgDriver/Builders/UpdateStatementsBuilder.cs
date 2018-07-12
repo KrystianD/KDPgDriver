@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using KDLib;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders
@@ -12,6 +8,7 @@ namespace KDPgDriver.Builders
   public class UpdateStatementsBuilder<TModel>
   {
     internal readonly Dictionary<KdPgColumnDescriptor, TypedExpression> UpdateParts = new Dictionary<KdPgColumnDescriptor, TypedExpression>();
+    
     public bool IsEmpty => UpdateParts.Count == 0;
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
