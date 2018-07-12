@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public class FieldListBuilder<TModel>
   {

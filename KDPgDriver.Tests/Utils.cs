@@ -1,6 +1,7 @@
 using System;
 using KDLib;
-using KDPgDriver.Builder;
+using KDPgDriver.Builders;
+using KDPgDriver.Tests.UnitTests;
 using Xunit;
 
 namespace KDPgDriver.Tests
@@ -13,7 +14,7 @@ namespace KDPgDriver.Tests
       Assert.Equal(list.Count, parameters.Length);
 
       for (var i = 0; i < parameters.Length; i++) {
-        object expected = parameters[i].value;
+        object expected = parameters[i].Value;
 
         if (expected.GetType().IsArray) {
           var expectedList = ReflectionUtils.CreateListInstance(expected.GetType().GetElementType());
@@ -23,7 +24,7 @@ namespace KDPgDriver.Tests
 
         var actual = list[i].Item1;
         Assert.Equal(expected, actual);
-        Assert.Equal(parameters[i].type, list[i].Item2);
+        Assert.Equal(parameters[i].Type, list[i].Item2);
       }
     }
 

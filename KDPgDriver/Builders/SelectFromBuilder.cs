@@ -6,7 +6,7 @@ using System.Reflection;
 using KDLib;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public class SelectFromBuilder<TOut>
   {

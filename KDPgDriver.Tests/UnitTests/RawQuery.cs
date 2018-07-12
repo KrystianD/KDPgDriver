@@ -1,20 +1,18 @@
-using System;
-using KDPgDriver.Builder;
-using KDPgDriver.Utils;
+using KDPgDriver.Builders;
 using NpgsqlTypes;
 using Xunit;
 
-namespace KDPgDriver.Tests
+namespace KDPgDriver.Tests.UnitTests
 {
   public class Param
   {
-    public object value;
-    public NpgsqlDbType type;
+    public object Value { get; }
+    public NpgsqlDbType Type { get; }
 
     public Param(object value, NpgsqlDbType type)
     {
-      this.value = value;
-      this.type = type;
+      Value = value;
+      Type = type;
     }
   }
 

@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using KDPgDriver.Builder;
-using KDPgDriver.Utils;
 using NpgsqlTypes;
 using Xunit;
 
-namespace KDPgDriver.Tests
+namespace KDPgDriver.Tests.UnitTests.Queries
 {
   public class UpdateQuery
   {

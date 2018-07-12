@@ -1,14 +1,11 @@
-﻿using System;
-using KDPgDriver.Builder;
-using KDPgDriver.Utils;
-using NpgsqlTypes;
+﻿using KDPgDriver.Builders;
 using Xunit;
 
-namespace KDPgDriver.Tests
+namespace KDPgDriver.Tests.UnitTests
 {
-  public class Funcs
+  public class PGFuncs
   {
-    static Funcs()
+    static PGFuncs()
     {
       MyInit.Init();
     }

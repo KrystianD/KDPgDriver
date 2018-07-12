@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using KDLib;
-using KDPgDriver.Builder;
+using KDPgDriver.Builders;
 using Npgsql;
 
 namespace KDPgDriver

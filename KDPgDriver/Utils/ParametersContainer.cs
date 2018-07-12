@@ -6,7 +6,7 @@ using KDPgDriver.Utils;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public class ParametersContainer
   {

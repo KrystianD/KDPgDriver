@@ -1,17 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using KDLib;
-using KDPgDriver.Builder;
-using KDPgDriver.Utils;
-using NpgsqlTypes;
 using Xunit;
 
-namespace KDPgDriver.Tests
+namespace KDPgDriver.Tests.FunctionalTests
 {
-  public class FuncTests
+  public class Test
   {
-    static FuncTests()
+    static Test()
     {
       MyInit.Init();
     }

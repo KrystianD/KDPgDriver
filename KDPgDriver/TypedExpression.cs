@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using KDPgDriver.Builder;
+﻿using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver {
@@ -9,6 +7,10 @@ namespace KDPgDriver {
     public RawQuery RawQuery { get; }
     public KDPgValueType Type { get; }
 
+    public static TypedExpression Empty => new TypedExpression(RawQuery.Empty, null);
+
+    public bool IsEmpty => RawQuery.IsEmpty;
+    
     public TypedExpression(string rawQuery, KDPgValueType type)
     {
       RawQuery = RawQuery.Create(rawQuery);

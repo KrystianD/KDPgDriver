@@ -10,7 +10,7 @@ using System.Transactions;
 using KDLib;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public class InsertQueryInit<TModel> { }
 

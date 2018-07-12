@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder {
+namespace KDPgDriver.Builders
+{
   public static class ExpressionBuilders
   {
     public static TypedExpression Eq(TypedExpression left, TypedExpression right)
@@ -39,6 +41,10 @@ namespace KDPgDriver.Builder {
       return new TypedExpression(rq, left.Type);
     }
 
+    public static TypedExpression Multiply(TypedExpression left, TypedExpression right) => BinaryOperator("*", left, right, left.Type);
+    public static TypedExpression Divide(TypedExpression left, TypedExpression right) => BinaryOperator("/", left, right, left.Type);
+    public static TypedExpression Subtract(TypedExpression left, TypedExpression right) => BinaryOperator("-", left, right, left.Type);
+
     public static TypedExpression In(TypedExpression left, IEnumerable array)
     {
       RawQuery rq = new RawQuery();
@@ -51,24 +57,16 @@ namespace KDPgDriver.Builder {
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
     }
 
-    public static TypedExpression CreateSimpleBinaryOperator(TypedExpression left, string op, TypedExpression right, bool isBoolean)
-    {
-      RawQuery rq = new RawQuery();
+    public static TypedExpression And(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("AND", expressions);
+    public static TypedExpression Or(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("OR", expressions);
 
-      rq.AppendSurround(left.RawQuery);
-      rq.Append($" {op} ");
-      rq.AppendSurround(right.RawQuery);
-
-      var type = isBoolean ? KDPgValueTypeBoolean.Instance : left.Type;
-
-      return new TypedExpression(rq, type);
-    }
+    public static TypedExpression LessThan(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<", left, right);
+    public static TypedExpression LessThanEqual(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<=", left, right);
+    public static TypedExpression GreaterThan(TypedExpression left, TypedExpression right) => CreateComparisonOperator(">", left, right);
+    public static TypedExpression GreaterThanEqual(TypedExpression left, TypedExpression right) => CreateComparisonOperator(">=", left, right);
 
     public static TypedExpression ContainsAny(TypedExpression left, IEnumerable array)
-    {
-      var pgValue = Helper.ConvertObjectToPgValue(array);
-      return ContainsAny(left, TypedExpression.FromPgValue(pgValue));
-    }
+      => ContainsAny(left, TypedExpression.FromPgValue(Helper.ConvertObjectToPgValue(array)));
 
     public static TypedExpression ContainsAny(TypedExpression left, TypedExpression right)
     {
@@ -107,7 +105,6 @@ namespace KDPgDriver.Builder {
 
       return new TypedExpression(rq, KDPgValueTypeString.Instance);
     }
-
 
     public static TypedExpression StartsWith(TypedExpression value, TypedExpression value2)
     {
@@ -179,6 +176,40 @@ namespace KDPgDriver.Builder {
       else {
         throw new Exception($"Contains cannot be used on non-list");
       }
+    }
+
+    // helpers
+    private static TypedExpression JoinLogicExpressions(string op, IEnumerable<TypedExpression> expressions)
+    {
+      RawQuery rq = new RawQuery();
+
+      bool first = true;
+      foreach (var statement in expressions) {
+        if (statement.RawQuery.IsEmpty)
+          continue;
+
+        if (!first)
+          rq.Append($" {op} ");
+
+        rq.AppendSurround(statement.RawQuery);
+        first = false;
+      }
+
+      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+    }
+
+    private static TypedExpression CreateComparisonOperator(string op, TypedExpression left, TypedExpression right)
+      => BinaryOperator(op, left, right, KDPgValueTypeBoolean.Instance);
+
+    private static TypedExpression BinaryOperator(string op, TypedExpression left, TypedExpression right, KDPgValueType outType)
+    {
+      RawQuery rq = new RawQuery();
+
+      rq.AppendSurround(left.RawQuery);
+      rq.Append($" {op} ");
+      rq.AppendSurround(right.RawQuery);
+
+      return new TypedExpression(rq, outType);
     }
   }
 }

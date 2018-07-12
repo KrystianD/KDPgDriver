@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using KDPgDriver.Builder;
-using KDPgDriver.Utils;
+using KDPgDriver.Builders;
 using Newtonsoft.Json.Linq;
 using NpgsqlTypes;
 using Xunit;
 
-namespace KDPgDriver.Tests
+namespace KDPgDriver.Tests.UnitTests
 {
   public class ExpressionsTests
   {
@@ -17,6 +16,24 @@ namespace KDPgDriver.Tests
     }
 
     // Logic and binary operators
+    [Fact]
+    public void ExpressionEq()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id == 2);
+
+      Utils.AssertExpression(exp, @"(id) = (2)");
+    }
+
+    [Fact]
+    public void ExpressionEqLongString()
+    {
+      string s1 = "long string long string long string long string long string long string long string";
+
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == s1);
+
+      Utils.AssertExpression(exp, @"(name) = (@1::text)",
+                             new Param(s1, NpgsqlDbType.Text));
+    }
 
     #region Operator Add
 
@@ -39,25 +56,6 @@ namespace KDPgDriver.Tests
     #endregion
 
     [Fact]
-    public void ExpressionEq()
-    {
-      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id == 2);
-
-      Utils.AssertExpression(exp, @"(id) = (2)");
-    }
-
-    [Fact]
-    public void ExpressionEqLongString()
-    {
-      string s1 = "long string long string long string long string long string long string long string";
-
-      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == s1);
-
-      Utils.AssertExpression(exp, @"(name) = (@1::text)",
-                             new Param(s1, NpgsqlDbType.Text));
-    }
-
-    [Fact]
     public void ExpressionMultiply()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id * x.Id == 1);
@@ -71,6 +69,14 @@ namespace KDPgDriver.Tests
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id - x.Id == 1);
 
       Utils.AssertExpression(exp, @"((id) - (id)) = (1)");
+    }
+
+    [Fact]
+    public void ExpressionDivide()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id / x.Id == 1);
+
+      Utils.AssertExpression(exp, @"((id) / (id)) = (1)");
     }
 
     [Fact]
@@ -280,7 +286,7 @@ namespace KDPgDriver.Tests
     public void ExpressionJsonSubModelFunc()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.MySubsubmodel.Number == 2);
-      
+
       Utils.AssertExpression(exp, @"((((json_model)->'inner')->'number')::text::int) = (2)");
     }
   }

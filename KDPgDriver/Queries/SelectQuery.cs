@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using NLog.LayoutRenderers;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public interface ISelectQuery : IQuery { }
 

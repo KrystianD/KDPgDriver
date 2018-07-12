@@ -3,7 +3,7 @@ using System.Linq;
 using System.Text;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public class RawQuery
   {
@@ -210,7 +210,9 @@ namespace KDPgDriver.Builder
       return query;
     }
 
-    // static creationg
+    // static creation
+    public static RawQuery Empty => new RawQuery();
+
     public static RawQuery Create(params string[] texts)
     {
       var rq = new RawQuery();

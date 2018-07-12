@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection.Metadata;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public interface IWhereBuilder
   {
@@ -17,38 +15,38 @@ namespace KDPgDriver.Builder
   {
     public static WhereBuilder<TModel> Empty => new WhereBuilder<TModel>();
 
-    private RawQuery _rawQuery = new RawQuery();
+    private TypedExpression _typedExpression = TypedExpression.Empty;
 
-    public RawQuery GetRawQuery() => _rawQuery;
+    public RawQuery GetRawQuery() => _typedExpression.RawQuery;
 
     public WhereBuilder() { }
 
-    public WhereBuilder(RawQuery rq)
+    public WhereBuilder(TypedExpression rq)
     {
-      _rawQuery = rq;
+      _typedExpression = rq;
     }
 
     public WhereBuilder<TModel> AndWith(WhereBuilder<TModel> other)
     {
-      if (_rawQuery.IsEmpty)
-        _rawQuery = other._rawQuery;
+      if (_typedExpression.IsEmpty)
+        _typedExpression = other._typedExpression;
       else
-        _rawQuery = And(this, other)._rawQuery;
+        _typedExpression = And(this, other)._typedExpression;
       return this;
     }
 
     public WhereBuilder<TModel> OrWith(WhereBuilder<TModel> other)
     {
-      if (_rawQuery.IsEmpty)
-        _rawQuery = other._rawQuery;
+      if (_typedExpression.IsEmpty)
+        _typedExpression = other._typedExpression;
       else
-        _rawQuery = Or(this, other)._rawQuery;
+        _typedExpression = Or(this, other)._typedExpression;
       return this;
     }
 
     public static WhereBuilder<TModel> FromExpression(Expression<Func<TModel, bool>> exp)
     {
-      return FromTypedExpression(NodeVisitor.VisitFuncExpression(exp));
+      return new WhereBuilder<TModel>(NodeVisitor.VisitFuncExpression(exp));
     }
 
     public static WhereBuilder<TModel> Eq<T>(Expression<Func<TModel, T>> field, T value)
@@ -58,68 +56,35 @@ namespace KDPgDriver.Builder
 
       var right = TypedExpression.FromPgValue(pgValue);
 
-      return FromTypedExpression(ExpressionBuilders.Eq(column.TypedExpression, right));
+      return new WhereBuilder<TModel>(ExpressionBuilders.Eq(column.TypedExpression, right));
     }
 
     public static WhereBuilder<TModel> In<T>(Expression<Func<TModel, T>> field, IEnumerable<T> array)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
-      return FromTypedExpression(ExpressionBuilders.In(column.TypedExpression, array));
+      return new WhereBuilder<TModel>(ExpressionBuilders.In(column.TypedExpression, array));
     }
 
     public static WhereBuilder<TModel> ContainsAny<T>(Expression<Func<TModel, IList<T>>> field, params T[] values)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
-      return FromTypedExpression(ExpressionBuilders.ContainsAny(column.TypedExpression, values));
+      return new WhereBuilder<TModel>(ExpressionBuilders.ContainsAny(column.TypedExpression, values));
     }
 
     public static WhereBuilder<TModel> ContainsAny<T>(Expression<Func<TModel, IList<T>>> field, IEnumerable<T> array)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
-      return FromTypedExpression(ExpressionBuilders.ContainsAny(column.TypedExpression, array));
+      return new WhereBuilder<TModel>(ExpressionBuilders.ContainsAny(column.TypedExpression, array));
     }
 
     public static WhereBuilder<TModel> Or(params WhereBuilder<TModel>[] statements)
     {
-      var b = new WhereBuilder<TModel>();
-
-      bool first = true;
-      foreach (var statement in statements) {
-        if (statement._rawQuery.IsEmpty)
-          continue;
-
-        if (!first)
-          b._rawQuery.Append(" OR ");
-
-        b._rawQuery.AppendSurround(statement._rawQuery);
-        first = false;
-      }
-
-      return b;
+      return new WhereBuilder<TModel>(ExpressionBuilders.Or(statements.Select(x => x._typedExpression)));
     }
 
     public static WhereBuilder<TModel> And(params WhereBuilder<TModel>[] statements)
     {
-      var b = new WhereBuilder<TModel>();
-
-      bool first = true;
-      foreach (var statement in statements) {
-        if (statement._rawQuery.IsEmpty)
-          continue;
-
-        if (!first)
-          b._rawQuery.Append(" AND ");
-
-        b._rawQuery.AppendSurround(statement._rawQuery);
-        first = false;
-      }
-
-      return b;
-    }
-
-    internal static WhereBuilder<TModel> FromTypedExpression(TypedExpression exp)
-    {
-      return new WhereBuilder<TModel>(exp.RawQuery);
+      return new WhereBuilder<TModel>(ExpressionBuilders.And(statements.Select(x => x._typedExpression)));
     }
   }
 }

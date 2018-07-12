@@ -9,7 +9,7 @@ using System.Text;
 using KDLib;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public static class NodeVisitor
   {
@@ -108,14 +108,15 @@ namespace KDPgDriver.Builder
             switch (be.NodeType) {
               case ExpressionType.Equal: return ExpressionBuilders.Eq(left, right);
               case ExpressionType.Add: return ExpressionBuilders.Add(left, right);
-              case ExpressionType.Subtract: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "-", right, false);
-              case ExpressionType.Multiply: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "*", right, false);
-              case ExpressionType.AndAlso: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "AND", right, true);
-              case ExpressionType.OrElse: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "OR", right, true);
-              case ExpressionType.GreaterThan: return ExpressionBuilders.CreateSimpleBinaryOperator(left, ">", right, true);
-              case ExpressionType.GreaterThanOrEqual: return ExpressionBuilders.CreateSimpleBinaryOperator(left, ">=", right, true);
-              case ExpressionType.LessThan: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "<", right, true);
-              case ExpressionType.LessThanOrEqual: return ExpressionBuilders.CreateSimpleBinaryOperator(left, "<=", right, true);
+              case ExpressionType.Subtract: return ExpressionBuilders.Subtract(left, right);
+              case ExpressionType.Multiply: return ExpressionBuilders.Multiply(left, right);
+              case ExpressionType.Divide: return ExpressionBuilders.Divide(left, right);
+              case ExpressionType.AndAlso: return ExpressionBuilders.And(new[] { left, right });
+              case ExpressionType.OrElse: return ExpressionBuilders.Or(new[] { left, right });
+              case ExpressionType.LessThan: return ExpressionBuilders.LessThan(left, right);
+              case ExpressionType.LessThanOrEqual: return ExpressionBuilders.LessThanEqual(left, right);
+              case ExpressionType.GreaterThan: return ExpressionBuilders.GreaterThan(left, right);
+              case ExpressionType.GreaterThanOrEqual: return ExpressionBuilders.GreaterThanEqual(left, right);
               default: throw new Exception($"unknown operator: {be.NodeType}");
             }
 

@@ -3,7 +3,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   // public class InsertStatementsBuilder<TModel>
   // {

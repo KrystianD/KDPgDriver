@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace KDPgDriver.Builder {
+namespace KDPgDriver.Builders {
   public interface IQueryBuilder
   {
     // Driver Driver { get; }

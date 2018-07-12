@@ -6,7 +6,7 @@ using System.Security.Cryptography;
 using System.Text;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builder
+namespace KDPgDriver.Builders
 {
   public class QueryBuilder<TModel> : IQueryBuilder
   {

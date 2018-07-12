@@ -1,10 +1,7 @@
-﻿using System;
-using KDPgDriver.Builder;
-using KDPgDriver.Utils;
-using NpgsqlTypes;
+﻿using KDPgDriver.Builders;
 using Xunit;
 
-namespace KDPgDriver.Tests
+namespace KDPgDriver.Tests.UnitTests.Queries
 {
   public class SelectQueriesUnitTests
   {

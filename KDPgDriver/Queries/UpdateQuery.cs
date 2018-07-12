@@ -1,4 +1,4 @@
-﻿namespace KDPgDriver.Builder
+﻿namespace KDPgDriver.Builders
 {
   public interface IUpdateQuery : IQuery { }
 
