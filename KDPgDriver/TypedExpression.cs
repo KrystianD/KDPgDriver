@@ -32,5 +32,10 @@ namespace KDPgDriver {
     {
       return new TypedExpression(RawQuery.Create(value), value.Type);
     }
+
+    public static TypedExpression FromColumn(KdPgColumnDescriptor column)
+    {
+      return new TypedExpression(RawQuery.CreateColumnName(column.Name), column.Type);
+    }
   }
 }

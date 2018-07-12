@@ -11,16 +11,15 @@ namespace KDPgDriver.Builders
 {
   public class UpdateStatementsBuilder<TModel>
   {
-    internal readonly Dictionary<string, RawQuery> UpdateParts = new Dictionary<string, RawQuery>();
+    internal readonly Dictionary<KdPgColumnDescriptor, TypedExpression> UpdateParts = new Dictionary<KdPgColumnDescriptor, TypedExpression>();
     public bool IsEmpty => UpdateParts.Count == 0;
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
-      PropertyInfo columnPropertyInfo = NodeVisitor.EvaluateToPropertyInfo(field.Body);
-      var column = Helper.GetColumn(columnPropertyInfo);
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
       var npgValue = Helper.ConvertToNpgsql(column.Type, value);
-      UpdateParts.Add(column.Name, RawQuery.Create(npgValue));
 
+      AddUpdate(column, src => TypedExpression.FromPgValue(npgValue));
       return this;
     }
 
@@ -29,45 +28,30 @@ namespace KDPgDriver.Builders
       NodeVisitor.JsonPropertyPath jsonPath;
       var v = NodeVisitor.ProcessPath(field.Body as MemberExpression, out jsonPath);
 
-      // var colDesc = Helper.GetColumn(field.Body as MemberExpression);
-
-      var valueArray = new[] { value };
-      var pgValue = Helper.ConvertObjectToPgValue(valueArray);
-      // var valueType = Helper.GetNpgsqlTypeFromObject(valueArray);
-      // string val = UpdateQuery.Parameters.GetNextParam(new Helper.PgValue(valueArray, null, null));
-
-      if (v.Type is KDPgValueTypeArray) {
-        string colName = NodeVisitor.VisitProperty(field.Body);
-        // var colName = v.RawQuery.RenderSimple();
-        AddUpdate(colName,
-                  src => RawQuery.Create("array_cat(").Append(src).Append(", ").Append(pgValue).Append(")"));
-      }
-      else if (v.Type is KDPgValueTypeJson) {
-        string jsonPathStr1 = jsonPath.jsonPath.Select(Helper.QuoteObjectName).JoinString(",");
-        AddUpdate(jsonPath.columnName,
-                  src => RawQuery.Create("kdpg_jsonb_add(").Append(src).Append(", ").Append($"array[{jsonPathStr1}], to_jsonb(").Append(pgValue).Append(")"));
-      }
-      else {
+      if (v.Type is KDPgValueTypeArray)
+        AddUpdate(jsonPath.Column, src => ExpressionBuilders.ArrayAddItem(src, value));
+      else if (v.Type is KDPgValueTypeJson)
+        AddUpdate(jsonPath.Column, src => ExpressionBuilders.KDPgJsonbAdd(src, jsonPath.JsonPath, value));
+      else
         throw new Exception("unable to add to non-list");
-      }
 
       return this;
     }
 
     public UpdateStatementsBuilder<TModel> RemoveFromList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
-      string colName = NodeVisitor.VisitProperty(field.Body);
-      var pgValue = Helper.ConvertObjectToPgValue(value);
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
 
-      AddUpdate(colName,
-                src => RawQuery.Create("array_remove(").Append(src).Append(", ").Append(pgValue).Append(")"));
+      AddUpdate(column, src => ExpressionBuilders.ArrayRemoveItem(src, value));
       return this;
     }
 
-    private void AddUpdate(string columnName, Func<RawQuery, RawQuery> template)
+    private void AddUpdate(KdPgColumnDescriptor column, Func<TypedExpression, TypedExpression> template)
     {
-      RawQuery newSrc = UpdateParts.GetValueOrDefault(columnName, RawQuery.Create(columnName));
-      UpdateParts[columnName] = template(newSrc);
+      if (!UpdateParts.ContainsKey(column))
+        UpdateParts[column] = TypedExpression.FromColumn(column);
+
+      UpdateParts[column] = template(UpdateParts[column]);
     }
   }
 }

@@ -75,5 +75,8 @@ namespace KDPgDriver.Tests
     [KDPgColumn("json_model")]
     [KDPgColumnType(KDPgValueTypeKind.Json)]
     public MySubmodel JsonModel { get; set; }
+
+    [KDPgColumn("json_array1")]
+    public JArray JsonArray1 { get; set; }
   }
 }

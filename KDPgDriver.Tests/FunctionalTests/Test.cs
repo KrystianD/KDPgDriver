@@ -33,7 +33,8 @@ CREATE TABLE model (
   list_enum enum[],
   datetime timestamp,
   json_object1 jsonb,
-  json_model jsonb
+  json_model jsonb,
+  json_array1 jsonb
 );
 
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');

@@ -121,25 +121,27 @@ namespace KDPgDriver.Builders
             }
 
           case MethodCallExpression call:
-            var callObject = call.Object != null ? VisitInternal(call.Object) : null;
-
             // Native methods
             if (call.Method.Name == "Substring") {
+              TypedExpression callObject = VisitInternal(call.Object);
               TypedExpression start = VisitInternal(call.Arguments[0]);
               TypedExpression length = VisitInternal(call.Arguments[1]);
               return ExpressionBuilders.Substring(callObject, start, length);
             }
             else if (call.Method.Name == "StartsWith") {
-              TypedExpression value2 = VisitInternal(call.Arguments[0]);
-              return ExpressionBuilders.StartsWith(callObject, value2);
+              TypedExpression callObject = VisitInternal(call.Object);
+              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
+              return ExpressionBuilders.StartsWith(callObject, arg1);
             }
             else if (call.Method.Name == "Contains") {
-              var arg1 = VisitInternal(call.Arguments[0]);
+              TypedExpression callObject = VisitInternal(call.Object);
+              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
               return ExpressionBuilders.Contains(callObject, arg1);
             }
             // Native accessors
             else if (call.Method.Name == "get_Item") {
-              var arg1 = VisitInternal(call.Arguments[0]);
+              TypedExpression callObject = VisitInternal(call.Object);
+              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
 
               RawQuery rq = new RawQuery();
               rq.AppendSurround(callObject.RawQuery);
@@ -150,25 +152,24 @@ namespace KDPgDriver.Builders
             }
             // Extension methods
             else if (call.Method.Name == "PgIn") {
-              callObject = VisitInternal(call.Arguments[0]);
-              var value = GetConstant(call.Arguments[1]);
-
-              return ExpressionBuilders.In(callObject, (IEnumerable) value);
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              var arg1 = GetConstant(call.Arguments[1]);
+              return ExpressionBuilders.In(extensionObject, (IEnumerable) arg1);
             }
             else if (call.Method.Name == "PgLike") {
-              var callObject1 = VisitInternal(call.Arguments[0]);
-              TypedExpression value2 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.Like(callObject1, value2);
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.Like(extensionObject, arg1);
             }
             else if (call.Method.Name == "PgILike") {
-              var callObject1 = VisitInternal(call.Arguments[0]);
-              TypedExpression value2 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.ILike(callObject1, value2);
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.ILike(extensionObject, arg1);
             }
             else if (call.Method.Name == "PgContainsAny") {
-              var callObject1 = VisitInternal(call.Arguments[0]);
-              var arg = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.ContainsAny(callObject1, arg);
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.ContainsAny(extensionObject, arg1);
             }
             // PG funcs
             else {
@@ -203,8 +204,8 @@ namespace KDPgDriver.Builders
 
     public class JsonPropertyPath
     {
-      public string columnName;
-      public List<string> jsonPath = new List<string>();
+      public KdPgColumnDescriptor Column { get; set; }
+      public List<string> JsonPath { get; } = new List<string>();
     }
 
     public static TypedExpression ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)
@@ -227,7 +228,7 @@ namespace KDPgDriver.Builders
       if (isColumn) {
         var column = Helper.GetColumn(propertyInfo);
         var quotedName = Helper.QuoteObjectName(column.Name);
-        jsonPath.columnName = quotedName;
+        jsonPath.Column = column;
         return new TypedExpression(quotedName, column.Type);
       }
       else {
@@ -236,7 +237,7 @@ namespace KDPgDriver.Builders
 
         if (exp is MemberExpression memberExpression) {
           TypedExpression parentField = ProcessPathInternal(memberExpression.Expression, (PropertyInfo) memberExpression.Member, jsonPath);
-          jsonPath.jsonPath.Add(fieldName);
+          jsonPath.JsonPath.Add(fieldName);
 
           RawQuery rq = new RawQuery();
           rq.AppendSurround(parentField.RawQuery);

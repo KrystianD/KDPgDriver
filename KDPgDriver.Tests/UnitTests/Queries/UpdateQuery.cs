@@ -24,8 +24,8 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateSetFieldDateTime()
     {
-      var date = (DateTime?)DateTime.Parse("2018-01-01 12:34");
-      
+      var date = (DateTime?) DateTime.Parse("2018-01-01 12:34");
+
       var q = Builders<MyModel>.Query.Update(
           Builders<MyModel>.UpdateOp.SetField(x => x.DateTime, date));
 
@@ -39,8 +39,17 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Query.Update(
           Builders<MyModel>.UpdateOp.AddToList(x => x.ListString, "A"));
 
-      Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_cat(list_string, @1::text[])",
-                           new Param(new List<string>() { "A" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_cat(list_string, array['A'])");
+    }
+
+    [Fact]
+    public void UpdateAddToJsonList()
+    {
+      var q = Builders<MyModel>.Query.Update(
+          Builders<MyModel>.UpdateOp.AddToList(x => x.JsonArray1, "A"));
+
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET json_array1 = kdpg_jsonb_add(json_array1, array[], to_jsonb(@1::jsonb)",
+                           new Param("\"A\"", NpgsqlDbType.Jsonb));
     }
 
     [Fact]
@@ -62,9 +71,10 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                            .AddToList(x => x.ListString2, "C")
       );
 
-      Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_remove(array_cat(list_string, @1::text[]), 'B'), list_string2 = array_cat(list_string2, @2::text[])",
-                           new Param(new List<string>() { "A" }, NpgsqlDbType.Array | NpgsqlDbType.Text),
-                           new Param(new List<string>() { "C" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+      Utils.AssertRawQuery(q, @"
+UPDATE public.model
+SET list_string = array_remove(array_cat(list_string, array['A']), 'B'),
+    list_string2 = array_cat(list_string2, array['C'])");
     }
   }
 }

@@ -24,13 +24,13 @@
 
       rq.Append("SET ");
       bool first = true;
-      foreach (var (name, rawQuery) in _updateStatementsBuilder.UpdateParts) {
+      foreach (var (column, typedExpression) in _updateStatementsBuilder.UpdateParts) {
         if (!first)
           rq.Append(", ");
 
-        rq.AppendColumnName(name)
+        rq.AppendColumnName(column.Name)
           .Append(" = ")
-          .Append(rawQuery);
+          .Append(typedExpression.RawQuery);
 
         first = false;
       }

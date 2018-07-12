@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Tests.UnitTests;
@@ -41,7 +42,10 @@ namespace KDPgDriver.Tests
       ParametersContainer outParameters;
       rq.Render(out query, out outParameters);
 
-      Assert.Equal(expectedQuery, query.Replace("\n", " ").Trim());
+      expectedQuery = Regex.Replace(expectedQuery, "[ \n]+", " ").Trim();
+      query = Regex.Replace(query, "[ \n]+", " ").Trim();
+
+      Assert.Equal(expectedQuery, query);
       CompareParameters(outParameters, parameters);
     }
 

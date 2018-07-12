@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using KDLib;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders
@@ -176,6 +178,70 @@ namespace KDPgDriver.Builders
       else {
         throw new Exception($"Contains cannot be used on non-list");
       }
+    }
+
+    public static TypedExpression ArrayAddItem<T>(TypedExpression array, T item)
+    {
+      var pgValue = Helper.ConvertObjectToPgValue(item);
+      return ArrayAddItem(array, TypedExpression.FromPgValue(pgValue));
+    }
+
+    public static TypedExpression ArrayAddItem(TypedExpression array, TypedExpression item)
+    {
+      if (!(array.Type is KDPgValueTypeArray))
+        throw new Exception("array parameter must be array");
+
+      RawQuery rq = RawQuery.Create("array_cat(")
+                            .Append(array.RawQuery)
+                            .Append(", array[")
+                            .Append(item.RawQuery)
+                            .Append("])");
+
+      return new TypedExpression(rq, array.Type);
+    }
+    
+    public static TypedExpression ArrayRemoveItem<T>(TypedExpression array, T item)
+    {
+      var pgValue = Helper.ConvertObjectToPgValue(item);
+      return ArrayRemoveItem(array, TypedExpression.FromPgValue(pgValue));
+    }
+
+    public static TypedExpression ArrayRemoveItem(TypedExpression array, TypedExpression item)
+    {
+      if (!(array.Type is KDPgValueTypeArray))
+        throw new Exception("array parameter must be array");
+
+      RawQuery rq = RawQuery.Create("array_remove(")
+                            .Append(array.RawQuery)
+                            .Append(", ")
+                            .Append(item.RawQuery)
+                            .Append(")");
+
+      return new TypedExpression(rq, array.Type);
+    }
+
+    public static TypedExpression KDPgJsonbAdd<T>(TypedExpression array, IEnumerable<string> jsonPath, T item)
+    {
+      var pgValue = Helper.ConvertObjectToPgValue(item);
+      return KDPgJsonbAdd(array, jsonPath, TypedExpression.FromPgValue(pgValue));
+    }
+    
+    public static TypedExpression KDPgJsonbAdd(TypedExpression array, IEnumerable<string> jsonPath, TypedExpression item)
+    {
+      string jsonPathStr = jsonPath.Select(Helper.QuoteObjectName).JoinString(",");
+      
+      if (!(array.Type is KDPgValueTypeJson))
+        throw new Exception("array parameter must be json");
+
+      RawQuery rq = RawQuery.Create("kdpg_jsonb_add(")
+                            .Append(array.RawQuery)
+                            .Append(", ")
+                            .Append($"array[{jsonPathStr}]")
+                            .Append(", to_jsonb(")
+                            .Append(item.RawQuery)
+                            .Append(")");
+
+      return new TypedExpression(rq, array.Type);
     }
 
     // helpers
