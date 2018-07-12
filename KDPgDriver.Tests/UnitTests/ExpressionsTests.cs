@@ -206,6 +206,18 @@ namespace KDPgDriver.Tests.UnitTests
                              new Param(new[] { null, "A1", "A2", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
+    [Fact]
+    public void ExpressionInEnumerableSelect()
+    {
+      var items = new List<string>() { null, "A1", "A2", "B3", "A4" };
+      var items2 = items.Where(x => x != null && x.StartsWith("A")).Select(x => x.Length);
+
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id.PgIn(items2));
+
+      Utils.AssertExpression(exp, @"(id) = ANY(@1::int[])",
+                             new Param(new[] { 2, 2, 2 }, NpgsqlDbType.Array | NpgsqlDbType.Integer));
+    }
+
     #endregion
 
     [Fact]

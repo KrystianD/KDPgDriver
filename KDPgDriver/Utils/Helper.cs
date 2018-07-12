@@ -55,6 +55,21 @@ namespace KDPgDriver.Utils
 
   public static class Helper
   {
+    private static bool CheckIfEnumerable(Type type, out Type itemType)
+    {
+      itemType = null;
+
+      foreach (var i in type.GetInterfaces()) {
+        var isEnumerable = i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>);
+        if (isEnumerable) {
+          itemType = i.GetGenericArguments()[0];
+          return true;
+        }
+      }
+
+      return false;
+    }
+
     private static readonly HashSet<Type> TablesInitialized = new HashSet<Type>();
     private static readonly Dictionary<Type, KdPgTableDescriptor> TypeToTableDesc = new Dictionary<Type, KdPgTableDescriptor>();
     private static readonly Dictionary<PropertyInfo, KdPgColumnDescriptor> PropertyInfoToColumnDesc = new Dictionary<PropertyInfo, KdPgColumnDescriptor>();
@@ -63,10 +78,12 @@ namespace KDPgDriver.Utils
 
     public static KDPgValueType GetNpgsqlTypeFromType(Type type)
     {
+      Type itemType;
+      
       if (type.IsNullable())
         type = type.GetNullableInnerType();
 
-      if (type == typeof(string))
+      if (type == typeof(string) || type == typeof(char))
         return KDPgValueTypeString.Instance;
       if (type == typeof(int))
         return KDPgValueTypeInteger.Instance;
@@ -84,8 +101,7 @@ namespace KDPgDriver.Utils
       if (type == typeof(JToken) || type == typeof(JArray) || type == typeof(JObject) || type == typeof(JValue))
         return KDPgValueTypeJson.Instance;
 
-      if (type.IsGenericList() || type.IsGenericEumerable()) {
-        var itemType = type.GetGenericArguments()[0];
+      if (CheckIfEnumerable(type, out itemType)) {
         return new KDPgValueTypeArray(
             listType: type,
             itemType: GetNpgsqlTypeFromType(itemType),
@@ -93,7 +109,7 @@ namespace KDPgDriver.Utils
       }
 
       if (type.IsArray) {
-        var itemType = type.GetElementType();
+        itemType = type.GetElementType();
         return new KDPgValueTypeArray(
             listType: type,
             itemType: GetNpgsqlTypeFromType(itemType),
@@ -150,7 +166,7 @@ namespace KDPgDriver.Utils
         return KDPgValueTypeInteger.Instance;
       if (type == typeof(bool))
         return KDPgValueTypeBoolean.Instance;
-      
+
       return KDPgValueTypeJson.Instance;
     }
 
