@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using KDPgDriver.Utils;
 using Xunit;
 
 namespace KDPgDriver.Tests.FunctionalTests

@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using KDLib;
-using KDPgDriver.Utils;
 using Npgsql;
 using NpgsqlTypes;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Utils
 {
   public class ParametersContainer
   {

@@ -2,7 +2,9 @@ using System;
 using System.Text.RegularExpressions;
 using KDLib;
 using KDPgDriver.Builders;
+using KDPgDriver.Queries;
 using KDPgDriver.Tests.UnitTests;
+using KDPgDriver.Utils;
 using Xunit;
 
 namespace KDPgDriver.Tests

@@ -1,85 +1,64 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data.SqlTypes;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using KDLib;
-using KDPgDriver.Utils;
+using KDPgDriver.Builders;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Utils
 {
   public static class NodeVisitor
   {
-    private static object GetConstant(Expression e)
+    internal class JsonPropertyPath
     {
-      switch (e) {
-        case ConstantExpression me:
-          return me.Value;
-        default:
-          throw new Exception($"invalid node: {(e == null ? "(null)" : e.NodeType.ToString())}");
-      }
-    }
-
-    public static string VisitProperty(Expression exp)
-    {
-      switch (exp) {
-        case MemberExpression me:
-          return Helper.GetColumn(me.Member).Name;
-
-        default:
-          throw new Exception($"invalid node: {exp.NodeType}");
-      }
+      public KdPgColumnDescriptor Column { get; set; }
+      public List<string> JsonPath { get; } = new List<string>();
     }
 
     public static KdPgColumnDescriptor EvaluateExpressionToColumn(Expression exp)
     {
-      return Helper.GetColumn(NodeVisitor.EvaluateToPropertyInfo(exp));
-    }
+      PropertyInfo EvaluateToPropertyInfo(Expression exp2)
+      {
+        switch (exp2) {
+          case LambdaExpression lambda:
+            return EvaluateToPropertyInfo(lambda.Body);
 
-    public static PropertyInfo EvaluateToPropertyInfo(Expression exp)
-    {
-      switch (exp) {
-        case MemberExpression me:
-          return (PropertyInfo) me.Member;
+          case MemberExpression me:
+            return (PropertyInfo) me.Member;
 
-        case UnaryExpression un:
-          switch (un.NodeType) {
-            case ExpressionType.Convert:
-              return (PropertyInfo) ((MemberExpression) un.Operand).Member;
+          case UnaryExpression un:
+            switch (un.NodeType) {
+              case ExpressionType.Convert:
+                return (PropertyInfo) ((MemberExpression) un.Operand).Member;
 
-            default:
-              throw new Exception($"unknown operator: {un.NodeType}");
-          }
+              default:
+                throw new Exception($"unknown operator: {un.NodeType}");
+            }
 
-        default:
-          throw new Exception($"invalid node: {exp.NodeType}");
+          default:
+            throw new Exception($"invalid node: {exp.NodeType}");
+        }
       }
-    }
 
-    public static PropertyInfo EvaluateToPropertyInfo<TModel>(Expression<Func<TModel, object>> exp) => EvaluateToPropertyInfo(exp.Body);
+      return Helper.GetColumn(EvaluateToPropertyInfo(exp));
+    }
 
     public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp)
     {
-      return VisitToTypedExpression(exp.Body, exp.Parameters.First().Name);
+      return EvaluateToTypedExpression(exp.Body, exp.Parameters.First().Name);
     }
 
     public static TypedExpression VisitFuncExpression<TModel, T>(Expression<Func<TModel, T>> exp)
     {
-      return VisitToTypedExpression(exp.Body, exp.Parameters.First().Name);
+      return EvaluateToTypedExpression(exp.Body, exp.Parameters.First().Name);
     }
 
-    public static TypedExpression VisitToTypedExpression(Expression expression, string inputParameterName = null)
+    public static TypedExpression EvaluateToTypedExpression(Expression expression, string inputParameterName = null)
     {
       TypedExpression VisitInternal(Expression exp)
       {
         switch (exp) {
-          // case NewArrayExpression newArrayExpression:
-          //   var itemType = newArrayExpression.Type.GetElementType();
-          //   return null;
-
           case MemberExpression me:
             return ProcessPath(me.Expression, (PropertyInfo) me.Member);
 
@@ -202,20 +181,14 @@ namespace KDPgDriver.Builders
       return VisitInternal(Evaluator.PartialEval(expression, inputParameterName));
     }
 
-    public class JsonPropertyPath
-    {
-      public KdPgColumnDescriptor Column { get; set; }
-      public List<string> JsonPath { get; } = new List<string>();
-    }
-
-    public static TypedExpression ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)
+    internal static TypedExpression ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)
     {
       return ProcessPath(me.Expression, (PropertyInfo) me.Member, out jsonPath);
     }
 
-    public static TypedExpression ProcessPath(Expression exp, PropertyInfo propertyInfo) => ProcessPath(exp, propertyInfo, out _);
+    private static TypedExpression ProcessPath(Expression exp, PropertyInfo propertyInfo) => ProcessPath(exp, propertyInfo, out _);
 
-    public static TypedExpression ProcessPath(Expression exp, PropertyInfo propertyInfo, out JsonPropertyPath jsonPath)
+    private static TypedExpression ProcessPath(Expression exp, PropertyInfo propertyInfo, out JsonPropertyPath jsonPath)
     {
       jsonPath = new JsonPropertyPath();
       return ProcessPathInternal(exp, propertyInfo, jsonPath);
@@ -260,6 +233,16 @@ namespace KDPgDriver.Builders
           return new TypedExpression(rq, fieldType);
         }
         else { throw new Exception("invalid path"); }
+      }
+    }
+
+    private static object GetConstant(Expression e)
+    {
+      switch (e) {
+        case ConstantExpression me:
+          return me.Value;
+        default:
+          throw new Exception($"invalid node: {(e == null ? "(null)" : e.NodeType.ToString())}");
       }
     }
   }

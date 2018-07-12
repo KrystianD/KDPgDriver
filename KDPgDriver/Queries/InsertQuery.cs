@@ -1,16 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-using KDLib;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Queries
 {
   public class InsertQueryInit<TModel> { }
 
@@ -19,7 +13,7 @@ namespace KDPgDriver.Builders
   public class InsertQuery<TModel> : IInsertQuery
   {
     private static readonly KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
-    
+
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
     private readonly List<TModel> _objects = new List<TModel>();
@@ -28,8 +22,7 @@ namespace KDPgDriver.Builders
 
     public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
-      PropertyInfo column = NodeVisitor.EvaluateToPropertyInfo(field);
-      _columns.Add(Helper.GetColumn(column));
+      _columns.Add(NodeVisitor.EvaluateExpressionToColumn(field));
       return this;
     }
 
@@ -37,7 +30,7 @@ namespace KDPgDriver.Builders
     {
       if (_columns.Count == 0) {
         _columns.AddRange(Helper.GetTable(typeof(TModel)).Columns
-                               .Where(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) == 0));
+                                .Where(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) == 0));
       }
 
       _objects.Add(obj);

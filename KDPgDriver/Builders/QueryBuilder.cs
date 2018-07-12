@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Security.Cryptography;
 using System.Text;
+using KDPgDriver.Queries;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders

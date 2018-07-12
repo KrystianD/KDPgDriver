@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using KDPgDriver.Builders;
+using KDPgDriver.Utils;
 using Newtonsoft.Json.Linq;
 using NpgsqlTypes;
 using Xunit;

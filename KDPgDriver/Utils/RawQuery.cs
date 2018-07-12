@@ -1,9 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Utils
 {
   public class RawQuery
   {

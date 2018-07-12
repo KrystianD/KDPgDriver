@@ -1,4 +1,5 @@
 using KDPgDriver.Builders;
+using KDPgDriver.Utils;
 using NpgsqlTypes;
 using Xunit;
 

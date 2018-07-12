@@ -1,4 +1,4 @@
-﻿namespace KDPgDriver {
+﻿namespace KDPgDriver.Results {
   public class DeleteQueryResult
   {
     

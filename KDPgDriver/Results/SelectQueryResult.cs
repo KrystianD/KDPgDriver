@@ -1,20 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
-using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
 using KDLib;
-using KDPgDriver.Builders;
+using KDPgDriver.Queries;
 using KDPgDriver.Utils;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Npgsql;
 
-namespace KDPgDriver
+namespace KDPgDriver.Results
 {
   public class SelectQueryResultAsync<T> : IDisposable where T : class, new()
   {

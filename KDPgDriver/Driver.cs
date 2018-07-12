@@ -5,6 +5,10 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Builders;
+using KDPgDriver.Fluent;
+using KDPgDriver.Queries;
+using KDPgDriver.Results;
+using KDPgDriver.Utils;
 using Npgsql;
 
 namespace KDPgDriver

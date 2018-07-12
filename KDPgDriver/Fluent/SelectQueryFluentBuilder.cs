@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using KDPgDriver.Builders;
+using KDPgDriver.Queries;
+using KDPgDriver.Utils;
 
-namespace KDPgDriver
+namespace KDPgDriver.Fluent
 {
   public class SelectQueryFluentBuilder1<TModel>
   {

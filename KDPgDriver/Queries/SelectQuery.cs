@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
-using NLog.LayoutRenderers;
+using KDPgDriver.Builders;
+using KDPgDriver.Results;
+using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Queries
 {
   public interface ISelectQuery : IQuery { }
 
@@ -9,14 +11,14 @@ namespace KDPgDriver.Builders
   {
     private readonly IQueryBuilder _queryBuilder;
 
-    private readonly SelectFromBuilder<TOut> _fromBuilder;
+    private readonly ISelectFromBuilder _fromBuilder;
     private readonly IOrderBuilder _orderBuilder;
     private readonly LimitBuilder _limitBuilder;
     
     public bool IsSingleValue => _fromBuilder.IsSingleValue;
 
     public SelectQuery(IQueryBuilder queryBuilder,
-                       SelectFromBuilder<TOut> fromBuilder,
+                       ISelectFromBuilder fromBuilder,
                        IOrderBuilder orderBuilder,
                        LimitBuilder limitBuilder)
     {

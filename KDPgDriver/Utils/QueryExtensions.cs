@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace KDPgDriver
+namespace KDPgDriver.Utils
 {
   public static class QueryExtensions
   {

@@ -2,16 +2,11 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 
-namespace KDPgDriver
+namespace KDPgDriver.Utils
 {
   public static class Evaluator
   {
-    public static Expression PartialEval(Expression expression)
-    {
-      return new SubtreeEvaluator(new Nominator().Nominate(expression)).Eval(expression);
-    }
-
-    public static Expression PartialEval(Expression expression, string inputParameterName)
+    public static Expression PartialEval(Expression expression, string inputParameterName = null)
     {
       return new SubtreeEvaluator(new Nominator(inputParameterName).Nominate(expression)).Eval(expression);
     }
@@ -21,11 +16,11 @@ namespace KDPgDriver
     /// </summary>
     class SubtreeEvaluator : ExpressionVisitor
     {
-      HashSet<Expression> candidates;
+      private readonly HashSet<Expression> _candidates;
 
       internal SubtreeEvaluator(HashSet<Expression> candidates)
       {
-        this.candidates = candidates;
+        _candidates = candidates;
       }
 
       internal Expression Eval(Expression exp)
@@ -37,7 +32,7 @@ namespace KDPgDriver
       {
         if (exp == null)
           return null;
-        if (candidates.Contains(exp))
+        if (_candidates.Contains(exp))
           return Evaluate(exp);
         return base.Visit(exp);
       }
