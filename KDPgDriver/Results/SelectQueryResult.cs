@@ -10,57 +10,42 @@ using Npgsql;
 
 namespace KDPgDriver.Results
 {
-  public class SelectQueryResultAsync<T> : IDisposable where T : class, new()
-  {
-    public void Dispose() { }
-  }
-
   public class ResultColumnDef
   {
     public PropertyInfo EndModelProperty;
     public KDPgValueType Type;
   }
 
-  public class SelectQueryResult<T> : IDisposable 
+  public class SelectQueryResult<T>
   {
-    private readonly NpgsqlConnection _connection;
-
-    // private readonly NpgsqlCommand _cmd;
-    private readonly DbDataReader _reader;
     private readonly SelectQuery<T> _builder;
     private readonly IList<ResultColumnDef> _columns;
-    private readonly bool _disposeConnection;
 
-    private bool disposed = false;
+    private List<T> objs = new List<T>();
 
-    public SelectQueryResult(NpgsqlConnection connection, NpgsqlCommand cmd,
-                             DbDataReader reader,
-                             SelectQuery<T> builder, IList<ResultColumnDef> columns, bool disposeConnection)
+    public SelectQueryResult(SelectQuery<T> builder, IList<ResultColumnDef> columns)
     {
-      _connection = connection;
-      // _cmd = cmd;
-      _reader = reader;
       _builder = builder;
       _columns = columns;
-      _disposeConnection = disposeConnection;
     }
 
-    public Task<bool> HasNextResult()
+    internal async Task ProcessResultSet(NpgsqlDataReader reader)
     {
-      return _reader.ReadAsync();
+      while (await reader.ReadAsync())
+        objs.Add(GetCurrentResult(reader));
     }
 
-    public T GetCurrentResult()
+    private T GetCurrentResult(NpgsqlDataReader reader)
     {
       var t = typeof(T);
       T obj = default;
 
-      object[] fields = new object[_reader.FieldCount];
+      object[] fields = new object[reader.FieldCount];
 
-      for (int i = 0; i < _reader.FieldCount; i++) {
+      for (int i = 0; i < reader.FieldCount; i++) {
         var columnProperty = _columns[i];
 
-        object rawValue = _reader.IsDBNull(i) ? null : _reader.GetValue(i);
+        object rawValue = reader.IsDBNull(i) ? null : reader.GetValue(i);
 
         object outputValue = Helper.ConvertFromNpgsql(columnProperty.Type, rawValue);
 
@@ -74,7 +59,7 @@ namespace KDPgDriver.Results
         if (!_builder.IsSingleValue)
           obj = (T) Activator.CreateInstance(t);
 
-        for (int i = 0; i < _reader.FieldCount; i++) {
+        for (int i = 0; i < reader.FieldCount; i++) {
           var columnProperty = _columns[i];
 
           if (_builder.IsSingleValue)
@@ -87,44 +72,21 @@ namespace KDPgDriver.Results
       return obj;
     }
 
-    public async Task<List<T>> GetAll()
+    public List<T> GetAll()
     {
-      List<T> objs = new List<T>();
-      while (await HasNextResult())
-        objs.Add(GetCurrentResult());
-      Dispose();
       return objs;
     }
 
-    public async Task<T> GetSingle()
+    public T GetSingle()
     {
-      bool hasResult = await HasNextResult();
-      if (!hasResult)
+      if (objs.Count == 0)
         throw new Exception("no results found");
-      var res = GetCurrentResult();
-      Dispose();
-      return res;
+      return objs[0];
     }
 
-    public async Task<T> GetSingleOrDefault()
+    public T GetSingleOrDefault()
     {
-      bool hasResult = await HasNextResult();
-      var res = hasResult ? GetCurrentResult() : default;
-      Dispose();
-      return res;
-    }
-
-    public void Dispose()
-    {
-      if (disposed)
-        return;
-      disposed = true;
-      _reader.Dispose();
-      // _cmd.Dispose();
-
-      if (_disposeConnection) {
-        _connection.Dispose();
-      }
+      return objs.Count == 0 ? default : objs[0];
     }
   }
 }

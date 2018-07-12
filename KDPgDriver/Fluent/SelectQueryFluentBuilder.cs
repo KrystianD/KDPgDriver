@@ -4,41 +4,44 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
+using KDPgDriver.Results;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent
 {
   public class SelectQueryFluentBuilder1<TModel>
   {
-    private readonly Driver _driver;
+    private readonly IQueryExecutor _executor;
 
-    public SelectQueryFluentBuilder1(Driver driver)
+    public SelectQueryFluentBuilder1() { }
+
+    public SelectQueryFluentBuilder1(IQueryExecutor executor)
     {
-      _driver = driver;
+      _executor = executor;
     }
 
     public SelectQueryFluentBuilder2<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder2<TModel, TModel>(_driver, SelectFromBuilder<TModel>.AllColumns());
+      return new SelectQueryFluentBuilder2<TModel, TModel>(SelectFromBuilder<TModel>.AllColumns(), _executor);
     }
 
     public SelectQueryFluentBuilder2<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder2<TModel, TNewModel>(_driver, SelectFromBuilder<TNewModel>.FromExpression(pr));
+      return new SelectQueryFluentBuilder2<TModel, TNewModel>(SelectFromBuilder<TNewModel>.FromExpression(pr), _executor);
     }
   }
 
   public class SelectQueryFluentBuilder2<TModel, TNewModel> : IQuery
   {
-    private readonly Driver _driver;
+    private readonly IQueryExecutor _executor;
     private readonly SelectFromBuilder<TNewModel> _selectFromBuilder;
     private readonly OrderBuilder<TModel> _orderBuilder = new OrderBuilder<TModel>();
     private readonly QueryBuilder<TModel> _queryBuilder = Builders<TModel>.Query;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
 
-    public SelectQueryFluentBuilder2(Driver driver, SelectFromBuilder<TNewModel> selectFromBuilder)
+    public SelectQueryFluentBuilder2(SelectFromBuilder<TNewModel> selectFromBuilder, IQueryExecutor executor = null)
     {
-      _driver = driver;
+      _executor = executor;
       _selectFromBuilder = selectFromBuilder;
     }
 
@@ -83,23 +86,22 @@ namespace KDPgDriver.Fluent
       return new SelectQuery<TNewModel>(_queryBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
     }
 
-
     public async Task<TNewModel> ToSingleAsync()
     {
-      var res = await _driver.QueryAsync(GetSelectQuery());
-      return await res.GetSingle();
+      var res = await _executor.QueryAsync(GetSelectQuery());
+      return res.GetSingle();
     }
 
     public async Task<TNewModel> ToSingleOrDefaultAsync()
     {
-      var res = await _driver.QueryAsync(GetSelectQuery());
-      return await res.GetSingleOrDefault();
+      var res = await _executor.QueryAsync(GetSelectQuery());
+      return res.GetSingleOrDefault();
     }
 
     public async Task<List<TNewModel>> ToListAsync()
     {
-      var res = await _driver.QueryAsync(GetSelectQuery());
-      return await res.GetAll();
+      var res = await _executor.QueryAsync(GetSelectQuery());
+      return res.GetAll();
     }
 
     public RawQuery GetRawQuery(string defaultSchema = null)
@@ -107,6 +109,4 @@ namespace KDPgDriver.Fluent
       return GetSelectQuery().GetRawQuery(defaultSchema);
     }
   }
-
-  public class SelectQueryFluentBuilder3<TModel, TNewModel> { }
 }

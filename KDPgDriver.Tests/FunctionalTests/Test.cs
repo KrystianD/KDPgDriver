@@ -151,5 +151,51 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
 
       Assert.Equal(3, res.Count);
     }
+
+    [Fact]
+    public async Task TestDriverBatch()
+    {
+      var dr = await CreateDriver();
+
+      var b = dr.CreateBatch();
+
+      var task1 = b.From<MyModel>().Select(x => x.Id).Where(x => x.Id == 1).ToListAsync();
+      var task2 = b.From<MyModel>().Select(x => x.Id).Where(x => x.Id == 2).ToListAsync();
+
+      await b.Execute();
+
+      Assert.Collection(task1.Result, x => Assert.Equal(1, x));
+      Assert.Collection(task2.Result, x => Assert.Equal(2, x));
+    }
+
+    [Fact]
+    public async Task TestTransactionBatch()
+    {
+      var dr = await CreateDriver();
+
+      // transaction rolled back
+      using (var tr = await dr.CreateTransaction()) {
+         var b = tr.CreateBatch();
+         var task1 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }));
+         var task2 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }));
+         await b.Execute();
+      }
+
+      var res1 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
+      Assert.Equal(3, res1.Count);
+      
+      // transaction commited
+      using (var tr = await dr.CreateTransaction()) {
+        var b = tr.CreateBatch();
+        var task1 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }));
+        var task2 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }));
+        await b.Execute();
+
+        await tr.CommitAsync();
+      }
+
+      var res2 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
+      Assert.Equal(5, res2.Count);
+    }
   }
 }

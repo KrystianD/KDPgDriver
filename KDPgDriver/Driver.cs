@@ -13,54 +13,7 @@ using Npgsql;
 
 namespace KDPgDriver
 {
-  public class Transaction : IDisposable
-  {
-    public Driver Driver { get; }
-
-    private readonly NpgsqlConnection _connection;
-    private readonly NpgsqlTransaction _transaction;
-
-    public Transaction(Driver driver, NpgsqlConnection connection, NpgsqlTransaction transaction)
-    {
-      Driver = driver;
-      _connection = connection;
-      _transaction = transaction;
-    }
-
-    public void Dispose()
-    {
-      _connection.Close();
-      _connection.Dispose();
-      _transaction.Dispose();
-    }
-
-    public Task CommitAsync()
-    {
-      return _transaction.CommitAsync();
-    }
-
-    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder)
-    {
-      return Driver.QueryAsyncInternal(builder, _connection, _transaction, disposeConnection: false);
-    }
-
-    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder)
-    {
-      return Driver.QueryAsyncInternal(builder, _connection, _transaction);
-    }
-
-    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder)
-    {
-      return Driver.QueryAsyncInternal(builder, _connection, _transaction);
-    }
-
-    public Task<DeleteQueryResult> QueryAsync(DeleteQuery builder)
-    {
-      return Driver.QueryAsyncInternal(builder, _connection, _transaction);
-    }
-  }
-
-  public class Driver
+  public class Driver : IQueryExecutor
   {
     private string _connString;
 
@@ -85,7 +38,7 @@ namespace KDPgDriver
       }.ToString();
     }
 
-    private async Task<NpgsqlConnection> CreateConnection()
+    internal async Task<NpgsqlConnection> CreateConnection()
     {
       var connection = new NpgsqlConnection(_connString);
       await connection.OpenAsync();
@@ -135,6 +88,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return new Transaction(this, connection, tr);
     }
 
+    public Batch CreateBatch() => new Batch(this);
+
     public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> insertQuery)
     {
       using (var connection = await CreateConnection()) {
@@ -151,8 +106,9 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
     public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> selectQuery)
     {
-      var connection = await CreateConnection();
-      return await QueryAsyncInternal(selectQuery, connection, null, disposeConnection: true);
+      using (var connection = await CreateConnection()) {
+        return await QueryAsyncInternal(selectQuery, connection, null);
+      }
     }
 
     public async Task<DeleteQueryResult> QueryAsync(DeleteQuery updateQuery)
@@ -164,8 +120,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
     internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(SelectQuery<TOut> builder,
                                                                           NpgsqlConnection connection,
-                                                                          NpgsqlTransaction trans,
-                                                                          bool disposeConnection)
+                                                                          NpgsqlTransaction trans)
     {
       var columns = builder.GetColumns();
       RawQuery rq = builder.GetRawQuery(Schema);
@@ -178,9 +133,11 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         parameters.AssignToCommand(cmd);
-        var reader = await cmd.ExecuteReaderAsync();
-
-        return new SelectQueryResult<TOut>(connection, cmd, reader, builder, columns, disposeConnection);
+        using (var reader = await cmd.ExecuteReaderAsync()) {
+          var res = new SelectQueryResult<TOut>(builder, columns);
+          await res.ProcessResultSet((NpgsqlDataReader) reader);
+          return res;
+        }
       }
     }
 
@@ -258,15 +215,13 @@ $$ LANGUAGE plpgsql IMMUTABLE;
     public async Task<List<TOut>> QueryGetAllAsync<TOut>(SelectQuery<TOut> selectQuery)
     {
       var res = await QueryAsync(selectQuery);
-      var objects = await res.GetAll();
-      return objects;
+      return res.GetAll();
     }
 
     public async Task<TOut> QueryGetSingleAsync<TOut>(SelectQuery<TOut> selectQuery)
     {
       var res = await QueryAsync(selectQuery);
-      var obj = await res.GetSingle();
-      return obj;
+      return res.GetSingle();
     }
 
     // Chains

@@ -14,18 +14,18 @@ namespace KDPgDriver
 
     public static SelectQueryFluentBuilder1<T> From()
     {
-      return new SelectQueryFluentBuilder1<T>(null);
+      return new SelectQueryFluentBuilder1<T>();
     }
 
     // Select
     public static SelectQueryFluentBuilder2<T, T> Select()
     {
-      return new SelectQueryFluentBuilder2<T, T>(null, SelectFromBuilder<T>.AllColumns());
+      return new SelectQueryFluentBuilder2<T, T>(SelectFromBuilder<T>.AllColumns());
     }
 
     public static SelectQueryFluentBuilder2<T, TNewModel> Select<TNewModel>(Expression<Func<T, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder2<T, TNewModel>(null, SelectFromBuilder<TNewModel>.FromExpression(pr));
+      return new SelectQueryFluentBuilder2<T, TNewModel>(SelectFromBuilder<TNewModel>.FromExpression(pr));
     }
   }
 }
