@@ -49,7 +49,7 @@ namespace KDPgDriver.Fluent
     private readonly IQueryExecutor _executor;
     private readonly SelectFromBuilder _selectFromBuilder;
     private readonly OrderBuilder<TModel> _orderBuilder = new OrderBuilder<TModel>();
-    private readonly QueryBuilder<TModel> _queryBuilder = Builders<TModel>.Query;
+    private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
 
     public SelectQueryFluentBuilder2(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
@@ -60,13 +60,13 @@ namespace KDPgDriver.Fluent
 
     public SelectQueryFluentBuilder2<TModel, TNewModel> Where(Expression<Func<TModel, bool>> exp)
     {
-      _queryBuilder.Where(exp);
+      _whereBuilder.AndWith(WhereBuilder<TModel>.FromExpression(exp));
       return this;
     }
 
     public SelectQueryFluentBuilder2<TModel, TNewModel> Where(WhereBuilder<TModel> builder)
     {
-      _queryBuilder.Where(builder);
+      _whereBuilder.AndWith(builder);
       return this;
     }
 
@@ -94,9 +94,9 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
-    public SelectQuery<TModel,TNewModel> GetSelectQuery()
+    public SelectQuery<TModel, TNewModel> GetSelectQuery()
     {
-      return new SelectQuery<TModel,TNewModel>(_queryBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
+      return new SelectQuery<TModel, TNewModel>(_whereBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
     }
 
     public async Task<TNewModel> ToSingleAsync()

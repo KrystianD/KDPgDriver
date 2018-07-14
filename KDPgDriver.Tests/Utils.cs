@@ -51,50 +51,43 @@ namespace KDPgDriver.Tests
       CompareParameters(outParameters, parameters);
     }
 
-    public static void AssertRawQuery(IQuery gen, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery q, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = gen.GetRawQuery(null);
+      RawQuery rq = q.GetRawQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(QueryBuilder<MyModel> builder, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery q, IQuery q2, string expectedQuery, params Param[] parameters)
     {
-      var gen = builder.Select(x => new { x.Id });
-      RawQuery rq = gen.GetRawQuery(null);
+      RawQuery rq = q.GetRawQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
+      AssertRawQuery(q2, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(IQuery gen, RawQuery rq2, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery q, IQuery q2, IQuery q3, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = gen.GetRawQuery(null);
-      AssertRawQuery(rq, expectedQuery, parameters);
-      AssertRawQuery(rq2, expectedQuery, parameters);
+      AssertRawQuery(q, expectedQuery, parameters);
+      AssertRawQuery(q2, expectedQuery, parameters);
+      AssertRawQuery(q3, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(IQuery gen, RawQuery rq2, RawQuery rq3, string expectedQuery, params Param[] parameters)
+    // public static void AssertRawQuery<T>(WhereBuilder<T> wb, string expectedQuery, params Param[] parameters)
+    // {
+    //   RawQuery rq = wb.GetRawQuery();
+    //   AssertRawQuery(rq, expectedQuery, parameters);
+    // }
+
+    public static void AssertRawQuery(IQuery q, WhereBuilder<MyModel> wb1, string expectedQuery, params Param[] parameters)
     {
-      AssertRawQuery(gen, expectedQuery, parameters);
-      AssertRawQuery(rq2, expectedQuery, parameters);
-      AssertRawQuery(rq3, expectedQuery, parameters);
+      var q2 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb1);
+      AssertRawQuery(q, q2, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(IQuery gen, WhereBuilder<MyModel> b2, string expectedQuery, params Param[] parameters)
+    public static void AssertRawQuery(IQuery q, WhereBuilder<MyModel> wb1, WhereBuilder<MyModel> wb2, string expectedQuery, params Param[] parameters)
     {
-      var q2 = new QueryBuilder<MyModel>().Where(b2).Select(x => new { x.Id }).GetRawQuery(null);
-      AssertRawQuery(gen, q2, expectedQuery, parameters);
-    }
-
-    public static void AssertRawQuery(IQuery gen, WhereBuilder<MyModel> b2, WhereBuilder<MyModel> b3, string expectedQuery, params Param[] parameters)
-    {
-      var q2 = new QueryBuilder<MyModel>().Where(b2).Select(x => new { x.Id }).GetRawQuery(null);
-      var q3 = new QueryBuilder<MyModel>().Where(b3).Select(x => new { x.Id }).GetRawQuery(null);
-      AssertRawQuery(gen, q2, q3, expectedQuery, parameters);
-    }
-
-    public static void AssertRawQuery<T>(WhereBuilder<T> wb, string expectedQuery, params Param[] parameters)
-    {
-      RawQuery rq = wb.GetRawQuery();
-      AssertRawQuery(rq, expectedQuery, parameters);
+      var q2 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb1);
+      var q3 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb2);
+      AssertRawQuery(q, q2, q3, expectedQuery, parameters);
     }
   }
 }

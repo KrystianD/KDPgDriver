@@ -9,7 +9,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent
 {
-  public class InsertQueryFluentBuilder1<TModel>
+  public class InsertQueryFluentBuilder1<TModel> : IQuery
   {
     private readonly IQueryExecutor _executor;
 

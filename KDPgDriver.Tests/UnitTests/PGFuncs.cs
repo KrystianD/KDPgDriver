@@ -9,11 +9,13 @@ namespace KDPgDriver.Tests.UnitTests
     {
       MyInit.Init();
     }
-    
+
     [Fact]
     public void FuncMD5()
     {
-      Utils.AssertRawQuery(new QueryBuilder<MyModel>().Where(x => Func.MD5(x.Name) == "hex"),
+      var q = Builders<MyModel>.Select(x => x.Id).Where(x => Func.MD5(x.Name) == "hex");
+
+      Utils.AssertRawQuery(q,
                            @"SELECT id FROM public.model WHERE (MD5(name)) = ('hex')");
     }
   }

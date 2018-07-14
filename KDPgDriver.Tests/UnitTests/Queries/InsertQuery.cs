@@ -19,7 +19,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
           Id = 4
       };
 
-      var q = Builders<MyModel>.Insert
+      var q = Builders<MyModel>.Insert()
                                .UseField(x => x.Id)
                                .AddObject(obj);
 
@@ -40,7 +40,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
           },
       };
 
-      var q = Builders<MyModel>.Insert
+      var q = Builders<MyModel>.Insert()
                                .UseField(x => x.Id)
                                .UseField(x => x.Name)
                                .AddMany(objs);
@@ -56,7 +56,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
           ListString = new List<string>() { "A", "B" },
       };
 
-      var q = Builders<MyModel>.Insert
+      var q = Builders<MyModel>.Insert()
                                .UseField(x => x.ListEnum)
                                .UseField(x => x.ListString)
                                .AddObject(obj);
@@ -73,7 +73,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
           Enum2 = MyEnum2.A,
       };
 
-      var q = Builders<MyModel>.Insert
+      var q = Builders<MyModel>.Insert()
                                .UseField(x => x.Enum2)
                                .AddObject(obj);
 
@@ -90,7 +90,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
           DateTime = date,
       };
 
-      var q = Builders<MyModel>.Insert
+      var q = Builders<MyModel>.Insert()
                                .UseField(x => x.DateTime)
                                .AddObject(obj);
 

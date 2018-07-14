@@ -16,7 +16,7 @@ namespace KDPgDriver.Queries
     private readonly string TableName = Helper.GetTableName(typeof(TModel));
     private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
 
-    private readonly IQueryBuilder _queryBuilder;
+    private readonly IWhereBuilder _whereBuilder;
 
     private readonly ISelectFromBuilder _fromBuilder;
     private readonly IOrderBuilder _orderBuilder;
@@ -24,12 +24,12 @@ namespace KDPgDriver.Queries
 
     public bool IsSingleValue => _fromBuilder.IsSingleValue;
 
-    public SelectQuery(IQueryBuilder queryBuilder,
+    public SelectQuery(IWhereBuilder whereBuilder,
                        ISelectFromBuilder fromBuilder,
                        IOrderBuilder orderBuilder,
                        LimitBuilder limitBuilder)
     {
-      _queryBuilder = queryBuilder;
+      _whereBuilder = whereBuilder;
       _fromBuilder = fromBuilder;
       _orderBuilder = orderBuilder;
       _limitBuilder = limitBuilder;
@@ -47,7 +47,7 @@ namespace KDPgDriver.Queries
         .Append(" FROM ")
         .AppendTableName(TableName, schema);
 
-      var whereRawQuery = _queryBuilder.GetWhereBuilder().GetRawQuery();
+      var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {
         rq.Append(" WHERE ");
         rq.Append(whereRawQuery);

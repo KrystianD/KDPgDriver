@@ -53,9 +53,9 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
     {
       var dr = await CreateDriver();
 
-      var res = await dr.QueryGetAllAsync(Builders<MyModel>.Query.Select(x => new {
-          x.Enum
-      }));
+      var res = await dr.From<MyModel>()
+                        .Select(x => new { x.Enum })
+                        .ToListAsync();
 
       Assert.Collection(res,
                         item => { Assert.Equal(MyEnum.A, item.Enum); },
@@ -68,9 +68,9 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
     {
       var dr = await CreateDriver();
 
-      var res = await dr.QueryGetAllAsync(Builders<MyModel>.Query.Select(x => new {
-          x.ListEnum
-      }));
+      var res = await dr.From<MyModel>()
+                        .Select(x => new { x.ListEnum })
+                        .ToListAsync();
 
       Assert.Collection(res,
                         item => { Assert.Collection(item.ListEnum, x => { Assert.Equal(MyEnum.A, x); }); },
@@ -88,7 +88,10 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
     {
       var dr = await CreateDriver();
 
-      var res = await dr.QueryGetAllAsync(Builders<MyModel>.Query.Where(x => x.Id == 2).Select());
+      var res = await dr.From<MyModel>()
+                        .Select()
+                        .Where(x => x.Id == 2)
+                        .ToListAsync();
 
       Assert.Collection(res, item =>
       {
@@ -110,7 +113,7 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
       var dr = await CreateDriver();
 
       var a = new[] { 2, 3 };
-      var res = await dr.QueryGetAllAsync(Builders<MyModel>.Query.Where(x => x.Id.PgIn(a)).Select());
+      var res = await dr.From<MyModel>().Select().Where(x => x.Id.PgIn(a)).ToListAsync();
 
       Assert.Collection(res,
                         item => { Assert.Equal(2, item.Id); },
@@ -178,8 +181,8 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
       // transaction rolled back
       using (var tr = await dr.CreateTransaction()) {
         var b = tr.CreateBatch();
-        var task1 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }));
-        var task2 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }));
+        var task1 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }).ExecuteAsync();
+        var task2 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }).ExecuteAsync();
         await b.Execute();
       }
 
@@ -189,8 +192,8 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
       // transaction commited
       using (var tr = await dr.CreateTransaction()) {
         var b = tr.CreateBatch();
-        var task1 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }));
-        var task2 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }));
+        var task1 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }).ExecuteAsync();
+        var task2 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }).ExecuteAsync();
         await b.Execute();
 
         await tr.CommitAsync();

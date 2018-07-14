@@ -9,12 +9,12 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent
 {
-  public class DeleteQueryFluentBuilder1<TModel>
+  public class DeleteQueryFluentBuilder1<TModel> : IQuery
   {
     private readonly IQueryExecutor _executor;
-    
+
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
-    
+
     public DeleteQueryFluentBuilder1() { }
 
     public DeleteQueryFluentBuilder1(IQueryExecutor executor)

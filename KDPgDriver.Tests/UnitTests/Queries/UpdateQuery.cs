@@ -15,8 +15,8 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateSetField()
     {
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp.SetField(x => x.Name, "A"));
+      var q = Builders<MyModel>.Update()
+                               .SetField(x => x.Name, "A");
 
       Utils.AssertRawQuery(q, @"UPDATE public.model SET name = 'A'");
     }
@@ -26,8 +26,8 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     {
       var date = (DateTime?) DateTime.Parse("2018-01-01 12:34");
 
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp.SetField(x => x.DateTime, date));
+      var q = Builders<MyModel>.Update()
+                               .SetField(x => x.DateTime, date);
 
       Utils.AssertRawQuery(q, @"UPDATE public.model SET datetime = @1::timestamp",
                            new Param(date, NpgsqlDbType.Timestamp));
@@ -36,8 +36,8 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateAddToList()
     {
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp.AddToList(x => x.ListString, "A"));
+      var q = Builders<MyModel>.Update()
+                               .AddToList(x => x.ListString, "A");
 
       Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_cat(list_string, array['A'])");
     }
@@ -45,8 +45,8 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateAddToJsonList()
     {
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp.AddToList(x => x.JsonArray1, "A"));
+      var q = Builders<MyModel>.Update()
+                               .AddToList(x => x.JsonArray1, "A");
 
       Utils.AssertRawQuery(q, @"UPDATE public.model SET json_array1 = kdpg_jsonb_add(json_array1, array[], to_jsonb(@1::jsonb)",
                            new Param("\"A\"", NpgsqlDbType.Jsonb));
@@ -55,8 +55,8 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateRemoveFromList()
     {
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp.RemoveFromList(x => x.ListString, "A"));
+      var q = Builders<MyModel>.Update()
+                               .RemoveFromList(x => x.ListString, "A");
 
       Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_remove(list_string, 'A')");
     }
@@ -64,12 +64,10 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateListOperationsCombined1()
     {
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp
-                           .AddToList(x => x.ListString, "A")
-                           .RemoveFromList(x => x.ListString, "B")
-                           .AddToList(x => x.ListString2, "C")
-      );
+      var q = Builders<MyModel>.Update()
+                               .AddToList(x => x.ListString, "A")
+                               .RemoveFromList(x => x.ListString, "B")
+                               .AddToList(x => x.ListString2, "C");
 
       Utils.AssertRawQuery(q, @"
 UPDATE public.model
@@ -80,12 +78,10 @@ SET list_string = array_remove(array_cat(list_string, array['A']), 'B'),
     [Fact]
     public void UpdateListOperationsCombined2()
     {
-      var q = Builders<MyModel>.Query.Update(
-          Builders<MyModel>.UpdateOp
-                           .SetField(x => x.ListString, new List<string>() { "a1", "a2" })
-                           .AddToList(x => x.ListString, "A")
-                           .RemoveFromList(x => x.ListString, "B")
-      );
+      var q = Builders<MyModel>.Update()
+                               .SetField(x => x.ListString, new List<string>() { "a1", "a2" })
+                               .AddToList(x => x.ListString, "A")
+                               .RemoveFromList(x => x.ListString, "B");
 
       Utils.AssertRawQuery(q, @"
 UPDATE public.model

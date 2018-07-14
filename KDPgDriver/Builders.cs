@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using System.Reflection.Metadata.Ecma335;
 using KDPgDriver.Builders;
 using KDPgDriver.Fluent;
 using KDPgDriver.Queries;
@@ -8,8 +9,8 @@ namespace KDPgDriver
 {
   public static class Builders<TModel>
   {
-    public static QueryBuilder<TModel> Query => new QueryBuilder<TModel>();
-    public static InsertQuery<TModel> Insert => new InsertQuery<TModel>();
+    // public static QueryBuilder<TModel> Query => new QueryBuilder<TModel>();
+    // public static InsertQuery<TModel> Insert => new InsertQuery<TModel>();
     public static UpdateStatementsBuilder<TModel> UpdateOp => new UpdateStatementsBuilder<TModel>();
 
     // Select
@@ -32,5 +33,9 @@ namespace KDPgDriver
     {
       return new SelectQueryFluentBuilder1<TModel>().SelectOnly(fieldsList);
     }
+
+    public static InsertQueryFluentBuilder1<TModel> Insert() => new InsertQueryFluentBuilder1<TModel>(null);
+    public static UpdateQueryFluentBuilder1<TModel> Update() => new UpdateQueryFluentBuilder1<TModel>(null);
+    public static DeleteQueryFluentBuilder1<TModel> Delete() => new DeleteQueryFluentBuilder1<TModel>(null);
   }
 }

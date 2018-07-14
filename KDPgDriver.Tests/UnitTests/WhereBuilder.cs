@@ -13,9 +13,8 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void WhereAnd()
     {
-      var q = Builders<MyModel>.Query
-                               .Where(x => x.Id == 1 && x.Name == "test")
-                               .Select(x => new { x.Id });
+      var q = Builders<MyModel>.Select(x => new { x.Id })
+                               .Where(x => x.Id == 1 && x.Name == "test");
 
       var b = WhereBuilder<MyModel>.And(
           WhereBuilder<MyModel>.FromExpression(x => x.Id == 1),
@@ -27,9 +26,8 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void WhereOr()
     {
-      var q = Builders<MyModel>.Query
-                               .Where(x => x.Id == 1 || x.Name == "test")
-                               .Select(x => new { x.Id });
+      var q = Builders<MyModel>.Select(x => new { x.Id })
+                               .Where(x => x.Id == 1 || x.Name == "test");
 
       var b = WhereBuilder<MyModel>.Or(
           WhereBuilder<MyModel>.Eq(x => x.Id, 1),
@@ -41,10 +39,9 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void WhereAndMultiple()
     {
-      var q = Builders<MyModel>.Query
+      var q = Builders<MyModel>.Select(x => new { x.Id })
                                .Where(x => x.Id == 1)
-                               .Where(x => x.Name == "test")
-                               .Select(x => new { x.Id });
+                               .Where(x => x.Name == "test");
 
       Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE ((id) = (1)) AND ((name) = ('test'))");
     }

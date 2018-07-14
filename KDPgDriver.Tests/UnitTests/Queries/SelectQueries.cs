@@ -13,7 +13,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectSimple()
     {
-      var q = Builders<MyModel>.Query.Select();
+      var q = Builders<MyModel>.Select();
 
       Utils.AssertRawQuery(q, @"SELECT id,name,list_string,list_string2,(enum)::text,(list_enum)::text[],(enum2)::text,datetime,json_object1,json_model,json_array1 FROM public.model");
     }
@@ -22,7 +22,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectSingleValue()
     {
-      var q = Builders<MyModel>.Query.Select(x => x.Id);
+      var q = Builders<MyModel>.Select(x => x.Id);
 
       Utils.AssertRawQuery(q, @"SELECT id FROM public.model");
     }
@@ -30,7 +30,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectSingleValue2()
     {
-      var q = Builders<MyModel>.Query.Select(x => x.Id * 2);
+      var q = Builders<MyModel>.Select(x => x.Id * 2);
 
       Utils.AssertRawQuery(q, @"SELECT (id) * (2) FROM public.model");
     }
@@ -39,7 +39,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectColumns()
     {
-      var q = Builders<MyModel>.Query.Select(x => new {
+      var q = Builders<MyModel>.Select(x => new {
           x.Name
       });
 
@@ -49,7 +49,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectColumnsExpressionString()
     {
-      var q = Builders<MyModel>.Query.Select(x => new {
+      var q = Builders<MyModel>.Select(x => new {
           OutName = x.Name + "A" + "B"
       });
 
@@ -64,7 +64,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       fieldsBuilder.AddField(x => x.Id)
                    .AddField(x => x.Name);
 
-      var q = Builders<MyModel>.Query.SelectOnly(fieldsBuilder);
+      var q = Builders<MyModel>.SelectOnly(fieldsBuilder);
 
       Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
@@ -72,7 +72,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectColumnsDirectFieldList1()
     {
-      var q = Builders<MyModel>.Query.SelectOnly(x => x.Id);
+      var q = Builders<MyModel>.SelectOnly(x => x.Id);
 
       Utils.AssertRawQuery(q, @"SELECT id FROM public.model");
     }
@@ -80,7 +80,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectColumnsDirectFieldList2()
     {
-      var q = Builders<MyModel>.Query.SelectOnly(x => x.Id, x => x.Name);
+      var q = Builders<MyModel>.SelectOnly(x => x.Id, x => x.Name);
 
       Utils.AssertRawQuery(q, @"SELECT id,name FROM public.model");
     }
@@ -89,7 +89,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectEnum()
     {
-      var q = Builders<MyModel>.Query.Select(x => new {
+      var q = Builders<MyModel>.Select(x => new {
           x.Enum
       });
 
@@ -99,7 +99,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectEnumArray()
     {
-      var q = Builders<MyModel>.Query.Select(x => new {
+      var q = Builders<MyModel>.Select(x => new {
           x.ListEnum
       });
 
