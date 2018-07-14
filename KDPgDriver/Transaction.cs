@@ -32,22 +32,22 @@ namespace KDPgDriver
 
     public Task CommitAsync() => NpgsqlTransaction.CommitAsync();
 
-    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder)
+    public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
       => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
 
-    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder)
+    public Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
       => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
 
-    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder)
+    public Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
       => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
 
-    public Task<DeleteQueryResult> QueryAsync(DeleteQuery builder)
+    public Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
       => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
 
     // Chains
-    public SelectQueryFluentBuilder1<TModel> From<TModel>()
-    {
-      return new SelectQueryFluentBuilder1<TModel>(this);
-    }
+    public SelectQueryFluentBuilder1<TModel> From<TModel>() => new SelectQueryFluentBuilder1<TModel>(this);
+    public InsertQueryFluentBuilder1<TModel> Insert<TModel>() => new InsertQueryFluentBuilder1<TModel>(this);
+    public UpdateQueryFluentBuilder1<TModel> Update<TModel>() => new UpdateQueryFluentBuilder1<TModel>(this);
+    public DeleteQueryFluentBuilder1<TModel> Delete<TModel>() => new DeleteQueryFluentBuilder1<TModel>(this);
   }
 }

@@ -94,9 +94,9 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
-    public SelectQuery<TNewModel> GetSelectQuery()
+    public SelectQuery<TModel,TNewModel> GetSelectQuery()
     {
-      return new SelectQuery<TNewModel>(_queryBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
+      return new SelectQuery<TModel,TNewModel>(_queryBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
     }
 
     public async Task<TNewModel> ToSingleAsync()

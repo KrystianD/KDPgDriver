@@ -5,16 +5,23 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {
-  public interface ISelectQuery : IQuery { }
-
-  public class SelectQuery<TOut> : ISelectQuery
+  public interface ISelectQuery : IQuery
   {
+    List<ResultColumnDef> GetColumns();
+    bool IsSingleValue { get; }
+  }
+
+  public class SelectQuery<TModel, TOut> : ISelectQuery
+  {
+    private readonly string TableName = Helper.GetTableName(typeof(TModel));
+    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
+
     private readonly IQueryBuilder _queryBuilder;
 
     private readonly ISelectFromBuilder _fromBuilder;
     private readonly IOrderBuilder _orderBuilder;
     private readonly LimitBuilder _limitBuilder;
-    
+
     public bool IsSingleValue => _fromBuilder.IsSingleValue;
 
     public SelectQuery(IQueryBuilder queryBuilder,
@@ -32,13 +39,13 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = _queryBuilder.SchemaName ?? defaultSchema;
+      string schema = SchemaName ?? defaultSchema;
 
       RawQuery rq = new RawQuery();
       rq.Append("SELECT ")
         .Append(_fromBuilder.GetRawQuery())
         .Append(" FROM ")
-        .AppendTableName(_queryBuilder.TableName, schema);
+        .AppendTableName(TableName, schema);
 
       var whereRawQuery = _queryBuilder.GetWhereBuilder().GetRawQuery();
       if (!whereRawQuery.IsEmpty) {

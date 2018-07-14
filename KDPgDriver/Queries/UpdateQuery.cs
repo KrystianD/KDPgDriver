@@ -5,24 +5,27 @@ namespace KDPgDriver.Queries
 {
   public interface IUpdateQuery : IQuery { }
 
-  public class UpdateQuery<TOut> : IUpdateQuery
+  public class UpdateQuery<TModel> : IUpdateQuery
   {
-    private readonly UpdateStatementsBuilder<TOut> _updateStatementsBuilder;
-    private readonly IQueryBuilder _builder;
+    private readonly string TableName = Helper.GetTableName(typeof(TModel));
+    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
 
-    public UpdateQuery(IQueryBuilder queryBuilder, UpdateStatementsBuilder<TOut> updateStatementsBuilder)
+    private readonly UpdateStatementsBuilder<TModel> _updateStatementsBuilder;
+    private readonly WhereBuilder<TModel> _whereBuilder;
+
+    public UpdateQuery(WhereBuilder<TModel> whereBuilder, UpdateStatementsBuilder<TModel> updateStatementsBuilder)
     {
       _updateStatementsBuilder = updateStatementsBuilder;
-      _builder = queryBuilder;
+      _whereBuilder = whereBuilder;
     }
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = _builder.SchemaName ?? defaultSchema;
+      string schema = SchemaName ?? defaultSchema;
 
       RawQuery rq = new RawQuery();
       rq.Append("UPDATE ")
-        .AppendTableName(_builder.TableName, schema)
+        .AppendTableName(TableName, schema)
         .Append("\n");
 
       rq.Append("SET ");
@@ -37,10 +40,10 @@ namespace KDPgDriver.Queries
 
         first = false;
       }
-      
+
       rq.Append("\n");
 
-      var whereRawQuery = _builder.GetWhereBuilder().GetRawQuery();
+      var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {
         rq.Append("WHERE ")
           .Append(whereRawQuery);

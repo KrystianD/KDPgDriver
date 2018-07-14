@@ -43,7 +43,7 @@ namespace KDPgDriver
     private readonly RawQuery _combinedRawQuery = new RawQuery();
     private readonly List<IOperation> _operations = new List<IOperation>();
 
-    public Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> builder)
+    public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
     {
       var columns = builder.GetColumns();
 
@@ -63,7 +63,7 @@ namespace KDPgDriver
       return op.TaskCompletionSource.Task;
     }
 
-    public Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> builder)
+    public Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
       _combinedRawQuery.Append("; ");
@@ -82,7 +82,7 @@ namespace KDPgDriver
       return op.TaskCompletionSource.Task;
     }
 
-    public Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> builder)
+    public Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
       _combinedRawQuery.Append("; ");
@@ -98,7 +98,7 @@ namespace KDPgDriver
       return op.TaskCompletionSource.Task;
     }
 
-    public Task<DeleteQueryResult> QueryAsync(DeleteQuery builder)
+    public Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
       _combinedRawQuery.Append("; ");
@@ -144,9 +144,9 @@ namespace KDPgDriver
     }
 
     // Chains
-    public SelectQueryFluentBuilder1<TModel> From<TModel>()
-    {
-      return new SelectQueryFluentBuilder1<TModel>(this);
-    }
+    public SelectQueryFluentBuilder1<TModel> From<TModel>() => new SelectQueryFluentBuilder1<TModel>(this);
+    public InsertQueryFluentBuilder1<TModel> Insert<TModel>() => new InsertQueryFluentBuilder1<TModel>(this);
+    public UpdateQueryFluentBuilder1<TModel> Update<TModel>() => new UpdateQueryFluentBuilder1<TModel>(this);
+    public DeleteQueryFluentBuilder1<TModel> Delete<TModel>() => new DeleteQueryFluentBuilder1<TModel>(this);
   }
 }

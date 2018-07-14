@@ -8,6 +8,7 @@ namespace KDPgDriver
   public enum KDPgColumnFlagsEnum
   {
     PrimaryKey = 1,
+    AutoIncrement = 2,
   }
   
   public class KDPgTableAttribute : Attribute

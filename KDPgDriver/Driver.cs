@@ -90,37 +90,37 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
     public Batch CreateBatch() => new Batch(this);
 
-    public async Task<InsertQueryResult> QueryAsync<TOut>(InsertQuery<TOut> insertQuery)
+    public async Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
     {
       using (var connection = await CreateConnection()) {
         return await QueryAsyncInternal(insertQuery, connection, null);
       }
     }
 
-    public async Task<UpdateQueryResult> QueryAsync<TOut>(UpdateQuery<TOut> updateQuery)
+    public async Task<UpdateQueryResult> QueryAsync(IUpdateQuery updateQuery)
     {
       using (var connection = await CreateConnection()) {
         return await QueryAsyncInternal(updateQuery, connection, null);
       }
     }
 
-    public async Task<SelectQueryResult<TOut>> QueryAsync<TOut>(SelectQuery<TOut> selectQuery)
+    public async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
       using (var connection = await CreateConnection()) {
         return await QueryAsyncInternal(selectQuery, connection, null);
       }
     }
 
-    public async Task<DeleteQueryResult> QueryAsync(DeleteQuery updateQuery)
+    public async Task<DeleteQueryResult> QueryAsync(IDeleteQuery updateQuery)
     {
       using (var connection = await CreateConnection()) {
         return await QueryAsyncInternal(updateQuery, connection, null);
       }
     }
 
-    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TOut>(SelectQuery<TOut> builder,
-                                                                          NpgsqlConnection connection,
-                                                                          NpgsqlTransaction trans)
+    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TModel, TOut>(SelectQuery<TModel, TOut> builder,
+                                                                                  NpgsqlConnection connection,
+                                                                                  NpgsqlTransaction trans)
     {
       var columns = builder.GetColumns();
       RawQuery rq = builder.GetRawQuery(Schema);
@@ -141,7 +141,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       }
     }
 
-    internal async Task<InsertQueryResult> QueryAsyncInternal<TOut>(InsertQuery<TOut> builder,
+    internal async Task<InsertQueryResult> QueryAsyncInternal(IInsertQuery builder,
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans)
     {
@@ -161,7 +161,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       }
     }
 
-    internal async Task<UpdateQueryResult> QueryAsyncInternal<TOut>(UpdateQuery<TOut> builder,
+    internal async Task<UpdateQueryResult> QueryAsyncInternal(IUpdateQuery builder,
                                                                     NpgsqlConnection connection,
                                                                     NpgsqlTransaction trans)
     {
@@ -181,7 +181,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return null;
     }
 
-    internal async Task<DeleteQueryResult> QueryAsyncInternal(DeleteQuery builder,
+    internal async Task<DeleteQueryResult> QueryAsyncInternal(IDeleteQuery builder,
                                                               NpgsqlConnection connection,
                                                               NpgsqlTransaction trans)
     {
@@ -212,22 +212,22 @@ $$ LANGUAGE plpgsql IMMUTABLE;
     }
 
     // Helpers
-    public async Task<List<TOut>> QueryGetAllAsync<TOut>(SelectQuery<TOut> selectQuery)
+    public async Task<List<TOut>> QueryGetAllAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
       var res = await QueryAsync(selectQuery);
       return res.GetAll();
     }
 
-    public async Task<TOut> QueryGetSingleAsync<TOut>(SelectQuery<TOut> selectQuery)
+    public async Task<TOut> QueryGetSingleAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
       var res = await QueryAsync(selectQuery);
       return res.GetSingle();
     }
 
     // Chains
-    public SelectQueryFluentBuilder1<TModel> From<TModel>()
-    {
-      return new SelectQueryFluentBuilder1<TModel>(this);
-    }
+    public SelectQueryFluentBuilder1<TModel> From<TModel>() => new SelectQueryFluentBuilder1<TModel>(this);
+    public InsertQueryFluentBuilder1<TModel> Insert<TModel>() => new InsertQueryFluentBuilder1<TModel>(this);
+    public UpdateQueryFluentBuilder1<TModel> Update<TModel>() => new UpdateQueryFluentBuilder1<TModel>(this);
+    public DeleteQueryFluentBuilder1<TModel> Delete<TModel>() => new DeleteQueryFluentBuilder1<TModel>(this);
   }
 }

@@ -17,20 +17,22 @@ namespace KDPgDriver.Tests.FunctionalTests
       await dr.InitializeAsync();
 
       await dr.QueryRawAsync(@"
+CREATE SCHEMA IF NOT EXISTS ""Schema1"";
+
 DROP TABLE IF EXISTS model;
 DROP TYPE IF EXISTS enum;
-DROP TYPE IF EXISTS enum2;
+DROP TYPE IF EXISTS ""Schema1"".enum2;
 
 CREATE TYPE enum AS ENUM ('A', 'B', 'C');
-CREATE TYPE enum2 AS ENUM ('A', 'B', 'C');
+CREATE TYPE ""Schema1"".enum2 AS ENUM ('A', 'B', 'C');
 
 CREATE TABLE model (
-  id int PRIMARY KEY,
+  id SERIAL PRIMARY KEY,
   name text,
   list_string text[],
   list_string2 text[],
   enum enum,
-  enum2 enum2,
+  enum2 ""Schema1"".enum2,
   list_enum enum[],
   datetime timestamp,
   json_object1 jsonb,
@@ -175,15 +177,15 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
 
       // transaction rolled back
       using (var tr = await dr.CreateTransaction()) {
-         var b = tr.CreateBatch();
-         var task1 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }));
-         var task2 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }));
-         await b.Execute();
+        var b = tr.CreateBatch();
+        var task1 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }));
+        var task2 = b.QueryAsync(Builders<MyModel>.Insert.UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }));
+        await b.Execute();
       }
 
       var res1 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
       Assert.Equal(3, res1.Count);
-      
+
       // transaction commited
       using (var tr = await dr.CreateTransaction()) {
         var b = tr.CreateBatch();
@@ -196,6 +198,54 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
 
       var res2 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
       Assert.Equal(5, res2.Count);
+    }
+
+    [Fact]
+    public async Task TestUpdate()
+    {
+      var dr = await CreateDriver();
+
+      await dr.Update<MyModel>()
+              .SetField(x => x.Name, "A2")
+              .Where(x => x.Id == 1)
+              .ExecuteAsync();
+
+      var newName = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 1).ToSingleAsync();
+      Assert.Equal("A2", newName);
+    }
+
+    [Fact]
+    public async Task TestDelete()
+    {
+      var dr = await CreateDriver();
+
+      var rows = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 1).ToListAsync();
+      Assert.Equal(1, rows.Count);
+
+      await dr.Delete<MyModel>()
+              .Where(x => x.Id == 1)
+              .ExecuteAsync();
+
+      rows = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 1).ToListAsync();
+      Assert.Equal(0, rows.Count);
+    }
+
+    [Fact]
+    public async Task TestInsert()
+    {
+      var dr = await CreateDriver();
+
+      var obj = new MyModel() {
+          Id = 101,
+          Name = "new",
+      };
+
+      await dr.Insert<MyModel>()
+              .AddObject(obj)
+              .ExecuteAsync();
+
+      var rows = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 101).ToListAsync();
+      Assert.Equal(1, rows.Count);
     }
   }
 }

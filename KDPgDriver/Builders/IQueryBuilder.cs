@@ -2,8 +2,8 @@
 {
   public interface IQueryBuilder
   {
-    string TableName { get; }
-    string SchemaName { get; }
+    // string TableName { get; }
+    // string SchemaName { get; }
 
     IWhereBuilder GetWhereBuilder();
   }

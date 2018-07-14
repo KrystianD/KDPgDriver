@@ -6,12 +6,13 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {
-  public class InsertQueryInit<TModel> { }
-
   public interface IInsertQuery : IQuery { }
 
   public class InsertQuery<TModel> : IInsertQuery
   {
+    private readonly string TableName = Helper.GetTableName(typeof(TModel));
+    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
+
     private static readonly KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
 
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
@@ -30,7 +31,7 @@ namespace KDPgDriver.Queries
     {
       if (_columns.Count == 0) {
         _columns.AddRange(Helper.GetTable(typeof(TModel)).Columns
-                                .Where(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) == 0));
+                                .Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0));
       }
 
       _objects.Add(obj);
@@ -68,9 +69,7 @@ namespace KDPgDriver.Queries
 
       q.Append("INSERT INTO ");
 
-      q.AppendTableName(
-          tableName: Helper.GetTableName(typeof(TModel)),
-          schema: Helper.GetTableSchema(typeof(TModel)) ?? defaultSchema);
+      q.AppendTableName(TableName, SchemaName ?? defaultSchema);
 
       q.Append("(").AppendColumnNames(_columns.Select(x => x.Name)).Append(")");
 

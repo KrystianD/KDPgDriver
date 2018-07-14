@@ -11,47 +11,38 @@ namespace KDPgDriver.Builders
 {
   public class QueryBuilder<TModel> : IQueryBuilder
   {
-    public string TableName { get; }
-    public string SchemaName { get; }
+    private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
 
-    private readonly WhereBuilder<TModel> _wherePart = WhereBuilder<TModel>.Empty;
-
-    public IWhereBuilder GetWhereBuilder() => _wherePart;
-
-    public QueryBuilder()
-    {
-      TableName = Helper.GetTableName(typeof(TModel));
-      SchemaName = Helper.GetTableSchema(typeof(TModel));
-    }
+    public IWhereBuilder GetWhereBuilder() => _whereBuilder;
 
     public QueryBuilder<TModel> Where(Expression<Func<TModel, bool>> exp)
     {
-      _wherePart.AndWith(WhereBuilder<TModel>.FromExpression(exp));
+      _whereBuilder.AndWith(WhereBuilder<TModel>.FromExpression(exp));
       return this;
     }
 
     public QueryBuilder<TModel> Where(WhereBuilder<TModel> builder)
     {
-      _wherePart.AndWith(builder);
+      _whereBuilder.AndWith(builder);
       return this;
     }
 
-    public SelectQuery<TModel> Select()
+    public SelectQuery<TModel, TModel> Select()
     {
-      return new SelectQuery<TModel>(this, SelectFromBuilder.AllColumns<TModel>(), null, null);
+      return new SelectQuery<TModel, TModel>(this, SelectFromBuilder.AllColumns<TModel>(), null, null);
     }
 
-    public SelectQuery<TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
+    public SelectQuery<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQuery<TNewModel>(this, SelectFromBuilder.FromExpression(pr), null, null);
+      return new SelectQuery<TModel, TNewModel>(this, SelectFromBuilder.FromExpression(pr), null, null);
     }
 
-    public SelectQuery<TModel> SelectOnly(FieldListBuilder<TModel> builder)
+    public SelectQuery<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      return new SelectQuery<TModel>(this, SelectFromBuilder.FromFieldListBuilder(builder), null, null);
+      return new SelectQuery<TModel, TModel>(this, SelectFromBuilder.FromFieldListBuilder(builder), null, null);
     }
 
-    public SelectQuery<TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
+    public SelectQuery<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
     {
       var builder = new FieldListBuilder<TModel>();
       foreach (var expression in fieldsList)
@@ -63,13 +54,13 @@ namespace KDPgDriver.Builders
     {
       if (builder.IsEmpty)
         throw new Exception("Empty update statement builder");
-      var uq = new UpdateQuery<TModel>(this, builder);
+      var uq = new UpdateQuery<TModel>(_whereBuilder, builder);
       return uq;
     }
 
-    public DeleteQuery Delete()
+    public DeleteQuery<TModel> Delete()
     {
-      return new DeleteQuery(this);
+      return new DeleteQuery<TModel>(_whereBuilder);
     }
   }
 }

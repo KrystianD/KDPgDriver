@@ -18,12 +18,12 @@ namespace KDPgDriver.Results
 
   public class SelectQueryResult<T>
   {
-    private readonly SelectQuery<T> _builder;
+    private readonly ISelectQuery _builder;
     private readonly IList<ResultColumnDef> _columns;
 
     private List<T> objs = new List<T>();
 
-    public SelectQueryResult(SelectQuery<T> builder, IList<ResultColumnDef> columns)
+    public SelectQueryResult(ISelectQuery builder, IList<ResultColumnDef> columns)
     {
       _builder = builder;
       _columns = columns;
