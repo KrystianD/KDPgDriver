@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
@@ -115,6 +117,21 @@ namespace KDPgDriver.Fluent
     {
       var res = await _executor.QueryAsync(GetSelectQuery());
       return res.GetAll();
+    }
+
+    public async Task<Dictionary<T, TNewModel>> ToDictionaryAsync<T>(Func<TNewModel, T> keySelector)
+    {
+      return (await ToListAsync()).ToDictionary(keySelector);
+    }
+
+    public async Task<Dictionary<T, V>> ToDictionaryAsync<T, V>(Func<TNewModel, T> keySelector, Func<TNewModel, V> elementSelector)
+    {
+      return (await ToListAsync()).ToDictionary(keySelector, elementSelector);
+    }
+
+    public async Task<Dictionary<T, List<TNewModel>>> ToDictionaryGroupAsync<T>(Func<TNewModel, T> keySelector)
+    {
+      return (await ToListAsync()).GroupByToDictionary(keySelector);
     }
 
     public RawQuery GetRawQuery(string defaultSchema = null)

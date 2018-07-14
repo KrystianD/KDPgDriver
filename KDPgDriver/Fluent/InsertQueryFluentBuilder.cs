@@ -46,9 +46,9 @@ namespace KDPgDriver.Fluent
       return _insertQuery;
     }
 
-    public async Task ExecuteAsync()
+    public async Task<InsertQueryResult> ExecuteAsync()
     {
-      await _executor.QueryAsync(GetInsertQuery());
+      return await _executor.QueryAsync(GetInsertQuery());
     }
 
     public RawQuery GetRawQuery(string defaultSchema = null)
