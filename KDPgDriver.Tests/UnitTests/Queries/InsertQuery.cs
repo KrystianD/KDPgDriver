@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using KDPgDriver.Queries;
 using NpgsqlTypes;
 using Xunit;
 
@@ -85,7 +86,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     public void InsertDateTime()
     {
       var date = DateTime.Parse("2018-01-01 12:34");
-      
+
       var obj = new MyModel {
           DateTime = date,
       };
@@ -96,6 +97,21 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"INSERT INTO public.model(datetime) VALUES (@1::timestamp) RETURNING id",
                            new Param(date, NpgsqlDbType.Timestamp));
+    }
+
+    [Fact]
+    public void InsertOnConflictDoNothing()
+    {
+      var obj = new MyModel {
+          Id = 4
+      };
+
+      var q = Builders<MyModel>.Insert()
+                               .UseField(x => x.Id)
+                               .AddObject(obj)
+                               .OnConflict(OnInsertConflict.DoNothing);
+
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(id) VALUES (4) ON CONFLICT DO NOTHING RETURNING id");
     }
   }
 }

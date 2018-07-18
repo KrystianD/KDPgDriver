@@ -43,9 +43,16 @@ CREATE TABLE model (
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(2, 'test2', '{a,b}', 'B', '{B}');
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a}', 'C', '{B,C}');
+
 ");
 
       return dr;
+    }
+
+    [Fact]
+    public async Task CreateDriverTest()
+    {
+      var dr = await CreateDriver();
     }
 
     [Fact]

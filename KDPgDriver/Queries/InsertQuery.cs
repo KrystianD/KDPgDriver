@@ -8,6 +8,12 @@ namespace KDPgDriver.Queries
 {
   public interface IInsertQuery : IQuery { }
 
+  public enum OnInsertConflict
+  {
+    None = 0,
+    DoNothing = 1,
+  }
+
   public class InsertQuery<TModel> : IInsertQuery
   {
     private readonly string TableName = Helper.GetTableName(typeof(TModel));
@@ -15,6 +21,7 @@ namespace KDPgDriver.Queries
 
     private static readonly KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
 
+    private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
     private readonly List<TModel> _objects = new List<TModel>();
@@ -63,6 +70,12 @@ namespace KDPgDriver.Queries
       return this;
     }
 
+    public InsertQuery<TModel> OnConflict(OnInsertConflict action)
+    {
+      _onInsertConflict = action;
+      return this;
+    }
+
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
       RawQuery q = new RawQuery();
@@ -75,6 +88,10 @@ namespace KDPgDriver.Queries
 
       q.Append(" VALUES ");
       q.Append(_insertPartQuery);
+
+      if (_onInsertConflict == OnInsertConflict.DoNothing) {
+        q.Append(" ON CONFLICT DO NOTHING ");
+      }
 
       if (TableModel.PrimaryKey != null) {
         q.Append(" RETURNING ");

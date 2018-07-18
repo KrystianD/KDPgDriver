@@ -40,6 +40,12 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
+    public InsertQueryFluentBuilder1<TModel> OnConflict(OnInsertConflict action)
+    {
+      _insertQuery.OnConflict(action);
+      return this;
+    }
+
     // 
     public InsertQuery<TModel> GetInsertQuery()
     {
