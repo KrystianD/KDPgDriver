@@ -23,6 +23,8 @@ namespace KDPgDriver.Fluent
       _executor = executor;
     }
 
+    public bool IsEmpty => _updateStatementsBuilder.IsEmpty;
+
     // Where
     public UpdateQueryFluentBuilder1<TModel> Where(Expression<Func<TModel, bool>> exp)
     {
