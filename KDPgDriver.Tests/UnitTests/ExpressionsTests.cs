@@ -32,6 +32,22 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertExpression(exp, @"(name) IS NULL");
     }
+    
+    [Fact]
+    public void ExpressionNotEq()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id != 2);
+
+      Utils.AssertExpression(exp, @"NOT((id) = (2))");
+    }
+
+    [Fact]
+    public void ExpressionNotEqNull()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name != null);
+
+      Utils.AssertExpression(exp, @"NOT((name) IS NULL)");
+    }
 
     [Fact]
     public void ExpressionEqJsonModelNull()
@@ -223,7 +239,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgNotIn("A", "B"));
 
-      Utils.AssertExpression(exp, @"NOT ((name) = ANY(@1::text[]))",
+      Utils.AssertExpression(exp, @"NOT((name) = ANY(@1::text[]))",
                              new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 

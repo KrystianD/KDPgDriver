@@ -32,6 +32,11 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
     }
 
+    public static TypedExpression NotEq(TypedExpression left, TypedExpression right)
+    {
+      return Not(Eq(left, right));
+    }
+
     public static TypedExpression Add(TypedExpression left, TypedExpression right)
     {
       RawQuery rq = new RawQuery();
@@ -67,19 +72,20 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression NotIn(TypedExpression left, IEnumerable array)
     {
-      RawQuery rq = new RawQuery();
-
-      rq.Append("NOT (")
-        .AppendSurround(left.RawQuery)
-        .Append(" = ANY(")
-        .Append(Helper.ConvertObjectToPgValue(array))
-        .Append("))");
-
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return Not(In(left, array));
     }
 
     public static TypedExpression And(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("AND", expressions);
     public static TypedExpression Or(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("OR", expressions);
+    public static TypedExpression Not(TypedExpression exp)
+    {
+      RawQuery rq = new RawQuery();
+      rq.Append("NOT(");
+      rq.Append(exp.RawQuery);
+      rq.Append(")");
+
+      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+    }
 
     public static TypedExpression LessThan(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<", left, right);
     public static TypedExpression LessThanEqual(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<=", left, right);

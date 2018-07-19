@@ -86,6 +86,7 @@ namespace KDPgDriver.Utils
 
             switch (be.NodeType) {
               case ExpressionType.Equal: return ExpressionBuilders.Eq(left, right);
+              case ExpressionType.NotEqual: return ExpressionBuilders.NotEq(left, right);
               case ExpressionType.Add: return ExpressionBuilders.Add(left, right);
               case ExpressionType.Subtract: return ExpressionBuilders.Subtract(left, right);
               case ExpressionType.Multiply: return ExpressionBuilders.Multiply(left, right);
