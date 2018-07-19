@@ -142,8 +142,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
     }
 
     internal async Task<InsertQueryResult> QueryAsyncInternal(IInsertQuery builder,
-                                                                    NpgsqlConnection connection,
-                                                                    NpgsqlTransaction trans)
+                                                              NpgsqlConnection connection,
+                                                              NpgsqlTransaction trans)
     {
       RawQuery rq = builder.GetRawQuery(Schema);
 
@@ -162,8 +162,8 @@ $$ LANGUAGE plpgsql IMMUTABLE;
     }
 
     internal async Task<UpdateQueryResult> QueryAsyncInternal(IUpdateQuery builder,
-                                                                    NpgsqlConnection connection,
-                                                                    NpgsqlTransaction trans)
+                                                              NpgsqlConnection connection,
+                                                              NpgsqlTransaction trans)
     {
       RawQuery rq = builder.GetRawQuery(Schema);
 
@@ -229,5 +229,19 @@ $$ LANGUAGE plpgsql IMMUTABLE;
     public InsertQueryFluentBuilder1<TModel> Insert<TModel>() => new InsertQueryFluentBuilder1<TModel>(this);
     public UpdateQueryFluentBuilder1<TModel> Update<TModel>() => new UpdateQueryFluentBuilder1<TModel>(this);
     public DeleteQueryFluentBuilder1<TModel> Delete<TModel>() => new DeleteQueryFluentBuilder1<TModel>(this);
+
+    public InsertQueryFluentBuilder1<T> Insert<T>(T obj)
+    {
+      var builder = new InsertQueryFluentBuilder1<T>(this);
+      builder.AddObject(obj);
+      return builder;
+    }
+
+    public InsertQueryFluentBuilder1<T> Insert<T>(IEnumerable<T> objects)
+    {
+      var builder = new InsertQueryFluentBuilder1<T>(this);
+      builder.AddMany(objects);
+      return builder;
+    }
   }
 }
