@@ -135,6 +135,11 @@ namespace KDPgDriver.Utils
               var arg1 = GetConstant(call.Arguments[1]);
               return ExpressionBuilders.In(extensionObject, (IEnumerable) arg1);
             }
+            else if (call.Method.Name == "PgNotIn") {
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              var arg1 = GetConstant(call.Arguments[1]);
+              return ExpressionBuilders.NotIn(extensionObject, (IEnumerable) arg1);
+            }
             else if (call.Method.Name == "PgLike") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
               TypedExpression arg1 = VisitInternal(call.Arguments[1]);

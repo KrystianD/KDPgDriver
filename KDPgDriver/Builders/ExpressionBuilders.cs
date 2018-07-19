@@ -65,6 +65,19 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
     }
 
+    public static TypedExpression NotIn(TypedExpression left, IEnumerable array)
+    {
+      RawQuery rq = new RawQuery();
+
+      rq.Append("NOT (")
+        .AppendSurround(left.RawQuery)
+        .Append(" = ANY(")
+        .Append(Helper.ConvertObjectToPgValue(array))
+        .Append("))");
+
+      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+    }
+
     public static TypedExpression And(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("AND", expressions);
     public static TypedExpression Or(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("OR", expressions);
 

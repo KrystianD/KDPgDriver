@@ -218,6 +218,15 @@ namespace KDPgDriver.Tests.UnitTests
                              new Param(new[] { 2, 2, 2 }, NpgsqlDbType.Array | NpgsqlDbType.Integer));
     }
 
+    [Fact]
+    public void ExpressionNotInDirect()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgNotIn("A", "B"));
+
+      Utils.AssertExpression(exp, @"NOT ((name) = ANY(@1::text[]))",
+                             new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+    }
+
     #endregion
 
     [Fact]
