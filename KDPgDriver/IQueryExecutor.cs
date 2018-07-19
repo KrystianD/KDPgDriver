@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using KDPgDriver.Fluent;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
@@ -16,5 +17,8 @@ namespace KDPgDriver
     InsertQueryFluentBuilder1<TModel> Insert<TModel>();
     UpdateQueryFluentBuilder1<TModel> Update<TModel>();
     DeleteQueryFluentBuilder1<TModel> Delete<TModel>();
+
+    InsertQueryFluentBuilder1<T> Insert<T>(T obj);
+    InsertQueryFluentBuilder1<T> Insert<T>(IEnumerable<T> objects);
   }
 }

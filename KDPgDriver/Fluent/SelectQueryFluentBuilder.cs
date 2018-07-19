@@ -134,6 +134,11 @@ namespace KDPgDriver.Fluent
       return (await ToListAsync()).GroupByToDictionary(keySelector);
     }
 
+    public async Task<Dictionary<T, List<V>>> ToDictionaryGroupAsync<T, V>(Func<TNewModel, T> keySelector, Func<TNewModel, V> elementSelector)
+    {
+      return (await ToListAsync()).GroupByToDictionary(keySelector, elementSelector);
+    }
+
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
       return GetSelectQuery().GetRawQuery(defaultSchema);
