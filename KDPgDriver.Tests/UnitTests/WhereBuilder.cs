@@ -11,6 +11,19 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void WhereNot()
+    {
+      var q = Builders<MyModel>.Select(x => new { x.Id })
+                               .Where(x => !(x.Id == 1 && x.Name == "test"));
+
+      var b = WhereBuilder<MyModel>.Not(WhereBuilder<MyModel>.And(
+                                            WhereBuilder<MyModel>.FromExpression(x => x.Id == 1),
+                                            WhereBuilder<MyModel>.Eq(x => x.Name, "test")));
+
+      Utils.AssertRawQuery(q, b, @"SELECT id FROM public.model WHERE NOT(((id) = (1)) AND ((name) = ('test')))");
+    }
+
+    [Fact]
     public void WhereAnd()
     {
       var q = Builders<MyModel>.Select(x => new { x.Id })

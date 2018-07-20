@@ -86,5 +86,10 @@ namespace KDPgDriver.Builders
     {
       return new WhereBuilder<TModel>(ExpressionBuilders.And(statements.Select(x => x._typedExpression)));
     }
+
+    public static WhereBuilder<TModel> Not(WhereBuilder<TModel> statement)
+    {
+      return new WhereBuilder<TModel>(ExpressionBuilders.Not(statement._typedExpression));
+    }
   }
 }

@@ -69,13 +69,11 @@ namespace KDPgDriver.Utils
           }
 
           case UnaryExpression un:
+            TypedExpression val = VisitInternal(un.Operand);
+
             switch (un.NodeType) {
-              case ExpressionType.Convert:
-                // if (un.Type.IsNullable())
-                return VisitInternal(un.Operand);
-
-              // throw new Exception($"unknown type: {un.Type}");
-
+              case ExpressionType.Convert: return val;
+              case ExpressionType.Not: return ExpressionBuilders.Not(val);
               default:
                 throw new Exception($"unknown operator: {un.NodeType}");
             }
