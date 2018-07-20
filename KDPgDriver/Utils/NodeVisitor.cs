@@ -113,6 +113,11 @@ namespace KDPgDriver.Utils
               TypedExpression arg1 = VisitInternal(call.Arguments[0]);
               return ExpressionBuilders.StartsWith(callObject, arg1);
             }
+            else if (call.Method.Name == "EndsWith") {
+              TypedExpression callObject = VisitInternal(call.Object);
+              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
+              return ExpressionBuilders.EndsWith(callObject, arg1);
+            }
             else if (call.Method.Name == "Contains") {
               TypedExpression callObject = VisitInternal(call.Object);
               TypedExpression arg1 = VisitInternal(call.Arguments[0]);
@@ -150,6 +155,16 @@ namespace KDPgDriver.Utils
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
               TypedExpression arg1 = VisitInternal(call.Arguments[1]);
               return ExpressionBuilders.ILike(extensionObject, arg1);
+            }
+            else if (call.Method.Name == "PgRawLike") {
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.RawLike(extensionObject, arg1);
+            }
+            else if (call.Method.Name == "PgRawILike") {
+              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
+              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
+              return ExpressionBuilders.RawILike(extensionObject, arg1);
             }
             else if (call.Method.Name == "PgContainsAny") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);

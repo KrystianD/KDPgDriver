@@ -77,6 +77,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression And(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("AND", expressions);
     public static TypedExpression Or(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("OR", expressions);
+
     public static TypedExpression Not(TypedExpression exp)
     {
       RawQuery rq = new RawQuery();
@@ -135,54 +136,60 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression StartsWith(TypedExpression value, TypedExpression value2)
     {
-      RawQuery rq = new RawQuery();
+      return LikeBuilder(value, value2, true, false, true, false);
+    }
 
-      if (!(value.Type is KDPgValueTypeString))
-        throw new Exception("value must be string");
-
-      if (!(value2.Type is KDPgValueTypeString))
-        throw new Exception("value2 must be string");
-
-      rq.AppendSurround(value.RawQuery);
-      rq.Append(" LIKE (kdpg_escape_like(");
-      rq.Append(value2.RawQuery);
-      rq.Append(") || '%')");
-
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+    public static TypedExpression EndsWith(TypedExpression value, TypedExpression value2)
+    {
+      return LikeBuilder(value, value2, true, true, false, false);
     }
 
     public static TypedExpression Like(TypedExpression value, TypedExpression value2)
     {
-      RawQuery rq = new RawQuery();
-
-      if (!(value.Type is KDPgValueTypeString))
-        throw new Exception("value must be string");
-
-      if (!(value2.Type is KDPgValueTypeString))
-        throw new Exception("value2 must be string");
-
-      rq.AppendSurround(value.RawQuery);
-      rq.Append(" LIKE ('%' || kdpg_escape_like(");
-      rq.Append(value2.RawQuery);
-      rq.Append(") || '%')");
-
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return LikeBuilder(value, value2, true, true, true, false);
     }
 
     public static TypedExpression ILike(TypedExpression value, TypedExpression value2)
+    {
+      return LikeBuilder(value, value2, true, true, true, true);
+    }
+
+    public static TypedExpression RawLike(TypedExpression value, TypedExpression value2)
+    {
+      return LikeBuilder(value, value2, false, false, false, false);
+    }
+
+    public static TypedExpression RawILike(TypedExpression value, TypedExpression value2)
+    {
+      return LikeBuilder(value, value2, false, false, false, true);
+    }
+
+    private static TypedExpression LikeBuilder(TypedExpression value, TypedExpression text, bool escape, bool anyStart, bool anyEnd, bool caseInsensitive)
     {
       RawQuery rq = new RawQuery();
 
       if (!(value.Type is KDPgValueTypeString))
         throw new Exception("value must be string");
 
-      if (!(value2.Type is KDPgValueTypeString))
+      if (!(text.Type is KDPgValueTypeString))
         throw new Exception("value2 must be string");
 
       rq.AppendSurround(value.RawQuery);
-      rq.Append(" ILIKE ('%' || kdpg_escape_like(");
-      rq.Append(value2.RawQuery);
-      rq.Append(") || '%')");
+      rq.Append(caseInsensitive ? " ILIKE (" : " LIKE (");
+      
+      if (anyStart)
+        rq.Append("'%' || ");
+      
+      if (escape)
+        rq.Append("kdpg_escape_like(");
+      rq.Append(text.RawQuery);
+      if (escape)
+        rq.Append(")");
+      
+      if (anyEnd)
+        rq.Append(" || '%'");
+      
+      rq.Append(")");
 
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
     }

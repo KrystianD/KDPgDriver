@@ -287,11 +287,35 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void ExpressionStringRawLike()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgRawLike("A"));
+
+      Utils.AssertExpression(exp, @"(name) LIKE ('A')");
+    }
+
+    [Fact]
+    public void ExpressionStringRawILike()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgRawILike("A"));
+
+      Utils.AssertExpression(exp, @"(name) ILIKE ('A')");
+    }
+
+    [Fact]
     public void ExpressionStartsWith()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.StartsWith("A"));
 
       Utils.AssertExpression(exp, @"(name) LIKE (kdpg_escape_like('A') || '%')");
+    }
+
+    [Fact]
+    public void ExpressionEndsWith()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.EndsWith("A"));
+
+      Utils.AssertExpression(exp, @"(name) LIKE ('%' || kdpg_escape_like('A'))");
     }
 
     // Data types
