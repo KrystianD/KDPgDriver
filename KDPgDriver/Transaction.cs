@@ -58,7 +58,7 @@ namespace KDPgDriver
       return builder;
     }
 
-    public InsertQueryFluentBuilder1<T> Insert<T>(IEnumerable<T> objects)
+    public InsertQueryFluentBuilder1<T> InsertMany<T>(IEnumerable<T> objects)
     {
       var builder = new InsertQueryFluentBuilder1<T>(this);
       builder.AddMany(objects);

@@ -87,6 +87,8 @@ namespace KDPgDriver.Utils
         return KDPgValueTypeString.Instance;
       if (type == typeof(int))
         return KDPgValueTypeInteger.Instance;
+      if (type == typeof(long))
+        return KDPgValueTypeInteger.Instance;
       if (type == typeof(bool))
         return KDPgValueTypeBoolean.Instance;
       if (type == typeof(DateTime))

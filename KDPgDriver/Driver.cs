@@ -25,7 +25,7 @@ namespace KDPgDriver
       // Dsn = dsn;
       Schema = schema;
 
-      UrlUtils.ParserURI(dsn, out var scheme, out var user, out var pass, out var host, out int port, out string path);
+      UrlUtils.ParseUri(dsn, out var scheme, out var user, out var pass, out var host, out int port, out string path);
       path = path.TrimStart('/');
 
       _connString = new NpgsqlConnectionStringBuilder {
@@ -237,7 +237,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return builder;
     }
 
-    public InsertQueryFluentBuilder1<T> Insert<T>(IEnumerable<T> objects)
+    public InsertQueryFluentBuilder1<T> InsertMany<T>(IEnumerable<T> objects)
     {
       var builder = new InsertQueryFluentBuilder1<T>(this);
       builder.AddMany(objects);

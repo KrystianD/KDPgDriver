@@ -19,6 +19,6 @@ namespace KDPgDriver
     DeleteQueryFluentBuilder1<TModel> Delete<TModel>();
 
     InsertQueryFluentBuilder1<T> Insert<T>(T obj);
-    InsertQueryFluentBuilder1<T> Insert<T>(IEnumerable<T> objects);
+    InsertQueryFluentBuilder1<T> InsertMany<T>(IEnumerable<T> objects);
   }
 }
