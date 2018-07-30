@@ -113,5 +113,18 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"INSERT INTO public.model(id) VALUES (4) ON CONFLICT DO NOTHING RETURNING id");
     }
+
+    [Fact]
+    public void InsertEasy()
+    {
+      var obj = new MyModel {
+          Name = "A"
+      };
+
+      var q = Builders<MyModel>.Insert(obj)
+                               .UseField(x => x.Name);
+
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(name) VALUES ('A') RETURNING id");
+    }
   }
 }

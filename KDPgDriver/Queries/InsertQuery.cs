@@ -19,6 +19,9 @@ namespace KDPgDriver.Queries
     private readonly string TableName = Helper.GetTableName(typeof(TModel));
     private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
 
+    private static readonly List<KdPgColumnDescriptor> AllColumnsWithoutAutoIncrement =
+        Helper.GetTable(typeof(TModel)).Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
+
     private static readonly KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
 
     private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
@@ -26,7 +29,6 @@ namespace KDPgDriver.Queries
 
     private readonly List<TModel> _objects = new List<TModel>();
 
-    private readonly RawQuery _insertPartQuery = new RawQuery();
 
     public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
@@ -36,37 +38,13 @@ namespace KDPgDriver.Queries
 
     public InsertQuery<TModel> AddObject(TModel obj)
     {
-      if (_columns.Count == 0) {
-        _columns.AddRange(Helper.GetTable(typeof(TModel)).Columns
-                                .Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0));
-      }
-
       _objects.Add(obj);
-
-      if (!_insertPartQuery.IsEmpty)
-        _insertPartQuery.Append(",");
-      _insertPartQuery.Append("(");
-
-      for (int i = 0; i < _columns.Count; i++) {
-        var column = _columns[i];
-        object val = Helper.GetModelValueByColumn(obj, column);
-        var npgValue = Helper.ConvertToNpgsql(column.Type, val);
-
-        if (i > 0)
-          _insertPartQuery.Append(",");
-
-        _insertPartQuery.Append(npgValue);
-      }
-
-      _insertPartQuery.Append(")");
-
       return this;
     }
 
     public InsertQuery<TModel> AddMany(IEnumerable<TModel> objs)
     {
-      foreach (var obj in objs)
-        AddObject(obj);
+      _objects.AddRange(objs);
       return this;
     }
 
@@ -80,14 +58,36 @@ namespace KDPgDriver.Queries
     {
       RawQuery q = new RawQuery();
 
+      var columns = _columns.Count == 0 ? AllColumnsWithoutAutoIncrement : _columns;
+
       q.Append("INSERT INTO ");
 
       q.AppendTableName(TableName, SchemaName ?? defaultSchema);
 
-      q.Append("(").AppendColumnNames(_columns.Select(x => x.Name)).Append(")");
+      q.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
 
       q.Append(" VALUES ");
-      q.Append(_insertPartQuery);
+
+      bool first = true;
+      foreach (var obj in _objects) {
+        if (!first)
+          q.Append(",");
+        q.Append("(");
+
+        for (int i = 0; i < columns.Count; i++) {
+          var column = columns[i];
+          object val = Helper.GetModelValueByColumn(obj, column);
+          var npgValue = Helper.ConvertToNpgsql(column.Type, val);
+
+          if (i > 0)
+            q.Append(",");
+
+          q.Append(npgValue);
+        }
+
+        q.Append(")");
+        first = false;
+      }
 
       if (_onInsertConflict == OnInsertConflict.DoNothing) {
         q.Append(" ON CONFLICT DO NOTHING ");

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection.Metadata.Ecma335;
 using KDPgDriver.Builders;
@@ -37,5 +38,19 @@ namespace KDPgDriver
     public static InsertQueryFluentBuilder1<TModel> Insert() => new InsertQueryFluentBuilder1<TModel>(null);
     public static UpdateQueryFluentBuilder1<TModel> Update() => new UpdateQueryFluentBuilder1<TModel>(null);
     public static DeleteQueryFluentBuilder1<TModel> Delete() => new DeleteQueryFluentBuilder1<TModel>(null);
+
+    public static InsertQueryFluentBuilder1<T> Insert<T>(T obj)
+    {
+      var b = new InsertQueryFluentBuilder1<T>(null);
+      b.AddObject(obj);
+      return b;
+    }
+
+    public static InsertQueryFluentBuilder1<T> InsertMany<T>(IEnumerable<T> objects)
+    {
+      var b = new InsertQueryFluentBuilder1<T>(null);
+      b.AddMany(objects);
+      return b;
+    }
   }
 }
