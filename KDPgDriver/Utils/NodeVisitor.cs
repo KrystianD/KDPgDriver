@@ -121,6 +121,14 @@ namespace KDPgDriver.Utils
               TypedExpression arg1 = VisitInternal(call.Arguments[0]);
               return ExpressionBuilders.Contains(callObject, arg1);
             }
+            else if (call.Method.Name == "ToLower") {
+              TypedExpression callObject = VisitInternal(call.Object);
+              return ExpressionBuilders.ToLower(callObject);
+            }
+            else if (call.Method.Name == "ToUpper") {
+              TypedExpression callObject = VisitInternal(call.Object);
+              return ExpressionBuilders.ToUpper(callObject);
+            }
             // Native accessors
             else if (call.Method.Name == "get_Item") {
               TypedExpression callObject = VisitInternal(call.Object);

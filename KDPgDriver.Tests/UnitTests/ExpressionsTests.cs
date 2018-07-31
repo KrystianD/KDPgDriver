@@ -318,6 +318,22 @@ namespace KDPgDriver.Tests.UnitTests
       Utils.AssertExpression(exp, @"(name) LIKE ('%' || kdpg_escape_like('A'))");
     }
 
+    [Fact]
+    public void ExpressionToLower()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.ToLower());
+
+      Utils.AssertExpression(exp, @"lower(name)");
+    }
+
+    [Fact]
+    public void ExpressionToUpper()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.ToUpper());
+
+      Utils.AssertExpression(exp, @"upper(name)");
+    }
+
     // Data types
     [Fact]
     public void ExpressionDateTime()

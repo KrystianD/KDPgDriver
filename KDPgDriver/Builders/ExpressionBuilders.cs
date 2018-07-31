@@ -211,6 +211,24 @@ namespace KDPgDriver.Builders
         throw new Exception($"Contains cannot be used on non-list");
       }
     }
+    
+    public static TypedExpression ToLower(TypedExpression value)
+    {
+      RawQuery rq = new RawQuery();
+      rq.Append("lower(");
+      rq.Append(value.RawQuery);
+      rq.Append(")");
+      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+    }
+    
+    public static TypedExpression ToUpper(TypedExpression value)
+    {
+      RawQuery rq = new RawQuery();
+      rq.Append("upper(");
+      rq.Append(value.RawQuery);
+      rq.Append(")");
+      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+    }
 
     public static TypedExpression ArrayAddItem<T>(TypedExpression array, T item)
     {
