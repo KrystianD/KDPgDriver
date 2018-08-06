@@ -109,6 +109,21 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
     }
 
     [Fact]
+    public async Task SelectOnly()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .SelectOnly(x => x.Name)
+                        .ToListAsync();
+
+      Assert.Collection(res,
+                        item => Assert.Equal("test1", item.Name),
+                        item => Assert.Equal("test2", item.Name),
+                        item => Assert.Equal("test3", item.Name));
+    }
+
+    [Fact]
     public async Task WhereEnumFetch()
     {
       var dr = await CreateDriver();

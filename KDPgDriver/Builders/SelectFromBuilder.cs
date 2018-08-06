@@ -76,19 +76,31 @@ namespace KDPgDriver.Builders
   {
     private static readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
 
-    public int FieldsCount => Table.Columns.Count;
+    private bool _useAllColumns = true;
+    private List<KdPgColumnDescriptor> _columns = Table.Columns;
+    public int FieldsCount => _columns.Count;
 
     public object ParseResult(object[] values)
     {
       var obj = Activator.CreateInstance(Table.ModelType);
 
-      for (var i = 0; i < Table.Columns.Count; i++) {
-        var col = Table.Columns[i];
+      for (var i = 0; i < _columns.Count; i++) {
+        var col = _columns[i];
         var val = Helper.ConvertFromNpgsql(col.Type, values[i]);
         col.PropertyInfo.SetValue(obj, val);
       }
 
       return obj;
+    }
+
+    public void UseColumn(KdPgColumnDescriptor column)
+    {
+      if (_useAllColumns) {
+        _columns = new List<KdPgColumnDescriptor>();
+        _useAllColumns = false;
+      }
+
+      _columns.Add(column);
     }
   }
 
@@ -279,12 +291,15 @@ namespace KDPgDriver.Builders
       var b = new SelectFromBuilder();
       b.AddTable(Helper.GetTable<TModel>());
 
+      var resultProcessor = new ModelResultProcessor<TModel>();
+
       foreach (var fieldExpression in builder.Fields) {
         var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
         b.AddSelectPart(RawQuery.CreateColumn(column), column.PropertyInfo, column.Type);
+        resultProcessor.UseColumn(column);
       }
 
-      b.ResultProcessor = new ModelResultProcessor<TModel>();
+      b.ResultProcessor = resultProcessor;
 
       return b;
     }
