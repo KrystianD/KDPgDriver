@@ -13,8 +13,8 @@ namespace KDPgDriver.Queries
 
   public class SelectQuery<TModel, TOut> : ISelectQuery
   {
-    private readonly string TableName = Helper.GetTableName(typeof(TModel));
-    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
+    // private readonly string TableName = Helper.GetTableName(typeof(TModel));
+    // private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
 
     private readonly IWhereBuilder _whereBuilder;
 
@@ -39,13 +39,8 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = SchemaName ?? defaultSchema;
-
       RawQuery rq = new RawQuery();
-      rq.Append("SELECT ")
-        .Append(_fromBuilder.GetRawQuery())
-        .Append(" FROM ")
-        .AppendTableName(TableName, schema);
+      rq.Append(_fromBuilder.GetRawQuery(defaultSchema));
 
       var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {

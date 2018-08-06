@@ -31,7 +31,7 @@ namespace KDPgDriver
     public virtual Type PgNativeType => CSharpType;
     public abstract NpgsqlDbType NpgsqlType { get; }
     public abstract string PostgresType { get; }
-    public virtual string PostgresFetchType => PostgresType;
+    public virtual string PostgresFetchType => PostgresType; // enums are fetched as text
 
     public KDPgValueType(KDPgValueTypeKind baseType)
     {

@@ -12,8 +12,10 @@ namespace KDPgDriver.Results
 {
   public class ResultColumnDef
   {
+    // public string SchemaName, TableName;
     public PropertyInfo EndModelProperty;
     public KDPgValueType Type;
+    public RawQuery RawQuery;
   }
 
   public class SelectQueryResult<T>

@@ -13,7 +13,7 @@ namespace KDPgDriver
     Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery);
     Task<DeleteQueryResult> QueryAsync(IDeleteQuery updateQuery);
 
-    SelectQueryFluentBuilder1<TModel> From<TModel>();
+    SelectQueryFluentBuilder1Prep<TModel> From<TModel>();
     InsertQueryFluentBuilder1<TModel> Insert<TModel>();
     UpdateQueryFluentBuilder1<TModel> Update<TModel>();
     DeleteQueryFluentBuilder1<TModel> Delete<TModel>();

@@ -13,7 +13,7 @@ namespace KDPgDriver.Builders
   {
     bool IsSingleValue { get; }
     List<ResultColumnDef> GetColumns();
-    RawQuery GetRawQuery();
+    RawQuery GetRawQuery(string defaultSchema = null);
   }
 
   public class SelectFromBuilder : ISelectFromBuilder
@@ -21,13 +21,15 @@ namespace KDPgDriver.Builders
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
     private readonly RawQuery _selectPart = new RawQuery();
 
+    private List<KdPgTableDescriptor> _tables = new List<KdPgTableDescriptor>();
+
     public bool IsSingleValue { get; private set; }
     public List<ResultColumnDef> GetColumns() => _columns;
-    public RawQuery GetRawQuery() => _selectPart;
 
     public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)
     {
       var b = new SelectFromBuilder();
+      b.AddTable(Helper.GetTable<TModel>());
       TypedExpression exp;
 
       switch (prBody.Body) {
@@ -58,6 +60,8 @@ namespace KDPgDriver.Builders
     public static SelectFromBuilder FromFieldListBuilder<TModel>(FieldListBuilder<TModel> builder)
     {
       var b = new SelectFromBuilder();
+      b.AddTable(Helper.GetTable<TModel>());
+
       foreach (var fieldExpression in builder.Fields) {
         var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
         b.AddSelectPart(RawQuery.CreateColumnName(column.Name), column.PropertyInfo, column.Type);
@@ -69,19 +73,54 @@ namespace KDPgDriver.Builders
     public static SelectFromBuilder AllColumns<TModel>()
     {
       var b = new SelectFromBuilder();
+      b.AddTable(Helper.GetTable<TModel>());
+
       foreach (var column in Helper.GetTable(typeof(TModel)).Columns)
         b.AddSelectPart(RawQuery.CreateColumnName(column.Name), column.PropertyInfo, column.Type);
       return b;
     }
 
+    public RawQuery GetRawQuery(string defaultSchema)
+    {
+      RawQuery rq = new RawQuery();
+      rq.Append("SELECT ");
+
+      bool firstColumn = true;
+      foreach (var col in _columns) {
+        var exp = col.RawQuery;
+        var type = col.Type;
+
+        if (!firstColumn)
+          rq.Append(",");
+        rq.AppendWithCast(exp.RenderSimple(), type.PostgresFetchType == type.PostgresType ? null : type.PostgresFetchType);
+        firstColumn = false;
+      }
+
+      rq.Append(" FROM ");
+
+      bool firstTable = true;
+      foreach (var table in _tables) {
+        if (!firstTable)
+          rq.Append(",");
+        rq.AppendTableName(table.Name, table.Schema ?? defaultSchema);
+        firstTable = false;
+      }
+
+      return rq;
+    }
+
     // helpers
+    private void AddTable(KdPgTableDescriptor table)
+    {
+      _tables.Add(table);
+    }
+
     private void AddSelectPart(RawQuery exp, PropertyInfo member, KDPgValueType type)
     {
-      if (!_selectPart.IsEmpty)
-        _selectPart.Append(",");
-      _selectPart.AppendWithCast(exp.RenderSimple(), type.PostgresFetchType == type.PostgresType ? null : type.PostgresFetchType);
-
       _columns.Add(new ResultColumnDef() {
+          RawQuery = exp,
+          // SchemaName = schema,
+          // TableName = tableName,
           EndModelProperty = member,
           Type = type,
       });

@@ -11,6 +11,8 @@ namespace KDPgDriver.Utils
       public StringBuilder Text;
       public int ParamIdx = -1;
       public RawQuery RawQuery;
+      
+      
     }
 
     private List<QueryPart> parts = new List<QueryPart>();

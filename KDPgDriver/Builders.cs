@@ -15,24 +15,24 @@ namespace KDPgDriver
     public static UpdateStatementsBuilder<TModel> UpdateOp => new UpdateStatementsBuilder<TModel>();
 
     // Select
-    public static SelectQueryFluentBuilder2<TModel, TModel> Select()
+    public static SelectQueryFluentBuilder1<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder1<TModel>().Select();
+      return new SelectQueryFluentBuilder1Prep<TModel>().Select();
     }
 
-    public static SelectQueryFluentBuilder2<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
+    public static SelectQueryFluentBuilder1<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder1<TModel>().Select(pr);
+      return new SelectQueryFluentBuilder1Prep<TModel>().Select(pr);
     }
 
-    public static SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
+    public static SelectQueryFluentBuilder1<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      return new SelectQueryFluentBuilder1<TModel>().SelectOnly(builder);
+      return new SelectQueryFluentBuilder1Prep<TModel>().SelectOnly(builder);
     }
 
-    public static SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
+    public static SelectQueryFluentBuilder1<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
     {
-      return new SelectQueryFluentBuilder1<TModel>().SelectOnly(fieldsList);
+      return new SelectQueryFluentBuilder1Prep<TModel>().SelectOnly(fieldsList);
     }
 
     public static InsertQueryFluentBuilder1<TModel> Insert() => new InsertQueryFluentBuilder1<TModel>(null);

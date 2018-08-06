@@ -20,22 +20,29 @@ namespace KDPgDriver.Utils
   public class KdPgTableDescriptor
   {
     public string Name { get; }
+    public string Schema { get; }
     public List<KdPgColumnDescriptor> Columns { get; }
 
     public KdPgColumnDescriptor PrimaryKey { get; }
 
-    public KdPgTableDescriptor(string name, List<KdPgColumnDescriptor> columns)
+    public KdPgTableDescriptor(string name, string schema, List<KdPgColumnDescriptor> columns)
     {
       Name = name;
+      Schema = schema;
       Columns = columns;
 
       PrimaryKey = columns.Find(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) > 0);
+
+      foreach (var column in columns) {
+        column.Table = this;
+      }
     }
   }
 
   public class KdPgColumnDescriptor
   {
     public string Name { get; }
+    public KdPgTableDescriptor Table { get; internal set; }
     public KDPgColumnFlagsEnum Flags { get; }
     public KDPgValueType Type { get; }
     public PropertyInfo PropertyInfo { get; }
@@ -49,7 +56,7 @@ namespace KDPgDriver.Utils
       Type = type;
       PropertyInfo = propertyInfo;
 
-      TypedExpression = new TypedExpression(Helper.QuoteObjectName(name), type);
+      TypedExpression = new TypedExpression(RawQuery.CreateColumnName(name), type);
     }
   }
 
@@ -79,7 +86,7 @@ namespace KDPgDriver.Utils
     public static KDPgValueType GetNpgsqlTypeFromType(Type type)
     {
       Type itemType;
-      
+
       if (type.IsNullable())
         type = type.GetNullableInnerType();
 
@@ -154,6 +161,7 @@ namespace KDPgDriver.Utils
       return ((JsonPropertyAttribute) q[0]).PropertyName;
     }
 
+
     public static KDPgValueType GetJsonPropertyType(PropertyInfo memberInfo)
     {
       var q = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), false);
@@ -192,6 +200,13 @@ namespace KDPgDriver.Utils
       return PropertyInfoToColumnDesc[memberType];
     }
 
+    public static KdPgTableDescriptor GetTable<TModel>()
+    {
+      var tableType = typeof(TModel);
+      InitializeTable(tableType);
+      return TypeToTableDesc[tableType];
+    }
+
     public static KdPgTableDescriptor GetTable(Type tableType)
     {
       InitializeTable(tableType);
@@ -208,11 +223,11 @@ namespace KDPgDriver.Utils
       return column.GetValue(model);
     }
 
-    public static KdPgColumnDescriptor GetColumnDataType(PropertyInfo memberInfo)
-    {
-      InitializeTable(memberInfo.DeclaringType);
-      return PropertyInfoToColumnDesc[memberInfo];
-    }
+    // public static KdPgColumnDescriptor GetColumnDataType(PropertyInfo memberInfo)
+    // {
+    //   InitializeTable(memberInfo.DeclaringType);
+    //   return PropertyInfoToColumnDesc[memberInfo];
+    // }
 
     public static object ConvertFromNpgsql(KDPgValueType type, object rawValue)
     {
@@ -332,6 +347,7 @@ namespace KDPgDriver.Utils
 
         var table = new KdPgTableDescriptor(
             name: tableAttribute.Name,
+            schema: tableAttribute.Schema,
             columns: tableType.GetProperties()
                               .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
                               .Select(CreateColumnDescriptor).ToList()

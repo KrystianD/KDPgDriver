@@ -227,9 +227,8 @@ namespace KDPgDriver.Utils
 
       if (isColumn) {
         var column = Helper.GetColumn(propertyInfo);
-        var quotedName = Helper.QuoteObjectName(column.Name);
         jsonPath.Column = column;
-        return new TypedExpression(quotedName, column.Type);
+        return column.TypedExpression;
       }
       else {
         string fieldName = Helper.GetJsonPropertyName(propertyInfo);

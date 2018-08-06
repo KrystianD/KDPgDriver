@@ -11,33 +11,33 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent
 {
-  public class SelectQueryFluentBuilder1<TModel>
+  public class SelectQueryFluentBuilder1Prep<TModel>
   {
     private readonly IQueryExecutor _executor;
 
-    public SelectQueryFluentBuilder1() { }
+    public SelectQueryFluentBuilder1Prep() { }
 
-    public SelectQueryFluentBuilder1(IQueryExecutor executor)
+    public SelectQueryFluentBuilder1Prep(IQueryExecutor executor)
     {
       _executor = executor;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TModel> Select()
+    public SelectQueryFluentBuilder1<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder2<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), _executor);
+      return new SelectQueryFluentBuilder1<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), _executor);
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder2<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), _executor);
+      return new SelectQueryFluentBuilder1<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), _executor);
     }
 
-    public SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
+    public SelectQueryFluentBuilder1<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      return new SelectQueryFluentBuilder2<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), _executor);
+      return new SelectQueryFluentBuilder1<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), _executor);
     }
 
-    public SelectQueryFluentBuilder2<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
+    public SelectQueryFluentBuilder1<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
     {
       var builder = new FieldListBuilder<TModel>();
       foreach (var expression in fieldsList)
@@ -46,7 +46,7 @@ namespace KDPgDriver.Fluent
     }
   }
 
-  public class SelectQueryFluentBuilder2<TModel, TNewModel> : IQuery
+  public class SelectQueryFluentBuilder1<TModel, TNewModel> : IQuery
   {
     private readonly IQueryExecutor _executor;
     private readonly SelectFromBuilder _selectFromBuilder;
@@ -54,43 +54,43 @@ namespace KDPgDriver.Fluent
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
 
-    public SelectQueryFluentBuilder2(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
+    public SelectQueryFluentBuilder1(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
     {
       _executor = executor;
       _selectFromBuilder = selectFromBuilder;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> Where(Expression<Func<TModel, bool>> exp)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> Where(Expression<Func<TModel, bool>> exp)
     {
       _whereBuilder.AndWith(WhereBuilder<TModel>.FromExpression(exp));
       return this;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> Where(WhereBuilder<TModel> builder)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> Where(WhereBuilder<TModel> builder)
     {
       _whereBuilder.AndWith(builder);
       return this;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> OrderBy(Expression<Func<TModel, object>> exp)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> OrderBy(Expression<Func<TModel, object>> exp)
     {
       _orderBuilder.OrderBy(exp);
       return this;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> OrderByDescending(Expression<Func<TModel, object>> exp)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> OrderByDescending(Expression<Func<TModel, object>> exp)
     {
       _orderBuilder.OrderByDescending(exp);
       return this;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> Limit(int limit)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> Limit(int limit)
     {
       _limitBuilder.Limit(limit);
       return this;
     }
 
-    public SelectQueryFluentBuilder2<TModel, TNewModel> Offset(int offset)
+    public SelectQueryFluentBuilder1<TModel, TNewModel> Offset(int offset)
     {
       _limitBuilder.Offset(offset);
       return this;
