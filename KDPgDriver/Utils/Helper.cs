@@ -58,7 +58,7 @@ namespace KDPgDriver.Utils
       Type = type;
       PropertyInfo = propertyInfo;
 
-      TypedExpression = new TypedExpression(RawQuery.CreateColumnName(name), type);
+      TypedExpression = new TypedExpression(RawQuery.CreateColumn(this), type);
     }
   }
 

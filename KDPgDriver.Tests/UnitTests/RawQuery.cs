@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 using NpgsqlTypes;
@@ -71,6 +72,22 @@ namespace KDPgDriver.Tests.UnitTests
       Utils.AssertRawQuery(rq2, "id = 34");
 
       Utils.AssertRawQuery(rq3, "(id = 12) OR (id = 34)");
+    }
+
+    [Fact]
+    public void WithColumn()
+    {
+      var rq = new RawQuery();
+      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name));
+      rq.Append(" = 123, ");
+
+      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name));
+      rq.Append(" = 456");
+
+      rq.ApplyAlias(Helper.GetTable<MyModel>(), "t1");
+      rq.ApplyAlias(Helper.GetTable<MyModel2>(), "t2");
+
+      Utils.AssertRawQuery(rq, "t1.name = 123, t2.name = 456");
     }
   }
 }

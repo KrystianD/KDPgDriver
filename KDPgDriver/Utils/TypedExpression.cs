@@ -1,7 +1,8 @@
 ﻿using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver {
+namespace KDPgDriver
+{
   public class TypedExpression
   {
     public RawQuery RawQuery { get; }
@@ -10,7 +11,7 @@ namespace KDPgDriver {
     public static TypedExpression Empty => new TypedExpression(RawQuery.Empty, null);
 
     public bool IsEmpty => RawQuery.IsEmpty;
-    
+
     public TypedExpression(RawQuery rawQuery, KDPgValueType type)
     {
       RawQuery = rawQuery;
@@ -29,7 +30,7 @@ namespace KDPgDriver {
 
     public static TypedExpression FromColumn(KdPgColumnDescriptor column)
     {
-      return new TypedExpression(RawQuery.CreateColumnName(column.Name), column.Type);
+      return new TypedExpression(RawQuery.CreateColumn(column), column.Type);
     }
   }
 }

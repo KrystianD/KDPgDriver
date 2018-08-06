@@ -20,6 +20,7 @@ namespace KDPgDriver.Tests.FunctionalTests
 CREATE SCHEMA IF NOT EXISTS ""Schema1"";
 
 DROP TABLE IF EXISTS model;
+DROP TABLE IF EXISTS model2;
 DROP TYPE IF EXISTS enum;
 DROP TYPE IF EXISTS ""Schema1"".enum2;
 
@@ -40,9 +41,19 @@ CREATE TABLE model (
   json_array1 jsonb
 );
 
+CREATE TABLE model2 (
+  id SERIAL PRIMARY KEY,
+  name text,
+  model_id int
+);
+
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(2, 'test2', '{a,b}', 'B', '{B}');
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a}', 'C', '{B,C}');
+
+INSERT INTO model2(id, name, model_id) VALUES(1, 'subtest1', 1);
+INSERT INTO model2(id, name, model_id) VALUES(2, 'subtest2', 1);
+INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
 
 ");
 
@@ -298,6 +309,38 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
 
       var rows = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 101).ToListAsync();
       Assert.Equal(1, rows.Count);
+    }
+
+    [Fact]
+    public async Task TestJoin()
+    {
+      var dr = await CreateDriver();
+
+      var rows = await dr.FromMany<MyModel, MyModel2>()
+                         .Map((a, b) => new {
+                             M1 = a,
+                             M2 = b,
+                         })
+                         .Select()
+                         .Where(x => x.M2.ModelId == x.M1.Id)
+                         .ToListAsync();
+
+      Assert.Collection(rows,
+                        item =>
+                        {
+                          Assert.Equal(1, item.M1.Id);
+                          Assert.Equal(1, item.M2.Id);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(1, item.M1.Id);
+                          Assert.Equal(2, item.M2.Id);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(2, item.M1.Id);
+                          Assert.Equal(3, item.M2.Id);
+                        });
     }
   }
 }

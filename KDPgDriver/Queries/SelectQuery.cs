@@ -31,8 +31,7 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      RawQuery rq = new RawQuery();
-      rq.Append(_fromBuilder.GetRawQuery(defaultSchema));
+      RawQuery rq = _fromBuilder.GetRawQuery(defaultSchema);
 
       var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {

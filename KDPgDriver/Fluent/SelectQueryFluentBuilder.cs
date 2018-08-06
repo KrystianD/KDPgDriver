@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -11,6 +12,16 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent
 {
+  public class TablesList
+  {
+    public List<KdPgTableDescriptor> Tables { get; } = new List<KdPgTableDescriptor>();
+
+    public void AddModel<T>()
+    {
+      Tables.Add(Helper.GetTable<T>());
+    }
+  }
+
   public class SelectQueryFluentBuilder1Prep<TModel>
   {
     private readonly IQueryExecutor _executor;
@@ -22,22 +33,22 @@ namespace KDPgDriver.Fluent
       _executor = executor;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TModel> Select()
+    public SelectQueryFluentBuilder<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder1<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), _executor);
+      return new SelectQueryFluentBuilder<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), _executor);
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
+    public SelectQueryFluentBuilder<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder1<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), _executor);
+      return new SelectQueryFluentBuilder<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), _executor);
     }
 
-    public SelectQueryFluentBuilder1<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
+    public SelectQueryFluentBuilder<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      return new SelectQueryFluentBuilder1<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), _executor);
+      return new SelectQueryFluentBuilder<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), _executor);
     }
 
-    public SelectQueryFluentBuilder1<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
+    public SelectQueryFluentBuilder<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
     {
       var builder = new FieldListBuilder<TModel>();
       foreach (var expression in fieldsList)
@@ -46,7 +57,111 @@ namespace KDPgDriver.Fluent
     }
   }
 
-  public class SelectQueryFluentBuilder1<TModel, TNewModel> : IQuery
+  public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>
+  {
+    private readonly IQueryExecutor _executor;
+
+    public SelectMultipleQueryFluentBuilderPrep2(IQueryExecutor executor)
+    {
+      _executor = executor;
+    }
+
+    public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TCombinedModel>> pr)
+    {
+      if (pr == null) throw new ArgumentNullException(nameof(pr));
+      TablesList tl = new TablesList();
+      tl.AddModel<TModel1>();
+      tl.AddModel<TModel2>();
+      return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
+    }
+  }
+
+  public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3>
+  {
+    private readonly IQueryExecutor _executor;
+
+    public SelectMultipleQueryFluentBuilderPrep3(IQueryExecutor executor)
+    {
+      _executor = executor;
+    }
+
+    public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TCombinedModel>> pr)
+    {
+      if (pr == null) throw new ArgumentNullException(nameof(pr));
+      TablesList tl = new TablesList();
+      tl.AddModel<TModel1>();
+      tl.AddModel<TModel2>();
+      tl.AddModel<TModel3>();
+      return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
+    }
+  }
+
+  public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4>
+  {
+    private readonly IQueryExecutor _executor;
+
+    public SelectMultipleQueryFluentBuilderPrep4(IQueryExecutor executor)
+    {
+      _executor = executor;
+    }
+
+    public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TCombinedModel>> pr)
+    {
+      if (pr == null) throw new ArgumentNullException(nameof(pr));
+      TablesList tl = new TablesList();
+      tl.AddModel<TModel1>();
+      tl.AddModel<TModel2>();
+      tl.AddModel<TModel3>();
+      tl.AddModel<TModel4>();
+      return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
+    }
+  }
+
+  public class SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5>
+  {
+    private readonly IQueryExecutor _executor;
+
+    public SelectMultipleQueryFluentBuilderPrep5(IQueryExecutor executor)
+    {
+      _executor = executor;
+    }
+
+    public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TModel5, TCombinedModel>> pr)
+    {
+      if (pr == null) throw new ArgumentNullException(nameof(pr));
+      TablesList tl = new TablesList();
+      tl.AddModel<TModel1>();
+      tl.AddModel<TModel2>();
+      tl.AddModel<TModel3>();
+      tl.AddModel<TModel4>();
+      tl.AddModel<TModel5>();
+      return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
+    }
+  }
+
+  public class SelectMultipleQueryFluentBuilderMapper<TCombinedModel>
+  {
+    private readonly TablesList _tablesList;
+    private readonly IQueryExecutor _executor;
+
+    public SelectMultipleQueryFluentBuilderMapper(IQueryExecutor executor, TablesList tablesList)
+    {
+      _executor = executor;
+      _tablesList = tablesList;
+    }
+
+    public SelectQueryFluentBuilder<TCombinedModel, TCombinedModel> Select()
+    {
+      return new SelectQueryFluentBuilder<TCombinedModel, TCombinedModel>(SelectFromBuilder.AllColumnsFromCombined<TCombinedModel>(_tablesList), _executor);
+    }
+
+    public SelectQueryFluentBuilder<TCombinedModel, TNewModel> Select<TNewModel>(Expression<Func<TCombinedModel, TNewModel>> pr)
+    {
+      return new SelectQueryFluentBuilder<TCombinedModel, TNewModel>(SelectFromBuilder.FromCombinedExpression(_tablesList, pr), _executor);
+    }
+  }
+
+  public class SelectQueryFluentBuilder<TModel, TNewModel> : IQuery
   {
     private readonly IQueryExecutor _executor;
     private readonly SelectFromBuilder _selectFromBuilder;
@@ -54,43 +169,43 @@ namespace KDPgDriver.Fluent
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
 
-    public SelectQueryFluentBuilder1(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
+    public SelectQueryFluentBuilder(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
     {
       _executor = executor;
       _selectFromBuilder = selectFromBuilder;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> Where(Expression<Func<TModel, bool>> exp)
+    public SelectQueryFluentBuilder<TModel, TNewModel> Where(Expression<Func<TModel, bool>> exp)
     {
       _whereBuilder.AndWith(WhereBuilder<TModel>.FromExpression(exp));
       return this;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> Where(WhereBuilder<TModel> builder)
+    public SelectQueryFluentBuilder<TModel, TNewModel> Where(WhereBuilder<TModel> builder)
     {
       _whereBuilder.AndWith(builder);
       return this;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> OrderBy(Expression<Func<TModel, object>> exp)
+    public SelectQueryFluentBuilder<TModel, TNewModel> OrderBy(Expression<Func<TModel, object>> exp)
     {
       _orderBuilder.OrderBy(exp);
       return this;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> OrderByDescending(Expression<Func<TModel, object>> exp)
+    public SelectQueryFluentBuilder<TModel, TNewModel> OrderByDescending(Expression<Func<TModel, object>> exp)
     {
       _orderBuilder.OrderByDescending(exp);
       return this;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> Limit(int limit)
+    public SelectQueryFluentBuilder<TModel, TNewModel> Limit(int limit)
     {
       _limitBuilder.Limit(limit);
       return this;
     }
 
-    public SelectQueryFluentBuilder1<TModel, TNewModel> Offset(int offset)
+    public SelectQueryFluentBuilder<TModel, TNewModel> Offset(int offset)
     {
       _limitBuilder.Offset(offset);
       return this;

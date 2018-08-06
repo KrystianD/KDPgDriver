@@ -16,6 +16,11 @@ namespace KDPgDriver.Utils
       public List<string> JsonPath { get; } = new List<string>();
     }
 
+    public static KdPgColumnDescriptor EvaluateFuncExpressionToColumn<TModel>(Expression<Func<TModel, object>> exp)
+    {
+      return EvaluateExpressionToColumn(exp.Body);
+    }
+
     public static KdPgColumnDescriptor EvaluateExpressionToColumn(Expression exp)
     {
       PropertyInfo EvaluateToPropertyInfo(Expression exp2)
