@@ -122,7 +122,6 @@ $$ LANGUAGE plpgsql IMMUTABLE;
                                                                                   NpgsqlConnection connection,
                                                                                   NpgsqlTransaction trans)
     {
-      var columns = builder.GetColumns();
       RawQuery rq = builder.GetRawQuery(Schema);
 
       string query;
@@ -134,7 +133,7 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       using (var cmd = new NpgsqlCommand(query, connection, trans)) {
         parameters.AssignToCommand(cmd);
         using (var reader = await cmd.ExecuteReaderAsync()) {
-          var res = new SelectQueryResult<TOut>(builder, columns);
+          var res = new SelectQueryResult<TOut>(builder);
           await res.ProcessResultSet((NpgsqlDataReader) reader);
           return res;
         }

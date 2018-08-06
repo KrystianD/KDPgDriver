@@ -21,12 +21,14 @@ namespace KDPgDriver.Utils
   {
     public string Name { get; }
     public string Schema { get; }
+    public Type ModelType { get; }
     public List<KdPgColumnDescriptor> Columns { get; }
 
     public KdPgColumnDescriptor PrimaryKey { get; }
 
-    public KdPgTableDescriptor(string name, string schema, List<KdPgColumnDescriptor> columns)
+    public KdPgTableDescriptor(Type modelType, string name, string schema, List<KdPgColumnDescriptor> columns)
     {
+      ModelType = modelType;
       Name = name;
       Schema = schema;
       Columns = columns;
@@ -346,6 +348,7 @@ namespace KDPgDriver.Utils
           return;
 
         var table = new KdPgTableDescriptor(
+            modelType: tableType,
             name: tableAttribute.Name,
             schema: tableAttribute.Schema,
             columns: tableType.GetProperties()

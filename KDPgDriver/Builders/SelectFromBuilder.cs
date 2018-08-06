@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,20 +12,98 @@ namespace KDPgDriver.Builders
 {
   public interface ISelectFromBuilder
   {
-    bool IsSingleValue { get; }
-    List<ResultColumnDef> GetColumns();
     RawQuery GetRawQuery(string defaultSchema = null);
+
+    IResultProcessor GetResultProcessor();
+  }
+
+  public interface IResultProcessor
+  {
+    object ParseResult(object[] values);
+    int FieldsCount { get; }
+  }
+
+  public class ModelResultProcessor<TModel> : IResultProcessor
+  {
+    private static readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
+
+    public int FieldsCount => Table.Columns.Count;
+    
+    public object ParseResult(object[] values)
+    {
+      var obj = Activator.CreateInstance(Table.ModelType);
+
+      for (var i = 0; i < Table.Columns.Count; i++) {
+        var col = Table.Columns[i];
+        var val = Helper.ConvertFromNpgsql(col.Type, values[i]);
+        col.PropertyInfo.SetValue(obj, val);
+      }
+
+      return obj;
+    }
+  }
+
+  public class SingleValueResultProcessor : IResultProcessor
+  {
+    private readonly KDPgValueType _type;
+
+    public int FieldsCount => 1;
+
+    public SingleValueResultProcessor(KDPgValueType type)
+    {
+      _type = type;
+    }
+
+    public object ParseResult(object[] values)
+    {
+      return Helper.ConvertFromNpgsql(_type, values[0]);
+    }
+  }
+
+  public class AnonymousTypeProcessor : IResultProcessor
+  {
+    private readonly Type _anonymousType;
+    private readonly List<KDPgValueType> _members = new List<KDPgValueType>();
+
+    public int FieldsCount => _members.Count;
+
+    public AnonymousTypeProcessor(Type anonymousType)
+    {
+      _anonymousType = anonymousType;
+    }
+
+    public void AddMember(KDPgValueType expType)
+    {
+      _members.Add(expType);
+    }
+
+    public object ParseResult(object[] rawFieldValues)
+    {
+      int fieldsCount = _members.Count;
+
+      object[] values = new object[fieldsCount];
+      for (int i = 0; i < fieldsCount; i++) {
+        object outputValue = Helper.ConvertFromNpgsql(_members[i], rawFieldValues[i]);
+        values[i] = outputValue;
+      }
+
+      return Activator.CreateInstance(_anonymousType, values);
+    }
   }
 
   public class SelectFromBuilder : ISelectFromBuilder
   {
+    private class ResultColumnDef
+    {
+      public KDPgValueType Type;
+      public RawQuery RawQuery;
+    }
+
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
-    private readonly RawQuery _selectPart = new RawQuery();
 
-    private List<KdPgTableDescriptor> _tables = new List<KdPgTableDescriptor>();
+    private readonly List<KdPgTableDescriptor> _tables = new List<KdPgTableDescriptor>();
 
-    public bool IsSingleValue { get; private set; }
-    public List<ResultColumnDef> GetColumns() => _columns;
+    private IResultProcessor ResultProcessor { get; set; }
 
     public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)
     {
@@ -35,14 +114,17 @@ namespace KDPgDriver.Builders
       switch (prBody.Body) {
         case NewExpression newExpression:
         {
-          var members = newExpression.Members.Cast<PropertyInfo>();
-          var args = newExpression.Arguments;
+          IEnumerable<PropertyInfo> members = newExpression.Members.Cast<PropertyInfo>();
+          IEnumerable<Expression> args = newExpression.Arguments;
+
+          var resultProcessor = new AnonymousTypeProcessor(typeof(TNewModel));
+          b.ResultProcessor = resultProcessor;
 
           foreach (var (member, argExpression) in members.Zip(args)) {
             exp = NodeVisitor.EvaluateToTypedExpression(argExpression);
             b.AddSelectPart(exp.RawQuery, member, exp.Type);
+            resultProcessor.AddMember(exp.Type);
           }
-
           break;
         }
 
@@ -50,7 +132,8 @@ namespace KDPgDriver.Builders
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
           b.AddSelectPart(exp.RawQuery, null, exp.Type);
-          b.IsSingleValue = true;
+          b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+
           break;
       }
 
@@ -67,6 +150,8 @@ namespace KDPgDriver.Builders
         b.AddSelectPart(RawQuery.CreateColumnName(column.Name), column.PropertyInfo, column.Type);
       }
 
+      b.ResultProcessor = new ModelResultProcessor<TModel>();
+
       return b;
     }
 
@@ -77,6 +162,9 @@ namespace KDPgDriver.Builders
 
       foreach (var column in Helper.GetTable(typeof(TModel)).Columns)
         b.AddSelectPart(RawQuery.CreateColumnName(column.Name), column.PropertyInfo, column.Type);
+
+      b.ResultProcessor = new ModelResultProcessor<TModel>();
+
       return b;
     }
 
@@ -109,6 +197,11 @@ namespace KDPgDriver.Builders
       return rq;
     }
 
+    public IResultProcessor GetResultProcessor()
+    {
+      return ResultProcessor;
+    }
+
     // helpers
     private void AddTable(KdPgTableDescriptor table)
     {
@@ -119,9 +212,6 @@ namespace KDPgDriver.Builders
     {
       _columns.Add(new ResultColumnDef() {
           RawQuery = exp,
-          // SchemaName = schema,
-          // TableName = tableName,
-          EndModelProperty = member,
           Type = type,
       });
     }

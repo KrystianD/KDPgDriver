@@ -45,15 +45,13 @@ namespace KDPgDriver
 
     public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
     {
-      var columns = builder.GetColumns();
-
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
       _combinedRawQuery.Append("; ");
 
       var op = new Operation<SelectQueryResult<TOut>>();
       op.ResultProcessorFunc = async reader =>
       {
-        var res = new SelectQueryResult<TOut>(builder, columns);
+        var res = new SelectQueryResult<TOut>(builder);
         await res.ProcessResultSet(reader);
 
         op.TaskCompletionSource.SetResult(res);
@@ -73,7 +71,7 @@ namespace KDPgDriver
       {
         await reader.ReadAsync();
         var lastInsertId = reader.GetInt32(0);
-        var res = new InsertQueryResult((int?) lastInsertId);
+        var res = new InsertQueryResult(lastInsertId);
 
         op.TaskCompletionSource.SetResult(res);
       };

@@ -1,28 +1,22 @@
-﻿using System.Collections.Generic;
-using KDPgDriver.Builders;
-using KDPgDriver.Results;
+﻿using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {
   public interface ISelectQuery : IQuery
   {
-    List<ResultColumnDef> GetColumns();
-    bool IsSingleValue { get; }
+    IResultProcessor GetResultProcessor();
   }
 
   public class SelectQuery<TModel, TOut> : ISelectQuery
   {
-    // private readonly string TableName = Helper.GetTableName(typeof(TModel));
-    // private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
-
     private readonly IWhereBuilder _whereBuilder;
 
     private readonly ISelectFromBuilder _fromBuilder;
     private readonly IOrderBuilder _orderBuilder;
     private readonly LimitBuilder _limitBuilder;
 
-    public bool IsSingleValue => _fromBuilder.IsSingleValue;
+    public IResultProcessor GetResultProcessor() => _fromBuilder.GetResultProcessor();
 
     public SelectQuery(IWhereBuilder whereBuilder,
                        ISelectFromBuilder fromBuilder,
@@ -34,8 +28,6 @@ namespace KDPgDriver.Queries
       _orderBuilder = orderBuilder;
       _limitBuilder = limitBuilder;
     }
-
-    public List<ResultColumnDef> GetColumns() => _fromBuilder.GetColumns();
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {

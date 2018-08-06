@@ -56,6 +56,48 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a
     }
 
     [Fact]
+    public async Task SelectAnonymous()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .Select(x => new { x.Name, IdCalc = x.Id + 5 })
+                        .ToListAsync();
+
+      Assert.Collection(res,
+                        item =>
+                        {
+                          Assert.Equal("test1", item.Name);
+                          Assert.Equal(6, item.IdCalc);
+                        },
+                        item =>
+                        {
+                          Assert.Equal("test2", item.Name);
+                          Assert.Equal(7, item.IdCalc);
+                        },
+                        item =>
+                        {
+                          Assert.Equal("test3", item.Name);
+                          Assert.Equal(8, item.IdCalc);
+                        });
+    }
+
+    [Fact]
+    public async Task SelectSingle()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .Select(x => x.Name)
+                        .ToListAsync();
+
+      Assert.Collection(res,
+                        item => Assert.Equal("test1", item),
+                        item => Assert.Equal("test2", item),
+                        item => Assert.Equal("test3", item));
+    }
+
+    [Fact]
     public async Task WhereEnumFetch()
     {
       var dr = await CreateDriver();
