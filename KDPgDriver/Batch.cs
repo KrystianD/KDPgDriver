@@ -12,8 +12,16 @@ namespace KDPgDriver
 {
   public class Batch : IQueryExecutor
   {
-    private readonly Driver _driver;
-    private readonly Transaction _transaction;
+    internal enum BatchType
+    {
+      Simple,
+      InTransaction,
+      DedicatedTransaction,
+    }
+
+    private readonly BatchType _type;
+    private Driver _driver;
+    private Transaction _transaction;
 
     private interface IOperation
     {
@@ -28,16 +36,31 @@ namespace KDPgDriver
       public Task Process(NpgsqlDataReader r) => ResultProcessorFunc(r);
     }
 
-    public Batch(Driver driver)
+    internal Batch(BatchType type)
     {
-      _driver = driver;
-      _transaction = null;
+      _type = type;
     }
 
-    public Batch(Transaction transaction)
+    public static Batch CreateSimple(Driver driver)
     {
-      _driver = transaction.Driver;
-      _transaction = transaction;
+      var b = new Batch(BatchType.Simple);
+      b._driver = driver;
+      return b;
+    }
+
+    public static Batch CreateUsingTransaction(Transaction transaction)
+    {
+      var b = new Batch(BatchType.InTransaction);
+      b._driver = transaction.Driver;
+      b._transaction = transaction;
+      return b;
+    }
+
+    public static Batch CreateDedicatedTransaction(Driver driver)
+    {
+      var b = new Batch(BatchType.DedicatedTransaction);
+      b._driver = driver;
+      return b;
     }
 
     private readonly RawQuery _combinedRawQuery = new RawQuery();
@@ -134,11 +157,24 @@ namespace KDPgDriver
         }
       }
 
-      if (_transaction != null)
-        await DoOperation(_transaction.NpgsqlConnection, _transaction.NpgsqlTransaction);
-      else
-        using (var connection = await _driver.CreateConnection())
-          await DoOperation(connection, null);
+      switch (_type) {
+        case BatchType.Simple:
+          using (var connection = await _driver.CreateConnection())
+            await DoOperation(connection, null);
+          break;
+        case BatchType.InTransaction:
+          await DoOperation(_transaction.NpgsqlConnection, _transaction.NpgsqlTransaction);
+          break;
+        case BatchType.DedicatedTransaction:
+          using (var connection = await _driver.CreateConnection())
+          using (var transaction = connection.BeginTransaction()) {
+            await DoOperation(connection, transaction);
+            await transaction.CommitAsync();
+          }
+          break;
+        default:
+          throw new ArgumentOutOfRangeException();
+      }
     }
 
     // Chains

@@ -4,7 +4,7 @@ using Xunit;
 
 namespace KDPgDriver.Tests.FunctionalTests
 {
-  public class Test
+  public partial class Test
   {
     static Test()
     {
@@ -231,36 +231,6 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
 
       Assert.Collection(task1.Result, x => Assert.Equal(1, x));
       Assert.Collection(task2.Result, x => Assert.Equal(2, x));
-    }
-
-    [Fact]
-    public async Task TestTransactionBatch()
-    {
-      var dr = await CreateDriver();
-
-      // transaction rolled back
-      using (var tr = await dr.CreateTransaction()) {
-        var b = tr.CreateBatch();
-        var task1 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }).ExecuteAsync();
-        var task2 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }).ExecuteAsync();
-        await b.Execute();
-      }
-
-      var res1 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
-      Assert.Equal(3, res1.Count);
-
-      // transaction commited
-      using (var tr = await dr.CreateTransaction()) {
-        var b = tr.CreateBatch();
-        var task1 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }).ExecuteAsync();
-        var task2 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 11 }).ExecuteAsync();
-        await b.Execute();
-
-        await tr.CommitAsync();
-      }
-
-      var res2 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
-      Assert.Equal(5, res2.Count);
     }
 
     [Fact]

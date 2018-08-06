@@ -88,7 +88,9 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return new Transaction(this, connection, tr);
     }
 
-    public Batch CreateBatch() => new Batch(this);
+    public Batch CreateBatch() => Batch.CreateSimple(this);
+
+    public Batch CreateTransactionBatch() => Batch.CreateDedicatedTransaction(this);
 
     public async Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
     {

@@ -29,7 +29,7 @@ namespace KDPgDriver
       NpgsqlTransaction.Dispose();
     }
 
-    public Batch CreateBatch() => new Batch(this);
+    public Batch CreateBatch() => Batch.CreateUsingTransaction(this);
 
     public Task CommitAsync() => NpgsqlTransaction.CommitAsync();
 
