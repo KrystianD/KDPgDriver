@@ -29,6 +29,27 @@ FROM
     }
 
     [Fact]
+    public void SelectMultipleSub()
+    {
+      var q = BuildersJoin.FromMany<MyModel, MyModel2>()
+                          .Map((a, b) => new {
+                              M1 = a,
+                              M2 = b,
+                          })
+                          .Select(x => new {
+                              M1 = x.M1,
+                              M2_name = x.M2.Name,
+                              M3_calc = x.M2.Id * 2,
+                          });
+
+      Utils.AssertRawQuery(q, @"
+SELECT 
+  t1.id,t1.name,t1.list_string,t1.list_string2,(t1.enum)::text,(t1.list_enum)::text[],(t1.enum2)::text,t1.datetime,t1.json_object1,t1.json_model,t1.json_array1,t2.name,(t2.id) * (2)
+FROM
+  public.model t1,public.model2 t2");
+    }
+
+    [Fact]
     public void SelectMultipleJoin()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel2>()

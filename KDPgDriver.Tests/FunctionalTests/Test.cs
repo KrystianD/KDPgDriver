@@ -342,5 +342,44 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
                           Assert.Equal(3, item.M2.Id);
                         });
     }
+
+    [Fact]
+    public async Task TestJoinAnonymous()
+    {
+      var dr = await CreateDriver();
+
+      var rows = await dr.FromMany<MyModel, MyModel2>()
+                         .Map((a, b) => new {
+                             M1 = a,
+                             M2 = b,
+                         })
+                         .Select(x => new {
+                             M1 = x.M1,
+                             M2_name = x.M2.Name,
+                             M2_id = x.M2.Id * 2,
+                         })
+                         .Where(x => x.M2.ModelId == x.M1.Id)
+                         .ToListAsync();
+
+      Assert.Collection(rows,
+                        item =>
+                        {
+                          Assert.Equal(1, item.M1.Id);
+                          Assert.Equal("subtest1", item.M2_name);
+                          Assert.Equal(2, item.M2_id);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(1, item.M1.Id);
+                          Assert.Equal("subtest2", item.M2_name);
+                          Assert.Equal(4, item.M2_id);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(2, item.M1.Id);
+                          Assert.Equal("subtest3", item.M2_name);
+                          Assert.Equal(6, item.M2_id);
+                        });
+    }
   }
 }

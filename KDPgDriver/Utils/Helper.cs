@@ -191,6 +191,12 @@ namespace KDPgDriver.Utils
       return PropertyInfoToColumnDesc.ContainsKey(propertyInfo);
     }
 
+    public static bool IsTable(Type type)
+    {
+      InitializeTable(type);
+      return TypeToTableDesc.ContainsKey(type);
+    }
+
     public static KdPgColumnDescriptor GetColumn(MemberInfo memberType)
     {
       return GetColumn((PropertyInfo) memberType);
