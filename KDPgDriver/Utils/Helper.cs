@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection;
@@ -448,6 +449,16 @@ namespace KDPgDriver.Utils
           return v.ToString();
         default:
           throw new Exception($"unable to escape value of type: {value.GetType()}");
+      }
+    }
+
+    internal static IsolationLevel ToIsolationLevel(KDPgIsolationLevel level)
+    {
+      switch (level) {
+        case KDPgIsolationLevel.ReadCommitted: return IsolationLevel.ReadCommitted;
+        case KDPgIsolationLevel.RepeatableRead: return IsolationLevel.RepeatableRead;
+        case KDPgIsolationLevel.Serializable: return IsolationLevel.Serializable;
+        default: throw new ArgumentOutOfRangeException(nameof(level), level, null);
       }
     }
   }

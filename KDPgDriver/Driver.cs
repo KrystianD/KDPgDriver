@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -13,9 +14,16 @@ using Npgsql;
 
 namespace KDPgDriver
 {
+  public enum KDPgIsolationLevel
+  {
+    ReadCommitted,
+    RepeatableRead,
+    Serializable,
+  }
+
   public class Driver : IQueryExecutor
   {
-    private string _connString;
+    private readonly string _connString;
 
     // public string Dsn { get; }
     public string Schema { get; }
@@ -80,17 +88,16 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       }
     }
 
-
-    public async Task<Transaction> CreateTransaction()
+    public async Task<Transaction> CreateTransaction(KDPgIsolationLevel isolationLevel = KDPgIsolationLevel.ReadCommitted)
     {
       var connection = await CreateConnection();
-      var tr = connection.BeginTransaction();
+      var tr = connection.BeginTransaction(Helper.ToIsolationLevel(isolationLevel));
       return new Transaction(this, connection, tr);
     }
 
     public Batch CreateBatch() => Batch.CreateSimple(this);
 
-    public Batch CreateTransactionBatch() => Batch.CreateDedicatedTransaction(this);
+    public Batch CreateTransactionBatch(KDPgIsolationLevel isolationLevel = KDPgIsolationLevel.ReadCommitted) => Batch.CreateDedicatedTransaction(this, isolationLevel);
 
     public async Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
     {

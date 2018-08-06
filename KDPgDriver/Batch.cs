@@ -22,6 +22,7 @@ namespace KDPgDriver
     private readonly BatchType _type;
     private Driver _driver;
     private Transaction _transaction;
+    private KDPgIsolationLevel _isolationLevel;
 
     private interface IOperation
     {
@@ -56,10 +57,11 @@ namespace KDPgDriver
       return b;
     }
 
-    public static Batch CreateDedicatedTransaction(Driver driver)
+    public static Batch CreateDedicatedTransaction(Driver driver, KDPgIsolationLevel isolationLevel)
     {
       var b = new Batch(BatchType.DedicatedTransaction);
       b._driver = driver;
+      b._isolationLevel = isolationLevel;
       return b;
     }
 
@@ -166,11 +168,11 @@ namespace KDPgDriver
           await DoOperation(_transaction.NpgsqlConnection, _transaction.NpgsqlTransaction);
           break;
         case BatchType.DedicatedTransaction:
-          using (var connection = await _driver.CreateConnection())
-          using (var transaction = connection.BeginTransaction()) {
-            await DoOperation(connection, transaction);
+          using (var transaction = await _driver.CreateTransaction(_isolationLevel)) {
+            await DoOperation(transaction.NpgsqlConnection, transaction.NpgsqlTransaction);
             await transaction.CommitAsync();
           }
+
           break;
         default:
           throw new ArgumentOutOfRangeException();
