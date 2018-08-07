@@ -8,7 +8,13 @@ namespace KDPgDriver.Utils
   {
     public static Expression PartialEval(Expression expression, string inputParameterName = null)
     {
-      return new SubtreeEvaluator(new Nominator(inputParameterName).Nominate(expression)).Eval(expression);
+      var inpParams = inputParameterName == null ? null : new HashSet<string> { inputParameterName };
+      return PartialEval(expression, inpParams);
+    }
+
+    public static Expression PartialEval(Expression expression, HashSet<string> inputParametersNames)
+    {
+      return new SubtreeEvaluator(new Nominator(inputParametersNames).Nominate(expression)).Eval(expression);
     }
 
     /// <summary>
@@ -53,12 +59,12 @@ namespace KDPgDriver.Utils
     /// </summary>
     class Nominator : ExpressionVisitor
     {
-      private readonly string _inputParameterName;
+      private readonly HashSet<string> _inputParameterName;
 
       HashSet<Expression> candidates;
       bool cannotBeEvaluated;
 
-      public Nominator(string inputParameterName = null)
+      public Nominator(HashSet<string> inputParameterName = null)
       {
         _inputParameterName = inputParameterName;
       }
@@ -77,7 +83,8 @@ namespace KDPgDriver.Utils
             return false;
           }
           else {
-            return parameterExpression.Name != _inputParameterName;
+            return !_inputParameterName.Contains(parameterExpression.Name);
+            // return parameterExpression.Name != _inputParameterName;
           }
         }
         else {

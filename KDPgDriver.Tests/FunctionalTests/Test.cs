@@ -301,13 +301,12 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
     {
       var dr = await CreateDriver();
 
-      var rows = await dr.FromMany<MyModel, MyModel2>()
+      var rows = await dr.FromMany<MyModel, MyModel2>((model, model2) => model.Id == model2.ModelId)
                          .Map((a, b) => new {
                              M1 = a,
                              M2 = b,
                          })
                          .Select()
-                         .Where(x => x.M2.ModelId == x.M1.Id)
                          .ToListAsync();
 
       Assert.Collection(rows,
@@ -325,6 +324,11 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
                         {
                           Assert.Equal(2, item.M1.Id);
                           Assert.Equal(3, item.M2.Id);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(3, item.M1.Id);
+                          Assert.Null(item.M2.Name);
                         });
     }
 
@@ -333,7 +337,7 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
     {
       var dr = await CreateDriver();
 
-      var rows = await dr.FromMany<MyModel, MyModel2>()
+      var rows = await dr.FromMany<MyModel, MyModel2>((model, model2) => model.Id == model2.ModelId)
                          .Map((a, b) => new {
                              M1 = a,
                              M2 = b,
@@ -343,7 +347,6 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
                              M2_name = x.M2.Name,
                              M2_id = x.M2.Id * 2,
                          })
-                         .Where(x => x.M2.ModelId == x.M1.Id)
                          .ToListAsync();
 
       Assert.Collection(rows,
@@ -364,6 +367,12 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
                           Assert.Equal(2, item.M1.Id);
                           Assert.Equal("subtest3", item.M2_name);
                           Assert.Equal(6, item.M2_id);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(3, item.M1.Id);
+                          Assert.Null(item.M2_name);
+                          Assert.Equal(0, item.M2_id);
                         });
     }
   }

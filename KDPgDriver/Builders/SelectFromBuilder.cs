@@ -41,37 +41,6 @@ namespace KDPgDriver.Builders
     }
   }
 
-  // public class AnonymousTypeProcessor : IResultProcessor
-  // {
-  //   private readonly Type _anonymousType;
-  //   private readonly List<KDPgValueType> _members = new List<KDPgValueType>();
-  //
-  //   public int FieldsCount => _members.Count;
-  //
-  //   public AnonymousTypeProcessor(Type anonymousType)
-  //   {
-  //     _anonymousType = anonymousType;
-  //   }
-  //
-  //   public void AddMember(KDPgValueType expType)
-  //   {
-  //     _members.Add(expType);
-  //   }
-  //
-  //   public object ParseResult(object[] rawFieldValues)
-  //   {
-  //     int fieldsCount = _members.Count;
-  //
-  //     object[] values = new object[fieldsCount];
-  //     for (int i = 0; i < fieldsCount; i++) {
-  //       object outputValue = Helper.ConvertFromNpgsql(_members[i], rawFieldValues[i]);
-  //       values[i] = outputValue;
-  //     }
-  //
-  //     return Activator.CreateInstance(_anonymousType, values);
-  //   }
-  // }
-
   public class ModelResultProcessor<TModel> : IResultProcessor
   {
     private static readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
@@ -179,11 +148,14 @@ namespace KDPgDriver.Builders
 
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
     private readonly List<KdPgTableDescriptor> _tables = new List<KdPgTableDescriptor>();
+    private static List<TypedExpression> _leftJoins;
 
     private IResultProcessor ResultProcessor { get; set; }
 
     public static SelectFromBuilder FromCombinedExpression<TCombinedModel, TNewModel>(TablesList tablesList, Expression<Func<TCombinedModel, TNewModel>> prBody)
     {
+      _leftJoins = tablesList.JoinExpressions;
+
       var b = new SelectFromBuilder();
 
       foreach (var table in tablesList.Tables)
@@ -232,6 +204,8 @@ namespace KDPgDriver.Builders
 
     public static SelectFromBuilder AllColumnsFromCombined<TCombinedModel>(TablesList tablesList)
     {
+      _leftJoins = tablesList.JoinExpressions;
+
       var b = new SelectFromBuilder();
 
       var pr = new AnonymousTypeResultProcessor<TCombinedModel>();
@@ -336,22 +310,30 @@ namespace KDPgDriver.Builders
 
       rq.Append(" FROM ");
 
-      int i = 1;
-      bool firstTable = true;
-      foreach (var table in _tables) {
-        if (!firstTable)
-          rq.Append(",");
-        firstTable = false;
+      int tableNum = 0;
+      // bool firstTable = true;
+      if (_tables.Count > 1) {
+        var firstTable = _tables[0];
+        string alias = $"t{tableNum}";
+        rq.AppendTableName(firstTable.Name, firstTable.Schema ?? defaultSchema, alias);
+        rq.ApplyAlias(firstTable, alias);
+        tableNum++;
 
-        string alias = $"t{i++}";
+        rq.Append(" LEFT JOIN ");
 
-        if (_tables.Count > 1) {
+        foreach (var table in _tables.Skip(1)) {
+          alias = $"t{tableNum}";
           rq.AppendTableName(table.Name, table.Schema ?? defaultSchema, alias);
           rq.ApplyAlias(table, alias);
+
+          rq.Append(" ON ");
+          rq.AppendSurround(_leftJoins[tableNum].RawQuery);
+
+          tableNum++;
         }
-        else {
-          rq.AppendTableName(table.Name, table.Schema ?? defaultSchema);
-        }
+      }
+      else {
+        rq.AppendTableName(_tables[0].Name, _tables[0].Schema ?? defaultSchema);
       }
 
       return rq;

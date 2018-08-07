@@ -54,9 +54,17 @@ namespace KDPgDriver
 
   public static class BuildersJoin
   {
-    public static SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> FromMany<TModel1, TModel2>()
+    public static SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> FromMany<TModel1, TModel2>(
+        Expression<Func<TModel1, TModel2, bool>> joinCondition)
     {
-      return new SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>(null);
+      return new SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>(null, joinCondition);
+    }
+
+    public static SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> FromMany<TModel1, TModel2, TModel3>(
+        Expression<Func<TModel1, TModel2, bool>> joinCondition1,
+        Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2)
+    {
+      return new SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3>(null, joinCondition1, joinCondition2);
     }
   }
 }

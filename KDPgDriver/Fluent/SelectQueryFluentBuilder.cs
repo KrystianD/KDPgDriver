@@ -14,11 +14,13 @@ namespace KDPgDriver.Fluent
 {
   public class TablesList
   {
+    public List<TypedExpression> JoinExpressions = new List<TypedExpression>();
     public List<KdPgTableDescriptor> Tables { get; } = new List<KdPgTableDescriptor>();
 
-    public void AddModel<T>()
+    public void AddModel<T>(TypedExpression joinExpression = null)
     {
       Tables.Add(Helper.GetTable<T>());
+      JoinExpressions.Add(joinExpression);
     }
   }
 
@@ -57,12 +59,17 @@ namespace KDPgDriver.Fluent
     }
   }
 
-  public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>
+  public class BaseSelectMultipleQueryFluentBuilderPrep { }
+
+  public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> : BaseSelectMultipleQueryFluentBuilderPrep
   {
     private readonly IQueryExecutor _executor;
+    private readonly TypedExpression _joinCondition1;
 
-    public SelectMultipleQueryFluentBuilderPrep2(IQueryExecutor executor)
+    public SelectMultipleQueryFluentBuilderPrep2(IQueryExecutor executor,
+                                                 Expression<Func<TModel1, TModel2, bool>> joinCondition)
     {
+      _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition);
       _executor = executor;
     }
 
@@ -71,17 +78,23 @@ namespace KDPgDriver.Fluent
       if (pr == null) throw new ArgumentNullException(nameof(pr));
       TablesList tl = new TablesList();
       tl.AddModel<TModel1>();
-      tl.AddModel<TModel2>();
+      tl.AddModel<TModel2>(_joinCondition1);
       return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
     }
   }
 
-  public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3>
+  public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> : BaseSelectMultipleQueryFluentBuilderPrep
   {
     private readonly IQueryExecutor _executor;
+    private readonly TypedExpression _joinCondition1;
+    private readonly TypedExpression _joinCondition2;
 
-    public SelectMultipleQueryFluentBuilderPrep3(IQueryExecutor executor)
+    public SelectMultipleQueryFluentBuilderPrep3(IQueryExecutor executor,
+                                                 Expression<Func<TModel1, TModel2, bool>> joinCondition1,
+                                                 Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2)
     {
+      _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition1);
+      _joinCondition2 = NodeVisitor.VisitFuncExpression(joinCondition2);
       _executor = executor;
     }
 
@@ -90,59 +103,68 @@ namespace KDPgDriver.Fluent
       if (pr == null) throw new ArgumentNullException(nameof(pr));
       TablesList tl = new TablesList();
       tl.AddModel<TModel1>();
-      tl.AddModel<TModel2>();
-      tl.AddModel<TModel3>();
+      tl.AddModel<TModel2>(_joinCondition1);
+      tl.AddModel<TModel3>(_joinCondition2);
       return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
     }
   }
 
-  public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4>
-  {
-    private readonly IQueryExecutor _executor;
-
-    public SelectMultipleQueryFluentBuilderPrep4(IQueryExecutor executor)
-    {
-      _executor = executor;
-    }
-
-    public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TCombinedModel>> pr)
-    {
-      if (pr == null) throw new ArgumentNullException(nameof(pr));
-      TablesList tl = new TablesList();
-      tl.AddModel<TModel1>();
-      tl.AddModel<TModel2>();
-      tl.AddModel<TModel3>();
-      tl.AddModel<TModel4>();
-      return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
-    }
-  }
-
-  public class SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5>
-  {
-    private readonly IQueryExecutor _executor;
-
-    public SelectMultipleQueryFluentBuilderPrep5(IQueryExecutor executor)
-    {
-      _executor = executor;
-    }
-
-    public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TModel5, TCombinedModel>> pr)
-    {
-      if (pr == null) throw new ArgumentNullException(nameof(pr));
-      TablesList tl = new TablesList();
-      tl.AddModel<TModel1>();
-      tl.AddModel<TModel2>();
-      tl.AddModel<TModel3>();
-      tl.AddModel<TModel4>();
-      tl.AddModel<TModel5>();
-      return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
-    }
-  }
+  // public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> : BaseSelectMultipleQueryFluentBuilderPrep
+  // {
+  //   private readonly IQueryExecutor _executor;
+  //
+  //   public SelectMultipleQueryFluentBuilderPrep4(IQueryExecutor executor)
+  //   {
+  //     _executor = executor;
+  //   }
+  //
+  //   public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TCombinedModel>> pr)
+  //   {
+  //     if (pr == null) throw new ArgumentNullException(nameof(pr));
+  //     TablesList tl = new TablesList();
+  //     tl.AddModel<TModel1>();
+  //     tl.AddModel<TModel2>();
+  //     tl.AddModel<TModel3>();
+  //     tl.AddModel<TModel4>();
+  //     // tl.leftJoins = leftJoins;
+  //     return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
+  //   }
+  // }
+  //
+  // public class SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5> : BaseSelectMultipleQueryFluentBuilderPrep
+  // {
+  //   private readonly IQueryExecutor _executor;
+  //
+  //   public SelectMultipleQueryFluentBuilderPrep5(IQueryExecutor executor)
+  //   {
+  //     _executor = executor;
+  //   }
+  //
+  //   // public new SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5> ConfigureLeftJoin<T1, T2>(Expression<Func<T1, T2, bool>> joinCondition)
+  //   // {
+  //   //   base.ConfigureLeftJoin(joinCondition);
+  //   //   return this;
+  //   // }
+  //
+  //   public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TModel5, TCombinedModel>> pr)
+  //   {
+  //     if (pr == null) throw new ArgumentNullException(nameof(pr));
+  //     TablesList tl = new TablesList();
+  //     tl.AddModel<TModel1>();
+  //     tl.AddModel<TModel2>();
+  //     tl.AddModel<TModel3>();
+  //     tl.AddModel<TModel4>();
+  //     tl.AddModel<TModel5>();
+  //     // tl.leftJoins = leftJoins;
+  //     return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
+  //   }
+  // }
 
   public class SelectMultipleQueryFluentBuilderMapper<TCombinedModel>
   {
     private readonly TablesList _tablesList;
     private readonly IQueryExecutor _executor;
+
 
     public SelectMultipleQueryFluentBuilderMapper(IQueryExecutor executor, TablesList tablesList)
     {

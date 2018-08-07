@@ -252,24 +252,17 @@ $$ LANGUAGE plpgsql IMMUTABLE;
       return builder;
     }
 
-    public SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> FromMany<TModel1, TModel2>()
+    public SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> FromMany<TModel1, TModel2>(
+        Expression<Func<TModel1, TModel2, bool>> joinCondition)
     {
-      return new SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>(this);
+      return new SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>(this, joinCondition);
     }
 
-    public SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> FromMany<TModel1, TModel2, TModel3>()
+    public SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> FromMany<TModel1, TModel2, TModel3>(
+        Expression<Func<TModel1, TModel2, bool>> joinCondition1,
+        Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2)
     {
-      return new SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3>(this);
-    }
-
-    public SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> FromMany<TModel1, TModel2, TModel3, TModel4>()
-    {
-      return new SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4>(this);
-    }
-
-    public SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5> FromMany<TModel1, TModel2, TModel3, TModel4, TModel5>()
-    {
-      return new SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5>(this);
+      return new SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3>(this, joinCondition1, joinCondition2);
     }
   }
 }

@@ -21,6 +21,11 @@ namespace KDPgDriver.Utils
       return EvaluateExpressionToColumn(exp.Body);
     }
 
+    public static KdPgColumnDescriptor EvaluateFuncExpressionToColumn<TModel, T>(Expression<Func<TModel, T>> exp)
+    {
+      return EvaluateExpressionToColumn(exp.Body);
+    }
+
     public static KdPgColumnDescriptor EvaluateExpressionToColumn(Expression exp)
     {
       PropertyInfo EvaluateToPropertyInfo(Expression exp2)
@@ -59,7 +64,24 @@ namespace KDPgDriver.Utils
       return EvaluateToTypedExpression(exp.Body, exp.Parameters.First().Name);
     }
 
-    public static TypedExpression EvaluateToTypedExpression(Expression expression, string inputParameterName = null)
+    public static TypedExpression VisitFuncExpression<TModel1, TModel2, T>(Expression<Func<TModel1, TModel2, T>> exp)
+    {
+      var names = exp.Parameters.Select(x => x.Name);
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet());
+    }
+
+    public static TypedExpression VisitFuncExpression<TModel1, TModel2, TModel3, T>(Expression<Func<TModel1, TModel2, TModel3, T>> exp)
+    {
+      var names = exp.Parameters.Select(x => x.Name);
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet());
+    }
+
+    public static TypedExpression EvaluateToTypedExpression(Expression expression, string inputParameterName)
+    {
+      return EvaluateToTypedExpression(expression, inputParameterName == null ? null : new HashSet<string> { inputParameterName });
+    }
+
+    public static TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null)
     {
       TypedExpression VisitInternal(Expression exp)
       {
@@ -210,7 +232,7 @@ namespace KDPgDriver.Utils
         }
       }
 
-      return VisitInternal(Evaluator.PartialEval(expression, inputParameterName));
+      return VisitInternal(Evaluator.PartialEval(expression, inputParametersNames));
     }
 
     internal static TypedExpression ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)

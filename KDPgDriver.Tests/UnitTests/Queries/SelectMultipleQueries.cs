@@ -14,7 +14,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void SelectMultiple()
     {
-      var q = BuildersJoin.FromMany<MyModel, MyModel2>()
+      var q = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
                           .Map((a, b) => new {
                               M1 = a,
                               M2 = b,
@@ -23,15 +23,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"
 SELECT 
-  t1.id,t1.name,t1.list_string,t1.list_string2,(t1.enum)::text,(t1.list_enum)::text[],(t1.enum2)::text,t1.datetime,t1.json_object1,t1.json_model,t1.json_array1,t2.id,t2.name,t2.model_id
+  t0.id,t0.name,t0.list_string,t0.list_string2,(t0.enum)::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t1.id,t1.name,t1.model_id
 FROM
-  public.model t1,public.model2 t2");
+  public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))");
     }
 
     [Fact]
     public void SelectMultipleSub()
     {
-      var q = BuildersJoin.FromMany<MyModel, MyModel2>()
+      var q = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
                           .Map((a, b) => new {
                               M1 = a,
                               M2 = b,
@@ -44,41 +44,37 @@ FROM
 
       Utils.AssertRawQuery(q, @"
 SELECT 
-  t1.id,t1.name,t1.list_string,t1.list_string2,(t1.enum)::text,(t1.list_enum)::text[],(t1.enum2)::text,t1.datetime,t1.json_object1,t1.json_model,t1.json_array1,t2.name,(t2.id) * (2)
+  t0.id,t0.name,t0.list_string,t0.list_string2,(t0.enum)::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t1.name,(t1.id) * (2)
 FROM
-  public.model t1,public.model2 t2");
+  public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))");
     }
 
     [Fact]
-    public void SelectMultipleJoin()
+    public void SelectMultipleLeftJoin()
     {
-      var q = BuildersJoin.FromMany<MyModel, MyModel2>()
+      var q = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
                           .Map((a, b) => new {
                               M1 = a,
                               M2 = b,
                           })
-                          .Select(model => new {
-                              A1 = model.M1.Name,
-                              A2 = model.M2.Name,
+                          .Select(x => new {
+                              x.M1.Id,
+                              x.M2.Name,
+                          });
+      
+      Utils.AssertRawQuery(q, @"SELECT t0.id,t1.name FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))");
+      
+      var q2 = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
+                          .Map((a, b) => new {
+                              M1 = b,
+                              M2 = a,
                           })
-                          .Where(x => x.M2.ModelId == x.M1.Id)
-                          .Where(x => x.M1.Id == 3);
-
-      Utils.AssertRawQuery(q, @"SELECT t1.name,t2.name FROM public.model t1,public.model2 t2 WHERE ((t2.model_id) = (t1.id)) AND ((t1.id) = (3))");
-
-      var q2 = BuildersJoin.FromMany<MyModel, MyModel2>()
-                           .Map((a, b) => new {
-                               M1 = b,
-                               M2 = a,
-                           })
-                           .Select(model => new {
-                               A1 = model.M1.Name,
-                               A2 = model.M2.Name,
-                           })
-                           .Where(x => x.M1.ModelId == x.M2.Id)
-                           .Where(x => x.M2.Id == 3);
-
-      Utils.AssertRawQuery(q2, @"SELECT t2.name,t1.name FROM public.model t1,public.model2 t2 WHERE ((t2.model_id) = (t1.id)) AND ((t1.id) = (3))");
+                          .Select(x => new {
+                              x.M1.Id,
+                              x.M2.Name,
+                          });
+      
+      Utils.AssertRawQuery(q2, @"SELECT t1.id,t0.name FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))");
     }
   }
 }
