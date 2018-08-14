@@ -81,13 +81,13 @@ namespace KDPgDriver.Tests.UnitTests
       rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name));
       rq.Append(" = 123, ");
 
-      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name));
+      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name1));
       rq.Append(" = 456");
 
       rq.ApplyAlias(Helper.GetTable<MyModel>(), "t1");
       rq.ApplyAlias(Helper.GetTable<MyModel2>(), "t2");
 
-      Utils.AssertRawQuery(rq, "t1.name = 123, t2.name = 456");
+      Utils.AssertRawQuery(rq, "t1.name = 123, t2.name1 = 456");
     }
   }
 }

@@ -319,9 +319,9 @@ namespace KDPgDriver.Builders
         rq.ApplyAlias(firstTable, alias);
         tableNum++;
 
-        rq.Append(" LEFT JOIN ");
-
         foreach (var table in _tables.Skip(1)) {
+          rq.Append(" LEFT JOIN ");
+          
           alias = $"t{tableNum}";
           rq.AppendTableName(table.Name, table.Schema ?? defaultSchema, alias);
           rq.ApplyAlias(table, alias);

@@ -5,8 +5,8 @@ using Newtonsoft.Json.Linq;
 
 namespace KDPgDriver.Tests
 {
-  [KDPgTable("model2", schema: "public")]
-  public class MyModel2
+  [KDPgTable("model3", schema: "public")]
+  public class MyModel3
   {
     [KDPgColumn("id", KDPgColumnFlagsEnum.PrimaryKey)]
     public int Id { get; set; }

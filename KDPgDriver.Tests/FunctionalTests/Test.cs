@@ -43,7 +43,7 @@ CREATE TABLE model (
 
 CREATE TABLE model2 (
   id SERIAL PRIMARY KEY,
-  name text,
+  name1 text,
   model_id int
 );
 
@@ -51,9 +51,9 @@ INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(2, 'test2', '{a,b}', 'B', '{B}');
 INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a}', 'C', '{B,C}');
 
-INSERT INTO model2(id, name, model_id) VALUES(1, 'subtest1', 1);
-INSERT INTO model2(id, name, model_id) VALUES(2, 'subtest2', 1);
-INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
+INSERT INTO model2(id, name1, model_id) VALUES(1, 'subtest1', 1);
+INSERT INTO model2(id, name1, model_id) VALUES(2, 'subtest2', 1);
+INSERT INTO model2(id, name1, model_id) VALUES(3, 'subtest3', 2);
 
 ");
 
@@ -328,7 +328,7 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
                         item =>
                         {
                           Assert.Equal(3, item.M1.Id);
-                          Assert.Null(item.M2.Name);
+                          Assert.Null(item.M2.Name1);
                         });
     }
 
@@ -344,7 +344,7 @@ INSERT INTO model2(id, name, model_id) VALUES(3, 'subtest3', 2);
                          })
                          .Select(x => new {
                              M1 = x.M1,
-                             M2_name = x.M2.Name,
+                             M2_name = x.M2.Name1,
                              M2_id = x.M2.Id * 2,
                          })
                          .ToListAsync();
