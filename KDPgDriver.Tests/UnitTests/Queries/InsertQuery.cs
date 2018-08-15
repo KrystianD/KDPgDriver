@@ -78,7 +78,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.Enum2)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(enum2) VALUES ('A'::""Schema1"".enum2) RETURNING id");
+      Utils.AssertRawQuery(q, @"INSERT INTO public.model(enum2) VALUES ('A') RETURNING id");
     }
 
     [Fact]

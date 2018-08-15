@@ -18,7 +18,6 @@ namespace KDPgDriver.Utils
       switch (pgValue.Type) {
         case KDPgValueTypeEnum _:
           inlined = Helper.EscapePostgresValue(value);
-          inlined += $"::{pgValue.Type.PostgresType}";
           return true;
       }
 
