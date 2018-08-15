@@ -56,23 +56,23 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      RawQuery q = new RawQuery();
+      RawQuery rq = new RawQuery();
 
       var columns = _columns.Count == 0 ? AllColumnsWithoutAutoIncrement : _columns;
 
-      q.Append("INSERT INTO ");
+      rq.Append("INSERT INTO ");
 
-      q.AppendTableName(TableName, SchemaName ?? defaultSchema);
+      rq.AppendTableName(TableName, SchemaName ?? defaultSchema);
 
-      q.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
+      rq.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
 
-      q.Append(" VALUES ");
+      rq.Append(" VALUES ");
 
       bool first = true;
       foreach (var obj in _objects) {
         if (!first)
-          q.Append(",");
-        q.Append("(");
+          rq.Append(",");
+        rq.Append("(");
 
         for (int i = 0; i < columns.Count; i++) {
           var column = columns[i];
@@ -80,25 +80,26 @@ namespace KDPgDriver.Queries
           var npgValue = Helper.ConvertToNpgsql(column.Type, val);
 
           if (i > 0)
-            q.Append(",");
+            rq.Append(",");
 
-          q.Append(npgValue);
+          rq.Append(npgValue);
         }
 
-        q.Append(")");
+        rq.Append(")");
         first = false;
       }
 
       if (_onInsertConflict == OnInsertConflict.DoNothing) {
-        q.Append(" ON CONFLICT DO NOTHING ");
+        rq.Append(" ON CONFLICT DO NOTHING ");
       }
 
       if (TableModel.PrimaryKey != null) {
-        q.Append(" RETURNING ");
-        q.AppendColumnName(TableModel.PrimaryKey.Name);
+        rq.Append(" RETURNING ");
+        rq.AppendColumnName(TableModel.PrimaryKey.Name);
       }
 
-      return q;
+      rq.SkipExplicitColumnTableNames();
+      return rq;
     }
   }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -126,6 +127,7 @@ namespace KDPgDriver.Utils
 
     public RawQuery AppendColumn(KdPgColumnDescriptor column, TableNamePlaceholder tableAlias)
     {
+      Debug.Assert(tableAlias != null);
       _parts.Add(new QueryPart() {
           Column = new ColumnPart(column, tableAlias),
       });
@@ -247,7 +249,12 @@ namespace KDPgDriver.Utils
 
     private string ResolvePlaceholder(RenderingContext ctx, RawQuery.TableNamePlaceholder placeholder)
     {
-      return ctx.Aliases.GetValueOrDefault(placeholder.Name, placeholder.Name);
+      var alias = ctx.Aliases.GetValueOrDefault(placeholder.Name, placeholder.Name);
+
+      if (alias == placeholder.Table.Name)
+        return null;
+
+      return alias;
     }
 
     private string RenderInto(ParametersContainer outParameters, RenderingContext ctx)
@@ -271,8 +278,8 @@ namespace KDPgDriver.Utils
         }
 
         if (part.Column != null) {
-          if (!ctx.skipExplicitColumnTableNames) {
-            var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
+          var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
+          if (alias != null) {
             sb.Append(Helper.QuoteObjectName(alias));
             sb.Append(".");
           }
@@ -307,8 +314,9 @@ namespace KDPgDriver.Utils
         }
 
         if (part.Column != null) {
-          if (!ctx.skipExplicitColumnTableNames) {
-            var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
+          // if (!ctx.skipExplicitColumnTableNames) {
+          var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
+          if (alias != null) {
             sb.Append(Helper.QuoteObjectName(alias));
             sb.Append(".");
           }

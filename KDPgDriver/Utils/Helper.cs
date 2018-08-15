@@ -20,27 +20,31 @@ namespace KDPgDriver.Utils
 {
   public class KdPgTableDescriptor
   {
+    private List<KdPgColumnDescriptor> _columns;
     public string Name { get; }
     public string Schema { get; }
     public Type ModelType { get; }
-    public List<KdPgColumnDescriptor> Columns { get; }
+
+    public List<KdPgColumnDescriptor> Columns
+    {
+      get => _columns;
+      set
+      {
+        _columns = value;
+        PrimaryKey = _columns.Find(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) > 0);
+      }
+    }
 
     // public readonly TypedExpression TypedExpression;
 
-    public KdPgColumnDescriptor PrimaryKey { get; }
+    public KdPgColumnDescriptor PrimaryKey { get; private set; }
 
-    public KdPgTableDescriptor(Type modelType, string name, string schema, List<KdPgColumnDescriptor> columns)
+    public KdPgTableDescriptor(Type modelType, string name, string schema)
     {
       ModelType = modelType;
       Name = name;
       Schema = schema;
-      Columns = columns;
-
-      PrimaryKey = columns.Find(x => (x.Flags & KDPgColumnFlagsEnum.PrimaryKey) > 0);
-
-      foreach (var column in columns) {
-        column.Table = this;
-      }
+      // Columns = columns;
 
       // TypedExpression = new TypedExpression(RawQuery.CreateTable(this), null);
     }
@@ -56,15 +60,16 @@ namespace KDPgDriver.Utils
 
     public readonly TypedExpression TypedExpression;
 
-    public KdPgColumnDescriptor(string name, KDPgColumnFlagsEnum flags, KDPgValueType type, PropertyInfo propertyInfo)
+    public KdPgColumnDescriptor(string name, KDPgColumnFlagsEnum flags, KDPgValueType type, PropertyInfo propertyInfo, KdPgTableDescriptor table)
     {
       Name = name;
       Flags = flags;
       Type = type;
       PropertyInfo = propertyInfo;
-
+      Table = table;
+      
       var rq = new RawQuery();
-      rq.AppendColumn(this, null);
+      rq.AppendColumn(this, new RawQuery.TableNamePlaceholder(table, table.Name));
       TypedExpression = new TypedExpression(rq, type);
     }
   }
@@ -373,11 +378,11 @@ namespace KDPgDriver.Utils
         var table = new KdPgTableDescriptor(
             modelType: tableType,
             name: tableAttribute.Name,
-            schema: tableAttribute.Schema,
-            columns: tableType.GetProperties()
-                              .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
-                              .Select(CreateColumnDescriptor).ToList()
-        );
+            schema: tableAttribute.Schema);
+
+        table.Columns = tableType.GetProperties()
+                                 .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
+                                 .Select(x => CreateColumnDescriptor(x, table)).ToList();
 
         foreach (var col in table.Columns) {
           PropertyInfoToColumnDesc[col.PropertyInfo] = col;
@@ -428,7 +433,7 @@ namespace KDPgDriver.Utils
       }
     }
 
-    private static KdPgColumnDescriptor CreateColumnDescriptor(PropertyInfo columnPropertyInfo)
+    private static KdPgColumnDescriptor CreateColumnDescriptor(PropertyInfo columnPropertyInfo, KdPgTableDescriptor table)
     {
       var columnAttribute = columnPropertyInfo.GetCustomAttribute<KDPgColumnAttribute>();
       if (columnAttribute == null)
@@ -438,7 +443,8 @@ namespace KDPgDriver.Utils
           name: columnAttribute.Name,
           flags: columnAttribute.Flags,
           type: CreateColumnDataType(columnPropertyInfo),
-          propertyInfo: columnPropertyInfo);
+          propertyInfo: columnPropertyInfo,
+          table: table);
     }
 
     private static readonly HashSet<char> ValidObjectNameChars = "abcdefghijklmnoprstuwxyz0123456789_".ToHashSet();

@@ -283,9 +283,7 @@ namespace KDPgDriver.Builders
 
       foreach (var fieldExpression in builder.Fields) {
         var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
-        var rq = new RawQuery();
-        rq.AppendColumn(column, null);
-        b.AddSelectPart(rq, column.Type);
+        b.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
         resultProcessor.UseColumn(column);
       }
 

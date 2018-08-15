@@ -20,7 +20,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                               M2 = b,
                           })
                           .Select()
-                          .Where(x => x.M2 != null);
+                          .Where(x => x.M2 != null && x.M1.Name == "Q");
 
       Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
@@ -28,7 +28,7 @@ SELECT
 FROM
   public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))
 WHERE 
-  NOT((t1) IS NULL)");
+  (NOT((t1) IS NULL)) AND ((t0.name) = ('Q'))");
     }
 
     [Fact]

@@ -267,19 +267,28 @@ namespace KDPgDriver.Utils
       if (isColumn) {
         var column = Helper.GetColumn(propertyInfo);
         jsonPath.Column = column;
+
+        var tableVarName = column.Table.Name; // use table name by default (non-join mode)
+        switch (exp) {
+          case MemberExpression memberExpression: // member access for combined mode (join)
+            tableVarName = memberExpression.Member.Name;
+            break;
+        }
+
         var rq = new RawQuery();
-        if (options == null || options.parameterToTableAlias == null || options.parameterToTableAlias.Count == 0)
-          rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, column.Table.Name));
+        if (options == null || options.parameterToTableAlias.Count == 0)
+          rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, tableVarName));
         else {
           switch (exp) {
-            case ParameterExpression parameterExpression:
-              rq.AppendColumn(column, options.parameterToTableAlias[parameterExpression.Name]);
+            case ParameterExpression parameterExpression: // lambda parameter
+              tableVarName = parameterExpression.Name;
               break;
-            case MemberExpression memberExpression:
-              rq.AppendColumn(column, options.parameterToTableAlias[memberExpression.Member.Name]);
+            case MemberExpression memberExpression: // member access for combined mode (join)
               break;
             default: throw new Exception("wrong node");
           }
+
+          rq.AppendColumn(column, options.parameterToTableAlias[tableVarName]);
         }
 
         return new TypedExpression(rq, column.Type);
