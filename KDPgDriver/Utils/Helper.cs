@@ -25,6 +25,8 @@ namespace KDPgDriver.Utils
     public Type ModelType { get; }
     public List<KdPgColumnDescriptor> Columns { get; }
 
+    // public readonly TypedExpression TypedExpression;
+
     public KdPgColumnDescriptor PrimaryKey { get; }
 
     public KdPgTableDescriptor(Type modelType, string name, string schema, List<KdPgColumnDescriptor> columns)
@@ -39,6 +41,8 @@ namespace KDPgDriver.Utils
       foreach (var column in columns) {
         column.Table = this;
       }
+
+      // TypedExpression = new TypedExpression(RawQuery.CreateTable(this), null);
     }
   }
 
@@ -59,7 +63,9 @@ namespace KDPgDriver.Utils
       Type = type;
       PropertyInfo = propertyInfo;
 
-      TypedExpression = new TypedExpression(RawQuery.CreateColumn(this), type);
+      var rq = new RawQuery();
+      rq.AppendColumn(this, null);
+      TypedExpression = new TypedExpression(rq, type);
     }
   }
 
@@ -160,6 +166,16 @@ namespace KDPgDriver.Utils
 
       if (q.Length == 0)
         throw new Exception("no prop info");
+
+      return ((JsonPropertyAttribute) q[0]).PropertyName;
+    }
+
+    public static string GetJsonPropertyNameOrNull(MemberInfo memberInfo)
+    {
+      var q = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), false);
+
+      if (q.Length == 0)
+        return null;
 
       return ((JsonPropertyAttribute) q[0]).PropertyName;
     }

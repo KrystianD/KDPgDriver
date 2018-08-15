@@ -8,7 +8,7 @@ namespace KDPgDriver.Builders
   public class UpdateStatementsBuilder<TModel>
   {
     internal readonly Dictionary<KdPgColumnDescriptor, TypedExpression> UpdateParts = new Dictionary<KdPgColumnDescriptor, TypedExpression>();
-    
+
     public bool IsEmpty => UpdateParts.Count == 0;
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
@@ -23,7 +23,7 @@ namespace KDPgDriver.Builders
     public UpdateStatementsBuilder<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
       NodeVisitor.JsonPropertyPath jsonPath;
-      var v = NodeVisitor.ProcessPath(field.Body as MemberExpression, out jsonPath);
+      var v = NodeVisitor.ProcessPath(null, field.Body as MemberExpression, out jsonPath);
 
       if (v.Type is KDPgValueTypeArray)
         AddUpdate(jsonPath.Column, src => ExpressionBuilders.ArrayAddItem(src, value));
@@ -46,7 +46,7 @@ namespace KDPgDriver.Builders
     private void AddUpdate(KdPgColumnDescriptor column, Func<TypedExpression, TypedExpression> template)
     {
       if (!UpdateParts.ContainsKey(column))
-        UpdateParts[column] = TypedExpression.FromColumn(column);
+        UpdateParts[column] = column.TypedExpression;
 
       UpdateParts[column] = template(UpdateParts[column]);
     }

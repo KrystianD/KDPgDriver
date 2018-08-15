@@ -19,13 +19,16 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                               M1 = a,
                               M2 = b,
                           })
-                          .Select();
+                          .Select()
+                          .Where(x => x.M2 != null);
 
-      Utils.AssertRawQuery(q, @"
+      Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
   t0.id,t0.name,t0.list_string,t0.list_string2,(t0.enum)::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t1.id,t1.name1,t1.model_id
 FROM
-  public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))");
+  public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))
+WHERE 
+  NOT((t1) IS NULL)");
     }
 
     [Fact]
@@ -42,7 +45,7 @@ FROM
                               M3_calc = x.M2.Id * 2,
                           });
 
-      Utils.AssertRawQuery(q, @"
+      Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
   t0.id,t0.name,t0.list_string,t0.list_string2,(t0.enum)::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t1.name1,(t1.id) * (2)
 FROM
@@ -65,7 +68,7 @@ FROM
                               x.T1.Name1,
                           });
 
-      Utils.AssertRawQuery(q, @"SELECT t0.id,t1.name1 FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id)) LEFT JOIN public.model3 t2 ON ((t0.id) = (t2.model_id))");
+      Utils.AssertRawQueryWithAliases(q, @"SELECT t0.id,t1.name1 FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id)) LEFT JOIN public.model3 t2 ON ((t0.id) = (t2.model_id))");
 
       var q2 = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3>(
                                (a, b) => a.Id == b.ModelId,
@@ -80,7 +83,30 @@ FROM
                                x.T1.Name,
                            });
 
-      Utils.AssertRawQuery(q2, @"SELECT t1.id,t0.name FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id)) LEFT JOIN public.model3 t2 ON ((t0.id) = (t2.model_id))");
+      Utils.AssertRawQueryWithAliases(q2, @"SELECT t1.id,t0.name FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id)) LEFT JOIN public.model3 t2 ON ((t0.id) = (t2.model_id))");
+    }
+
+    [Fact]
+    public void SelectMultipleSelf()
+    {
+      var q = BuildersJoin.FromMany<MyModel, MyModel>((a, b) => a.Id == b.Id)
+                          .Map((a, b) => new {
+                              M1 = b,
+                              M2 = a,
+                          })
+                          .Select(x => new {
+                              A = x.M1,
+                              B = x.M2,
+                          })
+                          .Where(x => x.M1 != null && x.M2 != null);
+
+      Utils.AssertRawQueryWithAliases(q, @"
+SELECT 
+  t1.id,t1.name,t1.list_string,t1.list_string2,(t1.enum)::text,(t1.list_enum)::text[],(t1.enum2)::text,t1.datetime,t1.json_object1,t1.json_model,t1.json_array1,t0.id,t0.name,t0.list_string,t0.list_string2,(t0.enum)::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1
+FROM
+  public.model t0 LEFT JOIN public.model t1 ON ((t0.id) = (t1.id))
+WHERE 
+  (NOT((t1) IS NULL)) AND (NOT((t0) IS NULL))");
     }
   }
 }

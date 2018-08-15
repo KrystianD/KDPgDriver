@@ -15,11 +15,13 @@ namespace KDPgDriver.Fluent
   public class TablesList
   {
     public List<TypedExpression> JoinExpressions = new List<TypedExpression>();
-    public List<KdPgTableDescriptor> Tables { get; } = new List<KdPgTableDescriptor>();
 
-    public void AddModel<T>(TypedExpression joinExpression = null)
+    // public List<KdPgTableDescriptor> Tables { get; } = new List<KdPgTableDescriptor>();
+    public List<RawQuery.TableNamePlaceholder> Tables { get; } = new List<RawQuery.TableNamePlaceholder>();
+
+    public void AddModel<T>(RawQuery.TableNamePlaceholder tableName, TypedExpression joinExpression = null)
     {
-      Tables.Add(Helper.GetTable<T>());
+      Tables.Add(tableName);
       JoinExpressions.Add(joinExpression);
     }
   }
@@ -66,19 +68,32 @@ namespace KDPgDriver.Fluent
     private readonly IQueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
 
+    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel1>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel2>(), null);
+
     public SelectMultipleQueryFluentBuilderPrep2(IQueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition)
     {
-      _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition);
+      var options = new NodeVisitor.EvaluationOptions();
+      options.parameterToTableAlias.Add(joinCondition.Parameters[0].Name, _p1);
+      options.parameterToTableAlias.Add(joinCondition.Parameters[1].Name, _p2);
+
+      _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition, options);
       _executor = executor;
     }
 
     public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TCombinedModel>> pr)
     {
+      var argsMap = ((NewExpression) pr.Body).Members.Zip(((NewExpression) pr.Body).Arguments).ToDictionary(x => x.Item2, x => x.Item1);
+      var inpParams = pr.Parameters.Select(x => argsMap[x].Name).ToList();
+
+      _p1.Name = inpParams[0];
+      _p2.Name = inpParams[1];
+
       if (pr == null) throw new ArgumentNullException(nameof(pr));
       TablesList tl = new TablesList();
-      tl.AddModel<TModel1>();
-      tl.AddModel<TModel2>(_joinCondition1);
+      tl.AddModel<TModel1>(_p1);
+      tl.AddModel<TModel2>(_p2, _joinCondition1);
       return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
     }
   }
@@ -89,22 +104,43 @@ namespace KDPgDriver.Fluent
     private readonly TypedExpression _joinCondition1;
     private readonly TypedExpression _joinCondition2;
 
+    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel1>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel2>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel3>(), null);
+
     public SelectMultipleQueryFluentBuilderPrep3(IQueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition1,
                                                  Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2)
     {
-      _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition1);
-      _joinCondition2 = NodeVisitor.VisitFuncExpression(joinCondition2);
+      var options = new NodeVisitor.EvaluationOptions();
+      options.parameterToTableAlias.Add(joinCondition1.Parameters[0].Name, _p1);
+      options.parameterToTableAlias.Add(joinCondition1.Parameters[1].Name, _p2);
+
+      _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition1, options);
+
+      options = new NodeVisitor.EvaluationOptions();
+      options.parameterToTableAlias.Add(joinCondition2.Parameters[0].Name, _p1);
+      options.parameterToTableAlias.Add(joinCondition2.Parameters[1].Name, _p2);
+      options.parameterToTableAlias.Add(joinCondition2.Parameters[2].Name, _p3);
+
+      _joinCondition2 = NodeVisitor.VisitFuncExpression(joinCondition2, options);
       _executor = executor;
     }
 
     public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TCombinedModel>> pr)
     {
+      var argsMap = ((NewExpression) pr.Body).Members.Zip(((NewExpression) pr.Body).Arguments).ToDictionary(x => x.Item2, x => x.Item1);
+      var inpParams = pr.Parameters.Select(x => argsMap[x].Name).ToList();
+
+      _p1.Name = inpParams[0];
+      _p2.Name = inpParams[1];
+      _p3.Name = inpParams[2];
+
       if (pr == null) throw new ArgumentNullException(nameof(pr));
       TablesList tl = new TablesList();
-      tl.AddModel<TModel1>();
-      tl.AddModel<TModel2>(_joinCondition1);
-      tl.AddModel<TModel3>(_joinCondition2);
+      tl.AddModel<TModel1>(_p1);
+      tl.AddModel<TModel2>(_p2, _joinCondition1);
+      tl.AddModel<TModel3>(_p3, _joinCondition2);
       return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
     }
   }

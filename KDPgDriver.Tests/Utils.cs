@@ -42,6 +42,24 @@ namespace KDPgDriver.Tests
 
       string query;
       ParametersContainer outParameters;
+
+      rq.SkipExplicitColumnTableNames();
+      rq.Render(out query, out outParameters);
+
+      expectedQuery = Regex.Replace(expectedQuery, "[ \n]+", " ").Trim();
+      query = Regex.Replace(query, "[ \n]+", " ").Trim();
+
+      Assert.Equal(expectedQuery, query);
+      CompareParameters(outParameters, parameters);
+    }
+
+    public static void AssertRawQueryWithAliases(RawQuery rq, string expectedQuery, params Param[] parameters)
+    {
+      if (expectedQuery == null) throw new ArgumentNullException(nameof(expectedQuery));
+
+      string query;
+      ParametersContainer outParameters;
+
       rq.Render(out query, out outParameters);
 
       expectedQuery = Regex.Replace(expectedQuery, "[ \n]+", " ").Trim();
@@ -55,6 +73,12 @@ namespace KDPgDriver.Tests
     {
       RawQuery rq = q.GetRawQuery(null);
       AssertRawQuery(rq, expectedQuery, parameters);
+    }
+
+    public static void AssertRawQueryWithAliases(IQuery q, string expectedQuery, params Param[] parameters)
+    {
+      RawQuery rq = q.GetRawQuery(null);
+      AssertRawQueryWithAliases(rq, expectedQuery, parameters);
     }
 
     public static void AssertRawQuery(IQuery q, IQuery q2, string expectedQuery, params Param[] parameters)
@@ -83,11 +107,11 @@ namespace KDPgDriver.Tests
       AssertRawQuery(q, q2, expectedQuery, parameters);
     }
 
-    public static void AssertRawQuery(IQuery q, WhereBuilder<MyModel> wb1, WhereBuilder<MyModel> wb2, string expectedQuery, params Param[] parameters)
-    {
-      var q2 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb1);
-      var q3 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb2);
-      AssertRawQuery(q, q2, q3, expectedQuery, parameters);
-    }
+    // public static void AssertRawQuery(IQuery q, WhereBuilder<MyModel> wb1, WhereBuilder<MyModel> wb2, string expectedQuery, params Param[] parameters)
+    // {
+    //   var q2 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb1);
+    //   var q3 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb2);
+    //   AssertRawQuery(q, q2, q3, expectedQuery, parameters);
+    // }
   }
 }

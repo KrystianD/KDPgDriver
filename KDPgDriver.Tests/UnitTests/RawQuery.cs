@@ -77,17 +77,20 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void WithColumn()
     {
+      var t1 = Helper.GetTable<MyModel>();
+      var t2 = Helper.GetTable<MyModel2>();
+
       var rq = new RawQuery();
-      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name));
+      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name), new RawQuery.TableNamePlaceholder(t1, "M1"));
       rq.Append(" = 123, ");
 
-      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name1));
+      rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name1), new RawQuery.TableNamePlaceholder(t2, "M2"));
       rq.Append(" = 456");
 
-      rq.ApplyAlias(Helper.GetTable<MyModel>(), "t1");
-      rq.ApplyAlias(Helper.GetTable<MyModel2>(), "t2");
+      rq.ApplyAlias("M1", "t1");
+      rq.ApplyAlias("M2", "t2");
 
-      Utils.AssertRawQuery(rq, "t1.name = 123, t2.name1 = 456");
+      Utils.AssertRawQueryWithAliases(rq, "t1.name = 123, t2.name1 = 456");
     }
   }
 }

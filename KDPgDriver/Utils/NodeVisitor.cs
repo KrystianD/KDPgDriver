@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography.X509Certificates;
 using KDPgDriver.Builders;
 
 namespace KDPgDriver.Utils
@@ -54,40 +55,47 @@ namespace KDPgDriver.Utils
       return Helper.GetColumn(EvaluateToPropertyInfo(exp));
     }
 
-    public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp)
+    public class EvaluationOptions
     {
-      return EvaluateToTypedExpression(exp.Body, exp.Parameters.First().Name);
+      public Dictionary<string, RawQuery.TableNamePlaceholder> parameterToTableAlias = new Dictionary<string, RawQuery.TableNamePlaceholder>();
     }
 
-    public static TypedExpression VisitFuncExpression<TModel, T>(Expression<Func<TModel, T>> exp)
-    {
-      return EvaluateToTypedExpression(exp.Body, exp.Parameters.First().Name);
-    }
-
-    public static TypedExpression VisitFuncExpression<TModel1, TModel2, T>(Expression<Func<TModel1, TModel2, T>> exp)
+    public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp, EvaluationOptions options = null)
     {
       var names = exp.Parameters.Select(x => x.Name);
-      return EvaluateToTypedExpression(exp.Body, names.ToHashSet());
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet(), options);
     }
 
-    public static TypedExpression VisitFuncExpression<TModel1, TModel2, TModel3, T>(Expression<Func<TModel1, TModel2, TModel3, T>> exp)
+    public static TypedExpression VisitFuncExpression<TModel, T>(Expression<Func<TModel, T>> exp, EvaluationOptions options = null)
     {
       var names = exp.Parameters.Select(x => x.Name);
-      return EvaluateToTypedExpression(exp.Body, names.ToHashSet());
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet(), options);
     }
 
-    public static TypedExpression EvaluateToTypedExpression(Expression expression, string inputParameterName)
+    public static TypedExpression VisitFuncExpression<TModel1, TModel2, T>(Expression<Func<TModel1, TModel2, T>> exp, EvaluationOptions options = null)
     {
-      return EvaluateToTypedExpression(expression, inputParameterName == null ? null : new HashSet<string> { inputParameterName });
+      var names = exp.Parameters.Select(x => x.Name);
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet(), options);
     }
 
-    public static TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null)
+    public static TypedExpression VisitFuncExpression<TModel1, TModel2, TModel3, T>(Expression<Func<TModel1, TModel2, TModel3, T>> exp, EvaluationOptions options = null)
+    {
+      var names = exp.Parameters.Select(x => x.Name);
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet(), options);
+    }
+
+    public static TypedExpression EvaluateToTypedExpression(Expression expression, string inputParameterName, EvaluationOptions options = null)
+    {
+      return EvaluateToTypedExpression(expression, inputParameterName == null ? null : new HashSet<string> { inputParameterName }, options);
+    }
+
+    public static TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null, EvaluationOptions options = null)
     {
       TypedExpression VisitInternal(Expression exp)
       {
         switch (exp) {
           case MemberExpression me:
-            return ProcessPath(me.Expression, (PropertyInfo) me.Member);
+            return ProcessPath(options, me.Expression, (PropertyInfo) me.Member);
 
           case ConstantExpression me:
           {
@@ -235,34 +243,59 @@ namespace KDPgDriver.Utils
       return VisitInternal(Evaluator.PartialEval(expression, inputParametersNames));
     }
 
-    internal static TypedExpression ProcessPath(MemberExpression me, out JsonPropertyPath jsonPath)
+    internal static TypedExpression ProcessPath(EvaluationOptions options, MemberExpression me, out JsonPropertyPath jsonPath)
     {
-      return ProcessPath(me.Expression, (PropertyInfo) me.Member, out jsonPath);
+      return ProcessPath(options, me.Expression, (PropertyInfo) me.Member, out jsonPath);
     }
 
-    private static TypedExpression ProcessPath(Expression exp, PropertyInfo propertyInfo) => ProcessPath(exp, propertyInfo, out _);
+    private static TypedExpression ProcessPath(EvaluationOptions options, Expression exp, PropertyInfo propertyInfo) => ProcessPath(options, exp, propertyInfo, out _);
 
-    private static TypedExpression ProcessPath(Expression exp, PropertyInfo propertyInfo, out JsonPropertyPath jsonPath)
+    private static TypedExpression ProcessPath(EvaluationOptions options, Expression exp, PropertyInfo propertyInfo, out JsonPropertyPath jsonPath)
     {
       jsonPath = new JsonPropertyPath();
-      return ProcessPathInternal(exp, propertyInfo, jsonPath);
+      return ProcessPathInternal(options, exp, propertyInfo, jsonPath);
     }
 
-    private static TypedExpression ProcessPathInternal(Expression exp, PropertyInfo propertyInfo, JsonPropertyPath jsonPath)
+    private static TypedExpression ProcessPathInternal(EvaluationOptions options, Expression exp, PropertyInfo propertyInfo, JsonPropertyPath jsonPath)
     {
       bool isColumn = Helper.IsColumn(propertyInfo);
+      bool isTable = Helper.IsTable(propertyInfo.PropertyType);
+      string fieldName = Helper.GetJsonPropertyNameOrNull(propertyInfo);
+      bool isJsonProperty = fieldName != null;
+
 
       if (isColumn) {
         var column = Helper.GetColumn(propertyInfo);
         jsonPath.Column = column;
-        return column.TypedExpression;
+        var rq = new RawQuery();
+        if (options == null || options.parameterToTableAlias == null || options.parameterToTableAlias.Count == 0)
+          rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, column.Table.Name));
+        else {
+          switch (exp) {
+            case ParameterExpression parameterExpression:
+              rq.AppendColumn(column, options.parameterToTableAlias[parameterExpression.Name]);
+              break;
+            case MemberExpression memberExpression:
+              rq.AppendColumn(column, options.parameterToTableAlias[memberExpression.Member.Name]);
+              break;
+            default: throw new Exception("wrong node");
+          }
+        }
+
+        return new TypedExpression(rq, column.Type);
       }
-      else {
-        string fieldName = Helper.GetJsonPropertyName(propertyInfo);
+      else if (isTable) {
+        var table = Helper.GetTable(propertyInfo.PropertyType);
+
+        var rq = new RawQuery();
+        rq.AppendTable(new RawQuery.TableNamePlaceholder(table, propertyInfo.Name));
+        return new TypedExpression(rq, null);
+      }
+      else if (isJsonProperty) {
         var fieldType = Helper.GetJsonPropertyType(propertyInfo);
 
         if (exp is MemberExpression memberExpression) {
-          TypedExpression parentField = ProcessPathInternal(memberExpression.Expression, (PropertyInfo) memberExpression.Member, jsonPath);
+          TypedExpression parentField = ProcessPathInternal(options, memberExpression.Expression, (PropertyInfo) memberExpression.Member, jsonPath);
           jsonPath.JsonPath.Add(fieldName);
 
           RawQuery rq = new RawQuery();
@@ -286,6 +319,9 @@ namespace KDPgDriver.Utils
           return new TypedExpression(rq, fieldType);
         }
         else { throw new Exception("invalid path"); }
+      }
+      else {
+        throw new Exception("invalid expression");
       }
     }
 

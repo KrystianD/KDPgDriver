@@ -147,7 +147,7 @@ namespace KDPgDriver.Builders
     }
 
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
-    private readonly List<KdPgTableDescriptor> _tables = new List<KdPgTableDescriptor>();
+    private readonly List<RawQuery.TableNamePlaceholder> _tables = new List<RawQuery.TableNamePlaceholder>();
     private static List<TypedExpression> _leftJoins;
 
     private IResultProcessor ResultProcessor { get; set; }
@@ -158,8 +158,13 @@ namespace KDPgDriver.Builders
 
       var b = new SelectFromBuilder();
 
-      foreach (var table in tablesList.Tables)
+      var options = new NodeVisitor.EvaluationOptions();
+      foreach (var table in tablesList.Tables) {
         b.AddTable(table);
+        options.parameterToTableAlias.Add(table.Name, table);
+      }
+
+      var tableToPlaceholder = tablesList.Tables.ToDictionary(x => x.Name);
 
       TypedExpression exp;
       switch (prBody.Body) {
@@ -173,16 +178,21 @@ namespace KDPgDriver.Builders
 
           foreach (var (member, argExpression) in members.Zip(args)) {
             if (argExpression is MemberExpression memberExpression && Helper.IsTable(memberExpression.Type)) {
-              var table = Helper.GetTable(memberExpression.Type);
-
-              foreach (var column in table.Columns)
-                b.AddSelectPart(column.TypedExpression.RawQuery, column.PropertyInfo, column.Type);
+              
+              var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
+              var table = tablePlaceholder.Table;
+              
+              foreach (var column in table.Columns) {
+                var rq = new RawQuery();
+                rq.AppendColumn(column, tablePlaceholder);
+                b.AddSelectPart(rq, column.Type);
+              }
 
               resultProcessor.AddModelEntry(table);
             }
             else {
-              exp = NodeVisitor.EvaluateToTypedExpression(argExpression);
-              b.AddSelectPart(exp.RawQuery, member, exp.Type);
+              exp = NodeVisitor.EvaluateToTypedExpression(argExpression, (string) null, options);
+              b.AddSelectPart(exp.RawQuery, exp.Type);
               resultProcessor.AddMemberEntry(exp.Type);
             }
           }
@@ -193,7 +203,7 @@ namespace KDPgDriver.Builders
         default:
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
-          b.AddSelectPart(exp.RawQuery, null, exp.Type);
+          b.AddSelectPart(exp.RawQuery, exp.Type);
           b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
 
           break;
@@ -213,10 +223,14 @@ namespace KDPgDriver.Builders
       foreach (var table in tablesList.Tables) {
         b.AddTable(table);
 
-        pr.AddModelEntry(table);
+        pr.AddModelEntry(table.Table);
 
-        foreach (var column in table.Columns)
-          b.AddSelectPart(column.TypedExpression.RawQuery, column.PropertyInfo, column.Type);
+        foreach (var column in table.Table.Columns) {
+          var rq = new RawQuery();
+          rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, table.Name));
+
+          b.AddSelectPart(rq, column.Type);
+        }
       }
 
       b.ResultProcessor = pr;
@@ -241,7 +255,7 @@ namespace KDPgDriver.Builders
 
           foreach (var (member, argExpression) in members.Zip(args)) {
             exp = NodeVisitor.EvaluateToTypedExpression(argExpression);
-            b.AddSelectPart(exp.RawQuery, member, exp.Type);
+            b.AddSelectPart(exp.RawQuery, exp.Type);
             resultProcessor.AddMemberEntry(exp.Type);
           }
 
@@ -251,7 +265,7 @@ namespace KDPgDriver.Builders
         default:
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
-          b.AddSelectPart(exp.RawQuery, null, exp.Type);
+          b.AddSelectPart(exp.RawQuery, exp.Type);
           b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
 
           break;
@@ -269,7 +283,9 @@ namespace KDPgDriver.Builders
 
       foreach (var fieldExpression in builder.Fields) {
         var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
-        b.AddSelectPart(RawQuery.CreateColumn(column), column.PropertyInfo, column.Type);
+        var rq = new RawQuery();
+        rq.AppendColumn(column, null);
+        b.AddSelectPart(rq, column.Type);
         resultProcessor.UseColumn(column);
       }
 
@@ -284,7 +300,7 @@ namespace KDPgDriver.Builders
       b.AddTable(Helper.GetTable<TModel>());
 
       foreach (var column in Helper.GetTable(typeof(TModel)).Columns)
-        b.AddSelectPart(column.TypedExpression.RawQuery, column.PropertyInfo, column.Type);
+        b.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
 
       b.ResultProcessor = new ModelResultProcessor<TModel>();
 
@@ -313,18 +329,20 @@ namespace KDPgDriver.Builders
       int tableNum = 0;
       // bool firstTable = true;
       if (_tables.Count > 1) {
-        var firstTable = _tables[0];
+        var firstTable = _tables[0].Table;
         string alias = $"t{tableNum}";
         rq.AppendTableName(firstTable.Name, firstTable.Schema ?? defaultSchema, alias);
-        rq.ApplyAlias(firstTable, alias);
+        rq.ApplyAlias(_tables[0].Name, alias);
         tableNum++;
 
-        foreach (var table in _tables.Skip(1)) {
+        foreach (var _table in _tables.Skip(1)) {
+          var table = _table.Table;
+
           rq.Append(" LEFT JOIN ");
-          
+
           alias = $"t{tableNum}";
           rq.AppendTableName(table.Name, table.Schema ?? defaultSchema, alias);
-          rq.ApplyAlias(table, alias);
+          rq.ApplyAlias(_table.Name, alias);
 
           rq.Append(" ON ");
           rq.AppendSurround(_leftJoins[tableNum].RawQuery);
@@ -333,9 +351,11 @@ namespace KDPgDriver.Builders
         }
       }
       else {
-        rq.AppendTableName(_tables[0].Name, _tables[0].Schema ?? defaultSchema);
+        rq.AppendTableName(_tables[0].Name, _tables[0].Table.Schema ?? defaultSchema);
       }
 
+      if (_tables.Count == 1)
+        rq.SkipExplicitColumnTableNames();
       return rq;
     }
 
@@ -345,12 +365,17 @@ namespace KDPgDriver.Builders
     }
 
     // helpers
-    private void AddTable(KdPgTableDescriptor table)
+    private void AddTable(RawQuery.TableNamePlaceholder table)
     {
       _tables.Add(table);
     }
 
-    private void AddSelectPart(RawQuery exp, PropertyInfo member, KDPgValueType type)
+    private void AddTable(KdPgTableDescriptor table)
+    {
+      _tables.Add(new RawQuery.TableNamePlaceholder(table, table.Name));
+    }
+
+    private void AddSelectPart(RawQuery exp, KDPgValueType type)
     {
       _columns.Add(new ResultColumnDef() {
           RawQuery = exp,

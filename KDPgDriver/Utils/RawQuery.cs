@@ -11,13 +11,42 @@ namespace KDPgDriver.Utils
     {
       public StringBuilder Text;
       public int ParamIdx = -1;
+
       public RawQuery RawQuery;
-      public KdPgColumnDescriptor Column;
+
+      public ColumnPart Column;
+      public TableNamePlaceholder Table;
     }
+
+    public class TableNamePlaceholder
+    {
+      public KdPgTableDescriptor Table;
+      public string Name;
+
+      public TableNamePlaceholder(KdPgTableDescriptor table, string name)
+      {
+        this.Table = table;
+        this.Name = name;
+      }
+    }
+
+    public class ColumnPart
+    {
+      public KdPgColumnDescriptor Column;
+      public TableNamePlaceholder TablePlaceholder;
+
+      public ColumnPart(KdPgColumnDescriptor column, TableNamePlaceholder tablePlaceholder)
+      {
+        Column = column;
+        TablePlaceholder = tablePlaceholder;
+      }
+    }
+
 
     private class RenderingContext
     {
-      public Dictionary<KdPgTableDescriptor, string> Aliases;
+      public Dictionary<string, string> Aliases;
+      public bool skipExplicitColumnTableNames;
     }
 
     private bool _isSimple;
@@ -26,11 +55,12 @@ namespace KDPgDriver.Utils
 
     public bool IsEmpty => _parts.Count == 0;
 
-    private readonly Dictionary<KdPgTableDescriptor, string> _aliases = new Dictionary<KdPgTableDescriptor, string>();
+    private readonly Dictionary<string, string> _aliases = new Dictionary<string, string>();
+    private bool _skipExplicitColumnTableNames;
 
-    public void ApplyAlias(KdPgTableDescriptor table, string alias)
+    public void ApplyAlias(string table, string newAlias)
     {
-      _aliases[table] = alias;
+      _aliases[table] = newAlias;
     }
 
     public RawQuery MarkSimple()
@@ -86,10 +116,18 @@ namespace KDPgDriver.Utils
       return this;
     }
 
-    public RawQuery AppendColumn(KdPgColumnDescriptor column)
+    public RawQuery AppendTable(TableNamePlaceholder alias)
     {
       _parts.Add(new QueryPart() {
-          Column = column,
+          Table = alias,
+      });
+      return this;
+    }
+
+    public RawQuery AppendColumn(KdPgColumnDescriptor column, TableNamePlaceholder tableAlias)
+    {
+      _parts.Add(new QueryPart() {
+          Column = new ColumnPart(column, tableAlias),
       });
       return this;
     }
@@ -146,7 +184,7 @@ namespace KDPgDriver.Utils
         Append($"{Helper.QuoteObjectName(schema)}.{Helper.QuoteObjectName(tableName)}");
 
       if (alias != null)
-        Append(" ", alias);
+        Append(" ", Helper.QuoteObjectName(alias));
 
       return this;
     }
@@ -154,6 +192,12 @@ namespace KDPgDriver.Utils
     public RawQuery AppendColumnName(string columnName)
     {
       Append(Helper.QuoteObjectName(columnName));
+      return this;
+    }
+
+    public RawQuery AppendObjectName(string name)
+    {
+      Append(Helper.QuoteObjectName(name));
       return this;
     }
 
@@ -195,8 +239,15 @@ namespace KDPgDriver.Utils
     {
       var ctx = new RenderingContext();
       ctx.Aliases = _aliases;
+      ctx.skipExplicitColumnTableNames = _skipExplicitColumnTableNames;
       outParameters = new ParametersContainer();
       query = RenderInto(outParameters, ctx);
+    }
+
+
+    private string ResolvePlaceholder(RenderingContext ctx, RawQuery.TableNamePlaceholder placeholder)
+    {
+      return ctx.Aliases.GetValueOrDefault(placeholder.Name, placeholder.Name);
     }
 
     private string RenderInto(ParametersContainer outParameters, RenderingContext ctx)
@@ -211,14 +262,22 @@ namespace KDPgDriver.Utils
         if (part.Text != null)
           sb.Append(part.Text);
 
+        if (part.Table != null) {
+          var alias = ResolvePlaceholder(ctx, part.Table);
+          if (alias != null)
+            sb.Append(Helper.QuoteObjectName(alias));
+          else
+            sb.Append(Helper.QuoteTable(part.Table.Table.Name, part.Table.Table.Schema));
+        }
+
         if (part.Column != null) {
-          var alias = ctx.Aliases.GetValueOrDefault(part.Column.Table);
-          if (alias != null) {
+          if (!ctx.skipExplicitColumnTableNames) {
+            var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
             sb.Append(Helper.QuoteObjectName(alias));
             sb.Append(".");
           }
 
-          sb.Append(Helper.QuoteObjectName(part.Column.Name));
+          sb.Append(Helper.QuoteObjectName(part.Column.Column.Name));
         }
 
         if (part.ParamIdx != -1)
@@ -239,14 +298,22 @@ namespace KDPgDriver.Utils
         if (part.Text != null)
           sb.Append(part.Text);
 
+        if (part.Table != null) {
+          var alias = ResolvePlaceholder(ctx, part.Table);
+          if (alias != null)
+            sb.Append(Helper.QuoteObjectName(alias));
+          else
+            sb.Append(Helper.QuoteTable(part.Table.Table.Name, part.Table.Table.Schema));
+        }
+
         if (part.Column != null) {
-          var alias = ctx.Aliases.GetValueOrDefault(part.Column.Table);
-          if (alias != null) {
+          if (!ctx.skipExplicitColumnTableNames) {
+            var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
             sb.Append(Helper.QuoteObjectName(alias));
             sb.Append(".");
           }
 
-          sb.Append(Helper.QuoteObjectName(part.Column.Name));
+          sb.Append(Helper.QuoteObjectName(part.Column.Column.Name));
         }
 
         else if (part.ParamIdx != -1)
@@ -283,11 +350,22 @@ namespace KDPgDriver.Utils
       return rq;
     }
 
-    public static RawQuery CreateColumn(KdPgColumnDescriptor column)
+    // public static RawQuery CreateColumn(KdPgColumnDescriptor column)
+    // {
+    //   var rq = new RawQuery();
+    //   rq.AppendColumn(column);
+    //   return rq;
+    // }
+
+    // public static RawQuery CreateTable(KdPgTableDescriptor table)
+    // {
+    //   var rq = new RawQuery();
+    //   rq.AppendTable(table);
+    //   return rq;
+    // }
+    public void SkipExplicitColumnTableNames()
     {
-      var rq = new RawQuery();
-      rq.AppendColumn(column);
-      return rq;
+      _skipExplicitColumnTableNames = true;
     }
   }
 }
