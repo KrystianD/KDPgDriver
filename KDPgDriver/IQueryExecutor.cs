@@ -30,7 +30,9 @@ namespace KDPgDriver
         Expression<Func<TModel1, TModel2, bool>> joinCondition1,
         Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2);
 
-    // SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> FromMany<TModel1, TModel2, TModel3, TModel4>();
-    // SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5> FromMany<TModel1, TModel2, TModel3, TModel4, TModel5>();
+    SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> FromMany<TModel1, TModel2, TModel3, TModel4>(
+        Expression<Func<TModel1, TModel2, bool>> joinCondition1,
+        Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2,
+        Expression<Func<TModel1, TModel2, TModel3, TModel4, bool>> joinCondition3);
   }
 }

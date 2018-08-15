@@ -84,6 +84,12 @@ namespace KDPgDriver.Utils
       return EvaluateToTypedExpression(exp.Body, names.ToHashSet(), options);
     }
 
+    public static TypedExpression VisitFuncExpression<TModel1, TModel2, TModel3, TModel4, T>(Expression<Func<TModel1, TModel2, TModel3, TModel4, T>> exp, EvaluationOptions options = null)
+    {
+      var names = exp.Parameters.Select(x => x.Name);
+      return EvaluateToTypedExpression(exp.Body, names.ToHashSet(), options);
+    }
+
     public static TypedExpression EvaluateToTypedExpression(Expression expression, string inputParameterName, EvaluationOptions options = null)
     {
       return EvaluateToTypedExpression(expression, inputParameterName == null ? null : new HashSet<string> { inputParameterName }, options);

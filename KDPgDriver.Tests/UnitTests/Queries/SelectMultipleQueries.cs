@@ -53,7 +53,7 @@ FROM
     }
 
     [Fact]
-    public void SelectMultipleLeftJoin()
+    public void SelectMultiple3()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3>(
                               (a, b) => a.Id == b.ModelId,
@@ -84,6 +84,30 @@ FROM
                            });
 
       Utils.AssertRawQueryWithAliases(q2, @"SELECT t1.id,t0.name FROM public.model t0 LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id)) LEFT JOIN public.model3 t2 ON ((t0.id) = (t2.model_id))");
+    }
+
+    [Fact]
+    public void SelectMultiple4()
+    {
+      var q = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3, MyModel3>(
+                              (a, b) => a.Id == b.ModelId,
+                              (a, b, c) => a.Id == c.ModelId,
+                              (a, b, c, d) => a.Id == d.ModelId)
+                          .Map((a, b, c, d) => new {
+                              T0 = a,
+                              T1 = b,
+                              T2 = c,
+                              T3 = d,
+                          })
+                          .Select(x => 0);
+
+      Utils.AssertRawQueryWithAliases(q, @"
+SELECT 0
+FROM public.model t0
+LEFT JOIN public.model2 t1 ON ((t0.id) = (t1.model_id))
+LEFT JOIN public.model3 t2 ON ((t0.id) = (t2.model_id))
+LEFT JOIN public.model3 t3 ON ((t0.id) = (t3.model_id))
+");
     }
 
     [Fact]
