@@ -195,13 +195,12 @@ namespace KDPgDriver.Builders
               resultProcessor.AddMemberEntry(exp.Type);
             }
           }
-
           break;
         }
 
         case MemberExpression memberExpression:
         {
-          var resultProcessor = new AnonymousTypeResultProcessor<TNewModel>();
+          var resultProcessor = new ModelResultProcessor<TNewModel>();
           b.ResultProcessor = resultProcessor;
 
           var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
@@ -211,9 +210,9 @@ namespace KDPgDriver.Builders
             var rq = new RawQuery();
             rq.AppendColumn(column, tablePlaceholder);
             b.AddSelectPart(rq, column.Type);
+            resultProcessor.UseColumn(column);
           }
 
-          resultProcessor.AddModelEntry(table);
           break;
         }
 
