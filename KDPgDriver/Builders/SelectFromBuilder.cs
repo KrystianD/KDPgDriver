@@ -178,10 +178,9 @@ namespace KDPgDriver.Builders
 
           foreach (var (member, argExpression) in members.Zip(args)) {
             if (argExpression is MemberExpression memberExpression && Helper.IsTable(memberExpression.Type)) {
-              
               var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
               var table = tablePlaceholder.Table;
-              
+
               foreach (var column in table.Columns) {
                 var rq = new RawQuery();
                 rq.AppendColumn(column, tablePlaceholder);
@@ -200,12 +199,29 @@ namespace KDPgDriver.Builders
           break;
         }
 
+        case MemberExpression memberExpression:
+        {
+          var resultProcessor = new AnonymousTypeResultProcessor<TNewModel>();
+          b.ResultProcessor = resultProcessor;
+
+          var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
+          var table = tablePlaceholder.Table;
+
+          foreach (var column in table.Columns) {
+            var rq = new RawQuery();
+            rq.AppendColumn(column, tablePlaceholder);
+            b.AddSelectPart(rq, column.Type);
+          }
+
+          resultProcessor.AddModelEntry(table);
+          break;
+        }
+
         default:
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
           b.AddSelectPart(exp.RawQuery, exp.Type);
           b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
-
           break;
       }
 

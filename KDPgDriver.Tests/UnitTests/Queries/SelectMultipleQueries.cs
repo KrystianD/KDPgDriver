@@ -132,5 +132,22 @@ FROM
 WHERE 
   (NOT((t1) IS NULL)) AND (NOT((t0) IS NULL))");
     }
+
+    [Fact]
+    public void SelectMultipleSingleReturn()
+    {
+      var q = BuildersJoin.FromMany<MyModel, MyModel>((a, b) => a.Id == b.Id)
+                          .Map((a, b) => new {
+                              M1 = a,
+                              M2 = b,
+                          })
+                          .Select(x => x.M1);
+
+      Utils.AssertRawQueryWithAliases(q, @"
+SELECT 
+  t0.id,t0.name,t0.list_string,t0.list_string2,(t0.enum)::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1
+FROM
+  public.model t0 LEFT JOIN public.model t1 ON ((t0.id) = (t1.id))");
+    }
   }
 }
