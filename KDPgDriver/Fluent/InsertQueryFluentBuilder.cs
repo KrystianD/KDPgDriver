@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using KDPgDriver.Builders;
@@ -55,6 +56,18 @@ namespace KDPgDriver.Fluent
     public async Task<InsertQueryResult> ExecuteAsync()
     {
       return await _executor.QueryAsync(GetInsertQuery());
+    }
+
+    public async Task<int> ExecuteForIdAsync()
+    {
+      var res = await _executor.QueryAsync(GetInsertQuery());
+      Debug.Assert(res.LastInsertId != null, "res.LastInsertId != null");
+      return res.LastInsertId.Value;
+    }
+
+    public void Schedule()
+    {
+      _executor.ScheduleQuery(GetInsertQuery());
     }
 
     public RawQuery GetRawQuery(string defaultSchema = null)

@@ -68,6 +68,11 @@ namespace KDPgDriver.Fluent
       await _executor.QueryAsync(GetUpdateQuery());
     }
 
+    public void Schedule()
+    {
+      _executor.ScheduleQuery(GetUpdateQuery());
+    }
+
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
       return GetUpdateQuery().GetRawQuery(defaultSchema);

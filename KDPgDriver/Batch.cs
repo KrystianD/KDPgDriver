@@ -69,10 +69,16 @@ namespace KDPgDriver
     private readonly RawQuery _combinedRawQuery = new RawQuery();
     private readonly List<IOperation> _operations = new List<IOperation>();
 
+    public void ScheduleQuery(IQuery query)
+    {
+      _combinedRawQuery.Append(query.GetRawQuery(_driver.Schema));
+      _combinedRawQuery.Append(";\n");
+    }
+
     public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
-      _combinedRawQuery.Append("; ");
+      _combinedRawQuery.Append(";\n");
 
       var op = new Operation<SelectQueryResult<TOut>>();
       op.ResultProcessorFunc = async reader =>
@@ -90,7 +96,7 @@ namespace KDPgDriver
     public Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
-      _combinedRawQuery.Append("; ");
+      _combinedRawQuery.Append(";\n");
 
       var op = new Operation<InsertQueryResult>();
       op.ResultProcessorFunc = async reader =>
@@ -109,7 +115,7 @@ namespace KDPgDriver
     public Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
-      _combinedRawQuery.Append("; ");
+      _combinedRawQuery.Append(";\n");
 
       var op = new Operation<UpdateQueryResult>();
       op.ResultProcessorFunc = async reader =>
@@ -125,7 +131,7 @@ namespace KDPgDriver
     public Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
-      _combinedRawQuery.Append("; ");
+      _combinedRawQuery.Append(";\n");
 
       var op = new Operation<DeleteQueryResult>();
       op.ResultProcessorFunc = async reader =>
