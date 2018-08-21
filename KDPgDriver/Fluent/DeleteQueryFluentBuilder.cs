@@ -46,6 +46,11 @@ namespace KDPgDriver.Fluent
       await _executor.QueryAsync(GetDeleteQuery());
     }
 
+    public void Schedule()
+    {
+      _executor.ScheduleQuery(GetDeleteQuery());
+    }
+
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
       return GetDeleteQuery().GetRawQuery(defaultSchema);

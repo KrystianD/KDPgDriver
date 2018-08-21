@@ -99,6 +99,11 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
     public Batch CreateTransactionBatch(KDPgIsolationLevel isolationLevel = KDPgIsolationLevel.ReadCommitted) => Batch.CreateDedicatedTransaction(this, isolationLevel);
 
+    public void ScheduleQuery(IQuery query)
+    {
+      throw new Exception("Schedule works only for batch query");
+    }
+    
     public async Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
     {
       using (var connection = await CreateConnection()) {
