@@ -22,6 +22,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
+    public void UpdateSetFieldExpression()
+    {
+      var q = Builders<MyModel>.Update()
+                               .SetField(x => x.Name, x => x.Name + "A");
+
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET name = (name) || ('A')");
+    }
+
+    [Fact]
     public void UpdateSetFieldDateTime()
     {
       var date = (DateTime?) DateTime.Parse("2018-01-01 12:34");

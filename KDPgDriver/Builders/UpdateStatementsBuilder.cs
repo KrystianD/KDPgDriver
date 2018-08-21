@@ -19,6 +19,15 @@ namespace KDPgDriver.Builders
       AddUpdate(column, src => TypedExpression.FromPgValue(npgValue));
       return this;
     }
+    
+    public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, Expression<Func<TModel, TValue>> valueExpression)
+    {
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      var exp = NodeVisitor.VisitFuncExpression(valueExpression);
+
+      AddUpdate(column, src => exp);
+      return this;
+    }
 
     public UpdateStatementsBuilder<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {

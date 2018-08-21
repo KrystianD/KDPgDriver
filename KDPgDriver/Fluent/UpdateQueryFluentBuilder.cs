@@ -44,6 +44,12 @@ namespace KDPgDriver.Fluent
       _updateStatementsBuilder.SetField(field, value);
       return this;
     }
+    
+    public UpdateQueryFluentBuilder1<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, Expression<Func<TModel, TValue>> valueExpression)
+    {
+      _updateStatementsBuilder.SetField(field, valueExpression);
+      return this;
+    }
 
     public UpdateQueryFluentBuilder1<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
