@@ -22,6 +22,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
+    public void UpdateSetFieldNull()
+    {
+      var q = Builders<MyModel>.Update()
+                               .UnsetField(x => x.Name);
+
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET name = NULL");
+    }
+
+    [Fact]
     public void UpdateSetFieldExpression()
     {
       var q = Builders<MyModel>.Update()

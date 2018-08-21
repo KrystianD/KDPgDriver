@@ -39,6 +39,12 @@ namespace KDPgDriver.Fluent
     }
 
     // Update
+    public UpdateQueryFluentBuilder1<TModel> UnsetField<TValue>(Expression<Func<TModel, TValue>> field)
+    {
+      _updateStatementsBuilder.UnsetField(field);
+      return this;
+    }
+    
     public UpdateQueryFluentBuilder1<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       _updateStatementsBuilder.SetField(field, value);

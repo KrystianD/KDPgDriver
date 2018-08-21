@@ -11,6 +11,14 @@ namespace KDPgDriver.Builders
 
     public bool IsEmpty => UpdateParts.Count == 0;
 
+    public UpdateStatementsBuilder<TModel> UnsetField<TValue>(Expression<Func<TModel, TValue>> field)
+    {
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+
+      AddUpdate(column, src => TypedExpression.FromPgValue(PgValue.Null));
+      return this;
+    }
+    
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
