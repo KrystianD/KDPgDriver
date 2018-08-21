@@ -9,7 +9,7 @@ namespace KDPgDriver.Utils
   {
     private readonly List<Tuple<object, NpgsqlDbType?>> _params = new List<Tuple<object, NpgsqlDbType?>>();
 
-    public static bool TryInline(Helper.PgValue pgValue, out string inlined)
+    public static bool TryInline(PgValue pgValue, out string inlined)
     {
       inlined = null;
 
@@ -42,7 +42,7 @@ namespace KDPgDriver.Utils
       return false;
     }
 
-    public string GetNextParam(Helper.PgValue pgValue)
+    public string GetNextParam(PgValue pgValue)
     {
       object value = pgValue.Value;
 
@@ -50,8 +50,8 @@ namespace KDPgDriver.Utils
 
       var name = $"@{idx}";
       if (pgValue.Type != null)
-        name += $"::{pgValue.Type.PostgresType}";
-      _params.Add(Tuple.Create(value, pgValue.Type?.NpgsqlType));
+        name += $"::{pgValue.Type.PostgresTypeName}";
+      _params.Add(Tuple.Create(value, pgValue.Type?.NpgsqlDbType));
       return name;
     }
 

@@ -7,10 +7,9 @@ namespace KDPgDriver.Queries
 
   public class DeleteQuery<TModel> : IDeleteQuery
   {
-    private readonly string TableName = Helper.GetTableName(typeof(TModel));
-    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
-    
-    private readonly WhereBuilder<TModel>  _whereBuilder;
+    private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
+
+    private readonly WhereBuilder<TModel> _whereBuilder;
 
     public DeleteQuery(WhereBuilder<TModel> whereBuilder)
     {
@@ -19,11 +18,11 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = SchemaName ?? defaultSchema;
+      string schema = Table.Schema ?? defaultSchema;
 
       RawQuery rq = new RawQuery();
       rq.Append("DELETE FROM ")
-        .AppendTableName(TableName, schema);
+        .AppendTableName(Table.Name, schema);
 
       var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {

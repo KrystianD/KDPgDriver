@@ -23,7 +23,7 @@ namespace KDPgDriver
       return $"{RawQuery}, {Type}";
     }
 
-    public static TypedExpression FromPgValue(Helper.PgValue value)
+    public static TypedExpression FromPgValue(PgValue value)
     {
       return new TypedExpression(RawQuery.Create(value), value.Type);
     }

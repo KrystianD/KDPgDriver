@@ -37,7 +37,7 @@ namespace KDPgDriver.Builders
 
     public object ParseResult(object[] values)
     {
-      return Helper.ConvertFromNpgsql(_type, values[0]);
+      return Helper.ConvertFromRawSqlValue(_type, values[0]);
     }
   }
 
@@ -55,7 +55,7 @@ namespace KDPgDriver.Builders
 
       for (var i = 0; i < _columns.Count; i++) {
         var col = _columns[i];
-        var val = Helper.ConvertFromNpgsql(col.Type, values[i]);
+        var val = Helper.ConvertFromRawSqlValue(col.Type, values[i]);
         col.PropertyInfo.SetValue(obj, val);
       }
 
@@ -103,14 +103,14 @@ namespace KDPgDriver.Builders
           var modelObj = Activator.CreateInstance(table.ModelType);
 
           foreach (var column in table.Columns) {
-            var val = Helper.ConvertFromNpgsql(column.Type, values[columnIdx++]);
+            var val = Helper.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
             column.PropertyInfo.SetValue(modelObj, val);
           }
 
           constructorParams[i] = modelObj;
         }
         else if (entry.MemberType != null) {
-          constructorParams[i] = Helper.ConvertFromNpgsql(entry.MemberType, values[columnIdx++]);
+          constructorParams[i] = Helper.ConvertFromRawSqlValue(entry.MemberType, values[columnIdx++]);
         }
         else
           throw new Exception();
@@ -333,7 +333,7 @@ namespace KDPgDriver.Builders
         if (!firstColumn)
           rq.Append(",");
         exp.MarkSimple();
-        rq.AppendWithCast(exp, type.PostgresFetchType == type.PostgresType ? null : type.PostgresFetchType);
+        rq.AppendWithCast(exp, type.PostgresFetchType == type.PostgresTypeName ? null : type.PostgresFetchType);
         firstColumn = false;
       }
 

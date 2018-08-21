@@ -7,8 +7,7 @@ namespace KDPgDriver.Queries
 
   public class UpdateQuery<TModel> : IUpdateQuery
   {
-    private readonly string TableName = Helper.GetTableName(typeof(TModel));
-    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
+    private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
 
     private readonly UpdateStatementsBuilder<TModel> _updateStatementsBuilder;
     private readonly WhereBuilder<TModel> _whereBuilder;
@@ -21,11 +20,11 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
-      string schema = SchemaName ?? defaultSchema;
+      string schema = Table.Schema ?? defaultSchema;
 
       RawQuery rq = new RawQuery();
       rq.Append("UPDATE ")
-        .AppendTableName(TableName, schema)
+        .AppendTableName(Table.Name, schema)
         .Append("\n");
 
       rq.Append("SET ");

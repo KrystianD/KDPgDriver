@@ -14,7 +14,7 @@ namespace KDPgDriver.Builders
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
-      var npgValue = Helper.ConvertToNpgsql(column.Type, value);
+      var npgValue = Helper.ConvertToPgValue(column.Type, value);
 
       AddUpdate(column, src => TypedExpression.FromPgValue(npgValue));
       return this;

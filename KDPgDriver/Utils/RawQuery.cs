@@ -52,7 +52,7 @@ namespace KDPgDriver.Utils
 
     private bool _isSimple;
     private readonly List<QueryPart> _parts = new List<QueryPart>();
-    private readonly List<Helper.PgValue> _parameters = new List<Helper.PgValue>();
+    private readonly List<PgValue> _parameters = new List<PgValue>();
 
     public bool IsEmpty => _parts.Count == 0;
 
@@ -93,7 +93,7 @@ namespace KDPgDriver.Utils
       return this;
     }
 
-    public RawQuery Append(Helper.PgValue value)
+    public RawQuery Append(PgValue value)
     {
       if (ParametersContainer.TryInline(value, out string inlined)) {
         Append(inlined);
@@ -156,7 +156,7 @@ namespace KDPgDriver.Utils
       return this;
     }
 
-    public RawQuery AppendSurround(Helper.PgValue value)
+    public RawQuery AppendSurround(PgValue value)
     {
       if (value.Value == null) {
         Append("NULL");
@@ -351,7 +351,7 @@ namespace KDPgDriver.Utils
       return rq;
     }
 
-    public static RawQuery Create(Helper.PgValue value)
+    public static RawQuery Create(PgValue value)
     {
       var rq = new RawQuery();
       rq.Append(value);

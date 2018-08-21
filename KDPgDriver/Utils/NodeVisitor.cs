@@ -324,9 +324,9 @@ namespace KDPgDriver.Utils
             rq2.AppendSurround(rq);
 
             if (fieldType == KDPgValueTypeString.Instance)
-              rq2.Append("::", fieldType.PostgresType);
+              rq2.Append("::", fieldType.PostgresTypeName);
             else
-              rq2.Append("::text::", fieldType.PostgresType);
+              rq2.Append("::text::", fieldType.PostgresTypeName);
 
             rq = rq2;
           }

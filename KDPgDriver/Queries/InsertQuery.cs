@@ -16,8 +16,7 @@ namespace KDPgDriver.Queries
 
   public class InsertQuery<TModel> : IInsertQuery
   {
-    private readonly string TableName = Helper.GetTableName(typeof(TModel));
-    private readonly string SchemaName = Helper.GetTableSchema(typeof(TModel));
+    private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
 
     private static readonly List<KdPgColumnDescriptor> AllColumnsWithoutAutoIncrement =
         Helper.GetTable(typeof(TModel)).Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
@@ -62,7 +61,7 @@ namespace KDPgDriver.Queries
 
       rq.Append("INSERT INTO ");
 
-      rq.AppendTableName(TableName, SchemaName ?? defaultSchema);
+      rq.AppendTableName(Table.Name, Table.Schema ?? defaultSchema);
 
       rq.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
 
@@ -77,7 +76,7 @@ namespace KDPgDriver.Queries
         for (int i = 0; i < columns.Count; i++) {
           var column = columns[i];
           object val = Helper.GetModelValueByColumn(obj, column);
-          var npgValue = Helper.ConvertToNpgsql(column.Type, val);
+          var npgValue = Helper.ConvertToPgValue(column.Type, val);
 
           if (i > 0)
             rq.Append(",");
