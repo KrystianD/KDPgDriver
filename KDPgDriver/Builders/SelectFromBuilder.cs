@@ -148,15 +148,14 @@ namespace KDPgDriver.Builders
 
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
     private readonly List<RawQuery.TableNamePlaceholder> _tables = new List<RawQuery.TableNamePlaceholder>();
-    private static List<TypedExpression> _leftJoins;
 
+    private List<TypedExpression> LeftJoinsExpressions { get; set; }
     private IResultProcessor ResultProcessor { get; set; }
 
     public static SelectFromBuilder FromCombinedExpression<TCombinedModel, TNewModel>(TablesList tablesList, Expression<Func<TCombinedModel, TNewModel>> prBody)
     {
-      _leftJoins = tablesList.JoinExpressions;
-
       var b = new SelectFromBuilder();
+      b.LeftJoinsExpressions = tablesList.JoinExpressions;
 
       var options = new NodeVisitor.EvaluationOptions();
       foreach (var table in tablesList.Tables) {
@@ -195,6 +194,7 @@ namespace KDPgDriver.Builders
               resultProcessor.AddMemberEntry(exp.Type);
             }
           }
+
           break;
         }
 
@@ -229,9 +229,8 @@ namespace KDPgDriver.Builders
 
     public static SelectFromBuilder AllColumnsFromCombined<TCombinedModel>(TablesList tablesList)
     {
-      _leftJoins = tablesList.JoinExpressions;
-
       var b = new SelectFromBuilder();
+      b.LeftJoinsExpressions = tablesList.JoinExpressions;
 
       var pr = new AnonymousTypeResultProcessor<TCombinedModel>();
 
@@ -358,7 +357,7 @@ namespace KDPgDriver.Builders
           rq.ApplyAlias(_table.Name, alias);
 
           rq.Append(" ON ");
-          rq.AppendSurround(_leftJoins[tableNum].RawQuery);
+          rq.AppendSurround(LeftJoinsExpressions[tableNum].RawQuery);
 
           tableNum++;
         }
