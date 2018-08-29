@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Resources;
 using System.Text;
 
 namespace KDPgDriver.Utils
@@ -46,8 +47,8 @@ namespace KDPgDriver.Utils
 
     private class RenderingContext
     {
-      public Dictionary<string, string> Aliases;
-      public bool skipExplicitColumnTableNames;
+      public Stack<Dictionary<string, string>> AliasesStack;
+      public bool SkipExplicitColumnTableNames;
     }
 
     private bool _isSimple;
@@ -240,8 +241,9 @@ namespace KDPgDriver.Utils
     public void Render(out string query, out ParametersContainer outParameters)
     {
       var ctx = new RenderingContext();
-      ctx.Aliases = _aliases;
-      ctx.skipExplicitColumnTableNames = _skipExplicitColumnTableNames;
+      ctx.AliasesStack = new Stack<Dictionary<string, string>>();
+      ctx.AliasesStack.Push(_aliases);
+      ctx.SkipExplicitColumnTableNames = _skipExplicitColumnTableNames;
       outParameters = new ParametersContainer();
       query = RenderInto(outParameters, ctx);
     }
@@ -249,7 +251,7 @@ namespace KDPgDriver.Utils
 
     private string ResolvePlaceholder(RenderingContext ctx, RawQuery.TableNamePlaceholder placeholder)
     {
-      var alias = ctx.Aliases.GetValueOrDefault(placeholder.Name, placeholder.Name);
+      var alias = ctx.AliasesStack.Select(x => x.GetValueOrDefault(placeholder.Name)).FirstOrDefault(x => x != null) ?? placeholder.Name;
 
       if (alias == placeholder.Table.Name)
         return null;
@@ -261,8 +263,12 @@ namespace KDPgDriver.Utils
     {
       var sb = new StringBuilder();
 
+      ctx.AliasesStack.Push(_aliases);
+
       if (_isSimple) {
-        return RenderSimple(ctx);
+        var res = RenderSimple(ctx);
+        ctx.AliasesStack.Pop();
+        return res;
       }
 
       foreach (var part in _parts) {
@@ -294,12 +300,15 @@ namespace KDPgDriver.Utils
           sb.Append(part.RawQuery.RenderInto(outParameters, ctx));
       }
 
+      ctx.AliasesStack.Pop();
       return sb.ToString();
     }
 
     private string RenderSimple(RenderingContext ctx)
     {
       var sb = new StringBuilder();
+
+      ctx.AliasesStack.Push(_aliases);
 
       foreach (var part in _parts) {
         if (part.Text != null)
@@ -331,6 +340,7 @@ namespace KDPgDriver.Utils
           sb.Append(part.RawQuery.RenderSimple(ctx));
       }
 
+      ctx.AliasesStack.Pop();
       return sb.ToString();
     }
 

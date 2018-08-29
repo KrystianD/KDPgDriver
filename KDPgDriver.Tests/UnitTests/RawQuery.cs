@@ -92,5 +92,29 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertRawQueryWithAliases(rq, "t1.name = 123, t2.name1 = 456");
     }
+
+    [Fact]
+    public void WithColumnCombined()
+    {
+      var t1 = Helper.GetTable<MyModel>();
+      var t2 = Helper.GetTable<MyModel2>();
+
+      var rq1 = new RawQuery();
+      rq1.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name), new RawQuery.TableNamePlaceholder(t1, "M1"));
+      rq1.Append(" = 123");
+      rq1.ApplyAlias("M1", "t1");
+
+      var rq2 = new RawQuery();
+      rq2.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name1), new RawQuery.TableNamePlaceholder(t2, "M2"));
+      rq2.Append(" = 456");
+      rq2.ApplyAlias("M2", "t2");
+      
+      var rq = new RawQuery();
+      rq.Append(rq1);
+      rq.Append(", ");
+      rq.Append(rq2);
+
+      Utils.AssertRawQueryWithAliases(rq, "t1.name = 123, t2.name1 = 456");
+    }
   }
 }

@@ -20,7 +20,7 @@ namespace KDPgDriver.Utils
     /// <summary>
     /// Evaluates & replaces sub-trees when first candidate is reached (top-down)
     /// </summary>
-    class SubtreeEvaluator : ExpressionVisitor
+    private class SubtreeEvaluator : ExpressionVisitor
     {
       private readonly HashSet<Expression> _candidates;
 
@@ -57,7 +57,7 @@ namespace KDPgDriver.Utils
     /// Performs bottom-up analysis to determine which nodes can possibly
     /// be part of an evaluated sub-tree.
     /// </summary>
-    class Nominator : ExpressionVisitor
+    private class Nominator : ExpressionVisitor
     {
       private readonly HashSet<string> _inputParameterName;
 
