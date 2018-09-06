@@ -14,7 +14,7 @@ namespace KDPgDriver
     public static TypedExpression Count(TypedExpression query)
     {
       var rq = RawQuery.Create("COUNT(").Append(query.RawQuery).Append(")");
-      return new TypedExpression(rq, KDPgValueTypeInteger.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInteger64.Instance);
     }
   }
   
@@ -25,7 +25,7 @@ namespace KDPgDriver
       throw new Exception("do not use directly");
     }
     
-    public static int Count(object value)
+    public static long Count(object value)
     {
       throw new Exception("do not use directly");
     }

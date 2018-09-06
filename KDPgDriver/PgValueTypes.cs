@@ -106,6 +106,15 @@ namespace KDPgDriver
     public override string PostgresTypeName => "int";
   }
 
+  public class KDPgValueTypeInteger64 : KDPgValueType
+  {
+    public static readonly KDPgValueTypeInteger64 Instance = new KDPgValueTypeInteger64();
+
+    public override Type CSharpType => typeof(long);
+    public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Bigint;
+    public override string PostgresTypeName => "bigint";
+  }
+
   public class KDPgValueTypeDecimal : KDPgValueType
   {
     public static readonly KDPgValueTypeDecimal Instance = new KDPgValueTypeDecimal();

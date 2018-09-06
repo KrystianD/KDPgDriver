@@ -45,7 +45,7 @@ namespace KDPgDriver.Utils
       if (type == typeof(int))
         return KDPgValueTypeInteger.Instance;
       if (type == typeof(long))
-        return KDPgValueTypeInteger.Instance;
+        return KDPgValueTypeInteger64.Instance;
       if (type == typeof(bool))
         return KDPgValueTypeBoolean.Instance;
       if (type == typeof(DateTime))
@@ -176,6 +176,7 @@ namespace KDPgDriver.Utils
       switch (type) {
         case KDPgValueTypeString _:
         case KDPgValueTypeInteger _:
+        case KDPgValueTypeInteger64 _:
         case KDPgValueTypeBoolean _:
         case KDPgValueTypeDateTime _:
         case KDPgValueTypeDate _:
@@ -224,6 +225,7 @@ namespace KDPgDriver.Utils
       switch (type) {
         case KDPgValueTypeString _:
         case KDPgValueTypeInteger _:
+        case KDPgValueTypeInteger64 _:
         case KDPgValueTypeBoolean _:
         case KDPgValueTypeDateTime _:
         case KDPgValueTypeTime _:
