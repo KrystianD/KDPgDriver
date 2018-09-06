@@ -78,5 +78,8 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("json_array1")]
     public JArray JsonArray1 { get; set; }
+
+    [KDPgColumn("bool")]
+    public bool Bool { get; set; }
   }
 }

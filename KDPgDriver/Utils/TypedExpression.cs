@@ -28,10 +28,14 @@ namespace KDPgDriver
       return new TypedExpression(RawQuery.Create(value), value.Type);
     }
 
+    public static TypedExpression FromValue(object value)
+    {
+      return FromPgValue(Helper.ConvertObjectToPgValue(value));
+    }
+
     // public static TypedExpression FromColumn(KdPgColumnDescriptor column)
     // {
     //   return new TypedExpression(RawQuery.CreateColumn(column), column.Type);
     // }
-
   }
 }

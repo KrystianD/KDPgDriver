@@ -38,7 +38,8 @@ CREATE TABLE model (
   datetime timestamp,
   json_object1 jsonb,
   json_model jsonb,
-  json_array1 jsonb
+  json_array1 jsonb,
+  bool bool
 );
 
 CREATE TABLE model2 (

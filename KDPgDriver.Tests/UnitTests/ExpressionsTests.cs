@@ -26,13 +26,25 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void ExpressionBool()
+    {
+      var exp1 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool == false);
+      
+      Utils.AssertExpression(exp1, @"(bool) = (FALSE)");
+
+      var exp2 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool);
+
+      Utils.AssertExpression(exp2, @"(bool) = (TRUE)");
+    }
+
+    [Fact]
     public void ExpressionEqNull()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == null);
 
       Utils.AssertExpression(exp, @"(name) IS NULL");
     }
-    
+
     [Fact]
     public void ExpressionNotEq()
     {

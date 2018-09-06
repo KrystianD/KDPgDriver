@@ -113,7 +113,10 @@ namespace KDPgDriver.Utils
             TypedExpression val = VisitInternal(un.Operand);
 
             switch (un.NodeType) {
-              case ExpressionType.Convert: return val;
+              case ExpressionType.Convert:
+                if (un.Operand is MemberExpression && un.Operand.Type == typeof(bool)) // for cases like (x => x.BoolValue)
+                  return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
+                return val;
               case ExpressionType.Not: return ExpressionBuilders.Not(val);
               default:
                 throw new Exception($"unknown operator: {un.NodeType}");
