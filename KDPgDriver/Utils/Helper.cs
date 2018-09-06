@@ -344,7 +344,7 @@ namespace KDPgDriver.Utils
     }
 
     // Helpers
-    private static readonly HashSet<char> ValidObjectNameChars = "abcdefghijklmnoprstuwxyz0123456789_".ToHashSet();
+    private static readonly HashSet<char> ValidObjectNameChars = "abcdefghijklmnoprstuwxvyz0123456789_".ToHashSet();
 
     public static string QuoteObjectName(string str)
     {
