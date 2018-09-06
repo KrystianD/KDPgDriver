@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using KDPgDriver.Builders;
 
 namespace KDPgDriver.Utils
@@ -58,6 +57,8 @@ namespace KDPgDriver.Utils
     public class EvaluationOptions
     {
       public Dictionary<string, RawQuery.TableNamePlaceholder> parameterToTableAlias = new Dictionary<string, RawQuery.TableNamePlaceholder>();
+
+      public bool ExpandBooleans { get; set; } = false;
     }
 
     public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp, EvaluationOptions options = null)
@@ -97,11 +98,20 @@ namespace KDPgDriver.Utils
 
     public static TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null, EvaluationOptions options = null)
     {
+      if (options == null)
+        options = new EvaluationOptions();
+
       TypedExpression VisitInternal(Expression exp)
       {
+        TypedExpression val;
+
         switch (exp) {
           case MemberExpression me:
-            return ProcessPath(options, me.Expression, (PropertyInfo) me.Member);
+            val = ProcessPath(options, me.Expression, (PropertyInfo) me.Member);
+            if (options.ExpandBooleans && me.Type == typeof(bool)) // for cases like (x => x.BoolValue)
+              return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
+
+            return val;
 
           case ConstantExpression me:
           {
@@ -110,11 +120,11 @@ namespace KDPgDriver.Utils
           }
 
           case UnaryExpression un:
-            TypedExpression val = VisitInternal(un.Operand);
+            val = VisitInternal(un.Operand);
 
             switch (un.NodeType) {
               case ExpressionType.Convert:
-                if (un.Operand is MemberExpression && un.Operand.Type == typeof(bool)) // for cases like (x => x.BoolValue)
+                if (options.ExpandBooleans && un.Operand is MemberExpression && un.Operand.Type == typeof(bool)) // for cases like (x => x.BoolValue)
                   return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
                 return val;
               case ExpressionType.Not: return ExpressionBuilders.Not(val);

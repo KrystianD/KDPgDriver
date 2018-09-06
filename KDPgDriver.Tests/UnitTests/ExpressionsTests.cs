@@ -34,7 +34,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp2 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool);
 
-      Utils.AssertExpression(exp2, @"(bool) = (TRUE)");
+      Utils.AssertExpression(exp2, @"bool");
     }
 
     [Fact]

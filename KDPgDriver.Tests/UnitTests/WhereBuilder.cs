@@ -11,6 +11,15 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void WhereBool()
+    {
+      var q = Builders<MyModel>.Select(x => x.Bool)
+                               .Where(x => x.Bool);
+
+      Utils.AssertRawQuery(q, @"SELECT bool FROM public.model WHERE bool");
+    }
+
+    [Fact]
     public void WhereNot()
     {
       var q = Builders<MyModel>.Select(x => new { x.Id })
