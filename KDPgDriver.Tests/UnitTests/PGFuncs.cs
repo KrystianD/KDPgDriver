@@ -15,8 +15,15 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var q = Builders<MyModel>.Select(x => x.Id).Where(x => Func.MD5(x.Name) == "hex");
 
-      Utils.AssertRawQuery(q,
-                           @"SELECT id FROM public.model WHERE (MD5(name)) = ('hex')");
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (MD5(name)) = ('hex')");
+    }
+
+    [Fact]
+    public void FuncCount()
+    {
+      var q = Builders<MyModel>.Select(x => Func.Count(x.Id));
+
+      Utils.AssertRawQuery(q, @"SELECT COUNT(id) FROM public.model");
     }
   }
 }
