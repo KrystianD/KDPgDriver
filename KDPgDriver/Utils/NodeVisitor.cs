@@ -242,11 +242,7 @@ namespace KDPgDriver.Utils
               if (method != null) {
                 var internalMethod = typeof(FuncInternal).GetMethods().Single(x => x.Name == methodName);
 
-                var arg = VisitInternal(call.Arguments[0]);
-
-                object[] args = {
-                    arg,
-                };
+                var args = call.Arguments.Select(VisitInternal).Cast<object>().ToArray();
                 return (TypedExpression) internalMethod.Invoke(null, args);
               }
               else {

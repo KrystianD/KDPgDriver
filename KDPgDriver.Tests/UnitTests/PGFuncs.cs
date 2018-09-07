@@ -25,5 +25,13 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertRawQuery(q, @"SELECT COUNT(id) FROM public.model");
     }
+
+    [Fact]
+    public void FuncNow()
+    {
+      var q = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime > Func.Now());
+
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (datetime) > (NOW())");
+    }
   }
 }

@@ -78,6 +78,12 @@ namespace KDPgDriver.Utils
 
       private bool CanBeEvaluatedLocally(Expression expression)
       {
+        if (expression is MethodCallExpression callExpression) {
+          // Do not evaluate Func.* calls
+          if (callExpression.Method.DeclaringType == typeof(Func))
+            return false;
+        }
+        
         if (expression is ParameterExpression parameterExpression) {
           if (_inputParameterName == null) {
             return false;
