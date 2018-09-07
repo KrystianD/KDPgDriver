@@ -1,4 +1,5 @@
-﻿using KDPgDriver.Builders;
+﻿using System;
+using KDPgDriver.Builders;
 using Xunit;
 
 namespace KDPgDriver.Tests.UnitTests
@@ -32,6 +33,14 @@ namespace KDPgDriver.Tests.UnitTests
       var q = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime > Func.Now());
 
       Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (datetime) > (NOW())");
+    }
+
+    [Fact]
+    public void FuncRaw()
+    {
+      var q = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime > Func.Raw<DateTime>("NOW() + INTERVAL 2 SECONDS"));
+
+      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (datetime) > (NOW() + INTERVAL 2 SECONDS)");
     }
   }
 }

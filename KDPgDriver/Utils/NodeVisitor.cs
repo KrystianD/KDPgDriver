@@ -237,16 +237,24 @@ namespace KDPgDriver.Utils
 
               // TODO: optimize
               var methods = typeof(Func).GetMethods();
-              var method = methods.SingleOrDefault(x => x.Name == methodName);
 
-              if (method != null) {
-                var internalMethod = typeof(FuncInternal).GetMethods().Single(x => x.Name == methodName);
-
-                var args = call.Arguments.Select(VisitInternal).Cast<object>().ToArray();
-                return (TypedExpression) internalMethod.Invoke(null, args);
+              if (methodName == "Raw") {
+                var valueType = Helper.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
+                var text = (string) ((ConstantExpression) call.Arguments[0]).Value;
+                return new TypedExpression(RawQuery.Create(text), valueType);
               }
               else {
-                throw new Exception($"invalid method: {call.Method.Name}");
+                var method = methods.SingleOrDefault(x => x.Name == methodName);
+
+                if (method != null) {
+                  var internalMethod = typeof(FuncInternal).GetMethods().Single(x => x.Name == methodName);
+
+                  var args = call.Arguments.Select(VisitInternal).Cast<object>().ToArray();
+                  return (TypedExpression) internalMethod.Invoke(null, args);
+                }
+                else {
+                  throw new Exception($"invalid method: {call.Method.Name}");
+                }
               }
             }
 

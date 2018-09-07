@@ -33,7 +33,7 @@ namespace KDPgDriver.Utils
 
     // private static KDPgValueType CreatePgValueType(object obj) => CreatePgValueType(obj.GetType());
 
-    private static KDPgValueType CreatePgValueTypeFromObjectType(Type type)
+    public static KDPgValueType CreatePgValueTypeFromObjectType(Type type)
     {
       Type itemType;
 
