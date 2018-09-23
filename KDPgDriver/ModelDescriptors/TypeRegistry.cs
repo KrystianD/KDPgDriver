@@ -32,6 +32,18 @@ namespace KDPgDriver
       Entries.Add(entry);
     }
 
+    public static void RegisterNativeEnum<T>(string enumName, string schema = null) where T : struct, Enum
+    {
+      if (!typeof(T).IsEnum)
+        throw new ArgumentException("T must be an enumerated type");
+
+      RegisterEnum<T>(
+          enumName,
+          x => x.ToString(),
+          Enum.Parse<T>,
+          schema: schema);
+    }
+
     public static bool HasEnumType(Type type)
     {
       // TODO: optimize
