@@ -8,19 +8,19 @@ namespace KDPgDriver
     public static TypedExpression MD5(TypedExpression query)
     {
       var rq = RawQuery.Create("MD5(").Append(query.RawQuery).Append(")");
-      return new TypedExpression(rq, KDPgValueTypeString.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.String);
     }
 
     public static TypedExpression Count(TypedExpression query)
     {
       var rq = RawQuery.Create("COUNT(").Append(query.RawQuery).Append(")");
-      return new TypedExpression(rq, KDPgValueTypeInteger64.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
     }
 
     public static TypedExpression Now()
     {
       var rq = RawQuery.Create("NOW()");
-      return new TypedExpression(rq, KDPgValueTypeTime.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Time);
     }
   }
 

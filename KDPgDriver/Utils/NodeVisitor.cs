@@ -194,7 +194,7 @@ namespace KDPgDriver.Utils
               rq.Append("->");
               rq.Append(arg1.RawQuery);
 
-              return new TypedExpression(rq, KDPgValueTypeJson.Instance);
+              return new TypedExpression(rq, KDPgValueTypeInstances.Json);
             }
             // Extension methods
             else if (call.Method.Name == "PgIn") {
@@ -386,7 +386,7 @@ namespace KDPgDriver.Utils
             rq.Append(Helper.EscapePostgresValue(jsonObjectProperty));
             pi.JsonPath.Add(jsonObjectProperty);
 
-            pathValueType = KDPgValueTypeJson.Instance;
+            pathValueType = KDPgValueTypeInstances.Json;
             break;
 
           case int jsonArrayIndex:
@@ -394,7 +394,7 @@ namespace KDPgDriver.Utils
             rq.Append(jsonArrayIndex.ToString());
             pi.JsonPath.Add(jsonArrayIndex);
 
-            pathValueType = KDPgValueTypeJson.Instance;
+            pathValueType = KDPgValueTypeInstances.Json;
             break;
 
           default:
@@ -404,11 +404,11 @@ namespace KDPgDriver.Utils
 
       if (pi.JsonPath.Count > 0) {
         // cast to native type if known
-        if (pathValueType != KDPgValueTypeJson.Instance) {
+        if (pathValueType != KDPgValueTypeInstances.Json) {
           RawQuery rq2 = new RawQuery();
           rq2.AppendSurround(rq);
 
-          if (pathValueType == KDPgValueTypeString.Instance)
+          if (pathValueType == KDPgValueTypeInstances.String)
             rq2.Append("::", pathValueType.PostgresTypeName);
           else
             rq2.Append("::text::", pathValueType.PostgresTypeName);

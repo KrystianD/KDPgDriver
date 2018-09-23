@@ -14,12 +14,12 @@ namespace KDPgDriver.Builders
       RawQuery rq = new RawQuery();
       rq.AppendSurround(left.RawQuery);
 
-      if (right.Type == KDPgValueTypeNull.Instance) {
+      if (right.Type == KDPgValueTypeInstances.Null) {
         rq.Append(" IS NULL");
       }
       else {
         rq.Append(" = ");
-        if (left.Type == KDPgValueTypeJson.Instance) {
+        if (left.Type == KDPgValueTypeInstances.Json) {
           rq.Append("to_jsonb(");
           rq.AppendSurround(right.RawQuery);
           rq.Append(")");
@@ -29,7 +29,7 @@ namespace KDPgDriver.Builders
         }
       }
 
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression NotEq(TypedExpression left, TypedExpression right)
@@ -42,7 +42,7 @@ namespace KDPgDriver.Builders
       RawQuery rq = new RawQuery();
       rq.AppendSurround(left.RawQuery);
 
-      if (left.Type == KDPgValueTypeString.Instance && right.Type == KDPgValueTypeString.Instance)
+      if (left.Type == KDPgValueTypeInstances.String && right.Type == KDPgValueTypeInstances.String)
         rq.Append(" || ");
       else if (left.Type == right.Type)
         rq.Append(" + ");
@@ -67,7 +67,7 @@ namespace KDPgDriver.Builders
         .Append(Helper.ConvertObjectToPgValue(array))
         .Append(")");
 
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression NotIn(TypedExpression left, IEnumerable array)
@@ -85,7 +85,7 @@ namespace KDPgDriver.Builders
       rq.Append(exp.RawQuery);
       rq.Append(")");
 
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression LessThan(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<", left, right);
@@ -107,7 +107,7 @@ namespace KDPgDriver.Builders
       rq.Append(" && ");
       rq.AppendSurround(right.RawQuery);
 
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression Substring(TypedExpression value, TypedExpression start, TypedExpression length)
@@ -131,7 +131,7 @@ namespace KDPgDriver.Builders
       rq.Append(length.RawQuery);
       rq.Append(")");
 
-      return new TypedExpression(rq, KDPgValueTypeString.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.String);
     }
 
     public static TypedExpression StartsWith(TypedExpression value, TypedExpression value2)
@@ -191,7 +191,7 @@ namespace KDPgDriver.Builders
 
       rq.Append(")");
 
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression Contains(TypedExpression value, TypedExpression value2)
@@ -202,7 +202,7 @@ namespace KDPgDriver.Builders
         rq.Append(" = ANY(");
         rq.AppendSurround(value.RawQuery);
         rq.Append(")");
-        return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+        return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
       }
       else if (value.Type is KDPgValueTypeString) {
         return Like(value, value2);
@@ -218,7 +218,7 @@ namespace KDPgDriver.Builders
       rq.Append("lower(");
       rq.Append(value.RawQuery);
       rq.Append(")");
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression ToUpper(TypedExpression value)
@@ -227,7 +227,7 @@ namespace KDPgDriver.Builders
       rq.Append("upper(");
       rq.Append(value.RawQuery);
       rq.Append(")");
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     public static TypedExpression ArrayAddItem<T>(TypedExpression array, T item)
@@ -352,7 +352,7 @@ namespace KDPgDriver.Builders
                             .Append(", ")
                             .Append(item.RawQuery)
                             .Append(", ")
-                            .Append(new PgValue(firstOnly, KDPgValueTypeBoolean.Instance))
+                            .Append(new PgValue(firstOnly, KDPgValueTypeInstances.Boolean))
                             .Append(")");
 
       return new TypedExpression(rq, array.Type);
@@ -376,11 +376,11 @@ namespace KDPgDriver.Builders
         first = false;
       }
 
-      return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
     private static TypedExpression CreateComparisonOperator(string op, TypedExpression left, TypedExpression right)
-      => BinaryOperator(op, left, right, KDPgValueTypeBoolean.Instance);
+      => BinaryOperator(op, left, right, KDPgValueTypeInstances.Boolean);
 
     private static TypedExpression BinaryOperator(string op, TypedExpression left, TypedExpression right, KDPgValueType outType)
     {

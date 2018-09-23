@@ -22,7 +22,7 @@ namespace KDPgDriver.Utils
       }
 
       switch (value) {
-        case string s when pgValue.Type == KDPgValueTypeString.Instance && s.Length < 30:
+        case string s when pgValue.Type == KDPgValueTypeInstances.String && s.Length < 30:
           inlined = Helper.EscapePostgresValue(s);
           return true;
         case int v:

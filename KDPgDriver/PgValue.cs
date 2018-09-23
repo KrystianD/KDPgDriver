@@ -11,6 +11,6 @@
       Type = type;
     }
 
-    public static readonly PgValue Null = new PgValue(null, KDPgValueTypeNull.Instance);
+    public static readonly PgValue Null = new PgValue(null, KDPgValueTypeInstances.Null);
   }
 }

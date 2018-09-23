@@ -22,7 +22,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.Name);
 
-      AssertPath<MyModel>(pi, "name", "name", KDPgValueTypeString.Instance);
+      AssertPath<MyModel>(pi, "name", "name", KDPgValueTypeInstances.String);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonModel.Name);
 
-      AssertPath<MyModel>(pi, "json_model", "(json_model->'name')::text", KDPgValueTypeString.Instance);
+      AssertPath<MyModel>(pi, "json_model", "(json_model->'name')::text", KDPgValueTypeInstances.String);
     }
 
     [Fact]
@@ -38,7 +38,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonModel.MySubsubmodel.Number);
 
-      AssertPath<MyModel>(pi, "json_model", "(json_model->'inner'->'number')::text::int", KDPgValueTypeInteger.Instance);
+      AssertPath<MyModel>(pi, "json_model", "(json_model->'inner'->'number')::text::int", KDPgValueTypeInstances.Integer);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonObject1["a"][0]);
 
-      AssertPath<MyModel>(pi, "json_object1", "json_object1->'a'->0", KDPgValueTypeJson.Instance);
+      AssertPath<MyModel>(pi, "json_object1", "json_object1->'a'->0", KDPgValueTypeInstances.Json);
     }
 
     [Fact]
@@ -54,7 +54,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonArray1[0]);
 
-      AssertPath<MyModel>(pi, "json_array1", "json_array1->0", KDPgValueTypeJson.Instance);
+      AssertPath<MyModel>(pi, "json_array1", "json_array1->0", KDPgValueTypeInstances.Json);
     }
 
     [Fact]
@@ -62,7 +62,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonModel.JsonObject2["a"]);
 
-      AssertPath<MyModel>(pi, "json_model", "json_model->'json_object2'->'a'", KDPgValueTypeJson.Instance);
+      AssertPath<MyModel>(pi, "json_model", "json_model->'json_object2'->'a'", KDPgValueTypeInstances.Json);
     }
   }
 }

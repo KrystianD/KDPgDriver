@@ -41,24 +41,24 @@ namespace KDPgDriver.Utils
         type = type.GetNullableInnerType();
 
       if (type == typeof(string) || type == typeof(char))
-        return KDPgValueTypeString.Instance;
+        return KDPgValueTypeInstances.String;
       if (type == typeof(int))
-        return KDPgValueTypeInteger.Instance;
+        return KDPgValueTypeInstances.Integer;
       if (type == typeof(long))
-        return KDPgValueTypeInteger64.Instance;
+        return KDPgValueTypeInstances.Integer64;
       if (type == typeof(bool))
-        return KDPgValueTypeBoolean.Instance;
+        return KDPgValueTypeInstances.Boolean;
       if (type == typeof(DateTime))
-        return KDPgValueTypeDateTime.Instance;
+        return KDPgValueTypeInstances.DateTime;
       if (type == typeof(TimeSpan))
-        return KDPgValueTypeTime.Instance;
+        return KDPgValueTypeInstances.Time;
       if (type == typeof(Guid))
-        return KDPgValueTypeUUID.Instance;
+        return KDPgValueTypeInstances.UUID;
       if (type == typeof(decimal))
-        return KDPgValueTypeDecimal.Instance;
+        return KDPgValueTypeInstances.Decimal;
 
       if (type == typeof(JToken) || type == typeof(JArray) || type == typeof(JObject) || type == typeof(JValue))
-        return KDPgValueTypeJson.Instance;
+        return KDPgValueTypeInstances.Json;
 
       if (CheckIfEnumerable(type, out itemType)) {
         return new KDPgValueTypeArray(
@@ -110,13 +110,13 @@ namespace KDPgDriver.Utils
 
       var type = memberInfo.PropertyType;
       if (type == typeof(string))
-        return KDPgValueTypeString.Instance;
+        return KDPgValueTypeInstances.String;
       if (type == typeof(int))
-        return KDPgValueTypeInteger.Instance;
+        return KDPgValueTypeInstances.Integer;
       if (type == typeof(bool))
-        return KDPgValueTypeBoolean.Instance;
+        return KDPgValueTypeInstances.Boolean;
 
-      return KDPgValueTypeJson.Instance;
+      return KDPgValueTypeInstances.Json;
     }
 
     public static bool IsColumn(MemberInfo memberType)
@@ -250,9 +250,9 @@ namespace KDPgDriver.Utils
 
         case KDPgValueTypeJson jsonType:
           if (jsonType.BackingType == null)
-            return new PgValue(((JToken) rawValue).ToString(Formatting.None), KDPgValueTypeJson.Instance);
+            return new PgValue(((JToken) rawValue).ToString(Formatting.None), KDPgValueTypeInstances.Json);
           else
-            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), KDPgValueTypeJson.Instance);
+            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), KDPgValueTypeInstances.Json);
 
         default:
           throw new Exception($"ConvertToNpgsql: Type {type} not implemented");
@@ -297,16 +297,16 @@ namespace KDPgDriver.Utils
       var columnTypeAttribute = columnPropertyInfo.GetCustomAttribute<KDPgColumnTypeAttribute>();
       if (columnTypeAttribute != null) {
         switch (columnTypeAttribute.TypeEnum) {
-          case KDPgValueTypeKind.String: return KDPgValueTypeString.Instance;
-          case KDPgValueTypeKind.Integer: return KDPgValueTypeInteger.Instance;
-          case KDPgValueTypeKind.Boolean: return KDPgValueTypeBoolean.Instance;
-          case KDPgValueTypeKind.UUID: return KDPgValueTypeUUID.Instance;
-          case KDPgValueTypeKind.Decimal: return KDPgValueTypeDecimal.Instance;
-          case KDPgValueTypeKind.Null: return KDPgValueTypeNull.Instance;
+          case KDPgValueTypeKind.String: return KDPgValueTypeInstances.String;
+          case KDPgValueTypeKind.Integer: return KDPgValueTypeInstances.Integer;
+          case KDPgValueTypeKind.Boolean: return KDPgValueTypeInstances.Boolean;
+          case KDPgValueTypeKind.UUID: return KDPgValueTypeInstances.UUID;
+          case KDPgValueTypeKind.Decimal: return KDPgValueTypeInstances.Decimal;
+          case KDPgValueTypeKind.Null: return KDPgValueTypeInstances.Null;
 
-          case KDPgValueTypeKind.DateTime: return KDPgValueTypeDateTime.Instance;
-          case KDPgValueTypeKind.Date: return KDPgValueTypeDate.Instance;
-          case KDPgValueTypeKind.Time: return KDPgValueTypeTime.Instance;
+          case KDPgValueTypeKind.DateTime: return KDPgValueTypeInstances.DateTime;
+          case KDPgValueTypeKind.Date: return KDPgValueTypeInstances.Date;
+          case KDPgValueTypeKind.Time: return KDPgValueTypeInstances.Time;
 
           case KDPgValueTypeKind.Enum:
             var entry = TypeRegistry.GetEnumEntryForType(propertyType);
