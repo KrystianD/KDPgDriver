@@ -18,45 +18,57 @@ namespace KDPgDriver.Builders
       AddUpdate(column, src => TypedExpression.FromPgValue(PgValue.Null));
       return this;
     }
-    
+
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
-      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
-      var npgValue = Helper.ConvertToPgValue(column.Type, value);
+      var pi = NodeVisitor.VisitPath(null, field);
+      var npgValue = Helper.ConvertToPgValue(pi.Expression.Type, value);
 
-      AddUpdate(column, src => TypedExpression.FromPgValue(npgValue));
+      if (pi.JsonPath.Count > 0) {
+        AddUpdate(pi.Column, src => ExpressionBuilders.JsonSet(src, pi.JsonPath, TypedExpression.FromPgValue(npgValue)));
+      }
+      else {
+        AddUpdate(pi.Column, src => TypedExpression.FromPgValue(npgValue));
+      }
+
       return this;
     }
-    
+
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, Expression<Func<TModel, TValue>> valueExpression)
     {
-      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      var pi = NodeVisitor.VisitPath(null, field);
+      
       var exp = NodeVisitor.VisitFuncExpression(valueExpression);
 
-      AddUpdate(column, src => exp);
+      AddUpdate(pi.Column, src => exp);
       return this;
     }
 
     public UpdateStatementsBuilder<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
-      NodeVisitor.JsonPropertyPath jsonPath;
-      var v = NodeVisitor.ProcessPath(null, field.Body as MemberExpression, out jsonPath);
+      var pi = NodeVisitor.VisitPath(null, field);
 
-      if (v.Type is KDPgValueTypeArray)
-        AddUpdate(jsonPath.Column, src => ExpressionBuilders.ArrayAddItem(src, value));
-      else if (v.Type is KDPgValueTypeJson)
-        AddUpdate(jsonPath.Column, src => ExpressionBuilders.KDPgJsonbAdd(src, jsonPath.JsonPath, value));
+      if (pi.Expression.Type is KDPgValueTypeArray)
+        AddUpdate(pi.Column, src => ExpressionBuilders.ArrayAddItem(src, value));
+      else if (pi.Expression.Type is KDPgValueTypeJson)
+        AddUpdate(pi.Column, src => ExpressionBuilders.KDPgJsonbAdd(src, pi.JsonPath, value));
       else
         throw new Exception("unable to add to non-list");
 
       return this;
     }
 
-    public UpdateStatementsBuilder<TModel> RemoveFromList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
+    public UpdateStatementsBuilder<TModel> RemoveAllFromList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
-      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      var pi = NodeVisitor.VisitPath(null, field);
 
-      AddUpdate(column, src => ExpressionBuilders.ArrayRemoveItem(src, value));
+      if (pi.Expression.Type is KDPgValueTypeArray)
+        AddUpdate(pi.Column, src => ExpressionBuilders.ArrayRemoveItem(src, value));
+      else if (pi.Expression.Type is KDPgValueTypeJson)
+        AddUpdate(pi.Column, src => ExpressionBuilders.KDPgJsonbRemoveByValue(src, pi.JsonPath, value, false));
+      else
+        throw new Exception("unable to add to non-list");
+
       return this;
     }
 

@@ -6,18 +6,6 @@ namespace KDPgDriver.Tests.FunctionalTests
   public partial class Test
   {
     [Fact]
-    public async Task TestJson1()
-    {
-      var dr = await CreateDriver();
-
-      var res = await dr.From<MyModel>()
-                        .Select(x => (bool?) (x.JsonModel.MySubsubmodel.Number == 2))
-                        .ToListAsync();
-
-      Assert.Equal(3, res.Count);
-    }
-
-    [Fact]
     public async Task TestJoin()
     {
       var dr = await CreateDriver();

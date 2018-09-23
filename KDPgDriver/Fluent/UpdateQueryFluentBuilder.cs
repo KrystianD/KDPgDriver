@@ -63,9 +63,10 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
-    public UpdateQueryFluentBuilder1<TModel> RemoveFromList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
+
+    public UpdateQueryFluentBuilder1<TModel> RemoveAllFromList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
-      _updateStatementsBuilder.RemoveFromList(field, value);
+      _updateStatementsBuilder.RemoveAllFromList(field, value);
       return this;
     }
 

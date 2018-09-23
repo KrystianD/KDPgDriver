@@ -160,7 +160,7 @@ namespace KDPgDriver.Builders
       var options = new NodeVisitor.EvaluationOptions();
       foreach (var table in tablesList.Tables) {
         b.AddTable(table);
-        options.parameterToTableAlias.Add(table.Name, table);
+        options.ParameterToTableAlias.Add(table.Name, table);
       }
 
       var tableToPlaceholder = tablesList.Tables.ToDictionary(x => x.Name);

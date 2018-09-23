@@ -176,19 +176,19 @@ namespace KDPgDriver.Builders
 
       rq.AppendSurround(value.RawQuery);
       rq.Append(caseInsensitive ? " ILIKE (" : " LIKE (");
-      
+
       if (anyStart)
         rq.Append("'%' || ");
-      
+
       if (escape)
         rq.Append("kdpg_escape_like(");
       rq.Append(text.RawQuery);
       if (escape)
         rq.Append(")");
-      
+
       if (anyEnd)
         rq.Append(" || '%'");
-      
+
       rq.Append(")");
 
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
@@ -211,7 +211,7 @@ namespace KDPgDriver.Builders
         throw new Exception($"Contains cannot be used on non-list");
       }
     }
-    
+
     public static TypedExpression ToLower(TypedExpression value)
     {
       RawQuery rq = new RawQuery();
@@ -220,7 +220,7 @@ namespace KDPgDriver.Builders
       rq.Append(")");
       return new TypedExpression(rq, KDPgValueTypeBoolean.Instance);
     }
-    
+
     public static TypedExpression ToUpper(TypedExpression value)
     {
       RawQuery rq = new RawQuery();
@@ -270,15 +270,33 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, array.Type);
     }
 
-    public static TypedExpression KDPgJsonbAdd<T>(TypedExpression array, IEnumerable<string> jsonPath, T item)
+    public static TypedExpression JsonSet(TypedExpression obj, IEnumerable<object> jsonPath, TypedExpression item)
+    {
+      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+
+      if (!(obj.Type is KDPgValueTypeJson))
+        throw new Exception("obj parameter must be json");
+
+      RawQuery rq = RawQuery.Create("jsonb_set(")
+                            .Append(obj.RawQuery)
+                            .Append(", ")
+                            .Append($"array[{jsonPathStr}]")
+                            .Append(", to_jsonb(")
+                            .Append(item.RawQuery)
+                            .Append("))");
+
+      return new TypedExpression(rq, obj.Type);
+    }
+
+    public static TypedExpression KDPgJsonbAdd<T>(TypedExpression array, IEnumerable<object> jsonPath, T item)
     {
       var pgValue = Helper.ConvertObjectToPgValue(item);
       return KDPgJsonbAdd(array, jsonPath, TypedExpression.FromPgValue(pgValue));
     }
 
-    public static TypedExpression KDPgJsonbAdd(TypedExpression array, IEnumerable<string> jsonPath, TypedExpression item)
+    public static TypedExpression KDPgJsonbAdd(TypedExpression array, IEnumerable<object> jsonPath, TypedExpression item)
     {
-      string jsonPathStr = jsonPath.Select(Helper.QuoteObjectName).JoinString(",");
+      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
 
       if (!(array.Type is KDPgValueTypeJson))
         throw new Exception("array parameter must be json");
@@ -289,10 +307,57 @@ namespace KDPgDriver.Builders
                             .Append($"array[{jsonPathStr}]")
                             .Append(", to_jsonb(")
                             .Append(item.RawQuery)
+                            .Append("))");
+
+      return new TypedExpression(rq, array.Type);
+    }
+
+    public static TypedExpression KDPgJsonbRemoveByIndex(TypedExpression array, IEnumerable<object> jsonPath, TypedExpression item)
+    {
+      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+
+      if (!(array.Type is KDPgValueTypeJson))
+        throw new Exception("array parameter must be json");
+      if (!(item.Type is KDPgValueTypeInteger))
+        throw new Exception("item parameter must be int");
+
+      RawQuery rq = RawQuery.Create()
+                            .AppendSurround(array.RawQuery)
+                            .Append(" - ")
+                            .AppendSurround(item.RawQuery);
+
+      return new TypedExpression(rq, array.Type);
+    }
+
+    public static TypedExpression KDPgJsonbRemoveByValue<T>(TypedExpression array, IEnumerable<object> jsonPath, T item, bool firstOnly)
+    {
+      var pgValue = Helper.ConvertObjectToPgValue(item);
+      return KDPgJsonbRemoveByValue(array, jsonPath, TypedExpression.FromPgValue(pgValue), firstOnly);
+    }
+
+    public static TypedExpression KDPgJsonbRemoveByValue(TypedExpression array,
+                                                         IEnumerable<object> jsonPath,
+                                                         TypedExpression item,
+                                                         bool firstOnly)
+    {
+      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+
+      if (!(array.Type is KDPgValueTypeJson))
+        throw new Exception("array parameter must be json");
+
+      RawQuery rq = RawQuery.Create("kdpg_jsonb_remove_by_value(")
+                            .Append(array.RawQuery)
+                            .Append(", ")
+                            .Append($"array[{jsonPathStr}]")
+                            .Append(", ")
+                            .Append(item.RawQuery)
+                            .Append(", ")
+                            .Append(new PgValue(firstOnly, KDPgValueTypeBoolean.Instance))
                             .Append(")");
 
       return new TypedExpression(rq, array.Type);
     }
+
 
     // helpers
     private static TypedExpression JoinLogicExpressions(string op, IEnumerable<TypedExpression> expressions)
