@@ -22,7 +22,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.Name);
 
-      AssertPath<MyModel>(pi, "name", "name", KDPgValueTypeInstances.String);
+      AssertPath<MyModel>(pi, "name", "\"name\"", KDPgValueTypeInstances.String);
     }
 
     [Fact]

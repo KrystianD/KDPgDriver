@@ -22,14 +22,14 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id == 2);
 
-      Utils.AssertExpression(exp, @"(id) = (2)");
+      Utils.AssertExpression(exp, @"(""id"") = (2)");
     }
 
     [Fact]
     public void ExpressionBool()
     {
       var exp1 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool == false);
-      
+
       Utils.AssertExpression(exp1, @"(bool) = (FALSE)");
 
       var exp2 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool);
@@ -42,7 +42,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == null);
 
-      Utils.AssertExpression(exp, @"(name) IS NULL");
+      Utils.AssertExpression(exp, @"(""name"") IS NULL");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id != 2);
 
-      Utils.AssertExpression(exp, @"NOT((id) = (2))");
+      Utils.AssertExpression(exp, @"NOT((""id"") = (2))");
     }
 
     [Fact]
@@ -58,7 +58,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name != null);
 
-      Utils.AssertExpression(exp, @"NOT((name) IS NULL)");
+      Utils.AssertExpression(exp, @"NOT((""name"") IS NULL)");
     }
 
     [Fact]
@@ -84,7 +84,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == s1);
 
-      Utils.AssertExpression(exp, @"(name) = (@1::text)",
+      Utils.AssertExpression(exp, @"(""name"") = (@1::text)",
                              new Param(s1, NpgsqlDbType.Text));
     }
 
@@ -95,7 +95,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id + x.Id == 1);
 
-      Utils.AssertExpression(exp, @"((id) + (id)) = (1)");
+      Utils.AssertExpression(exp, @"((""id"") + (""id"")) = (1)");
     }
 
     [Fact]
@@ -103,7 +103,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name + x.Name == "X");
 
-      Utils.AssertExpression(exp, @"((name) || (name)) = ('X')");
+      Utils.AssertExpression(exp, @"((""name"") || (""name"")) = ('X')");
     }
 
     #endregion
@@ -113,7 +113,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id * x.Id == 1);
 
-      Utils.AssertExpression(exp, @"((id) * (id)) = (1)");
+      Utils.AssertExpression(exp, @"((""id"") * (""id"")) = (1)");
     }
 
     [Fact]
@@ -121,7 +121,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id - x.Id == 1);
 
-      Utils.AssertExpression(exp, @"((id) - (id)) = (1)");
+      Utils.AssertExpression(exp, @"((""id"") - (""id"")) = (1)");
     }
 
     [Fact]
@@ -129,7 +129,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id / x.Id == 1);
 
-      Utils.AssertExpression(exp, @"((id) / (id)) = (1)");
+      Utils.AssertExpression(exp, @"((""id"") / (""id"")) = (1)");
     }
 
     [Fact]
@@ -137,7 +137,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id > 1);
 
-      Utils.AssertExpression(exp, @"(id) > (1)");
+      Utils.AssertExpression(exp, @"(""id"") > (1)");
     }
 
     [Fact]
@@ -145,7 +145,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id >= 1);
 
-      Utils.AssertExpression(exp, @"(id) >= (1)");
+      Utils.AssertExpression(exp, @"(""id"") >= (1)");
     }
 
     [Fact]
@@ -153,7 +153,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id < 1);
 
-      Utils.AssertExpression(exp, @"(id) < (1)");
+      Utils.AssertExpression(exp, @"(""id"") < (1)");
     }
 
     [Fact]
@@ -161,7 +161,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id <= 1);
 
-      Utils.AssertExpression(exp, @"(id) <= (1)");
+      Utils.AssertExpression(exp, @"(""id"") <= (1)");
     }
 
     [Fact]
@@ -169,7 +169,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id == 1 || x.Id == 2);
 
-      Utils.AssertExpression(exp, @"((id) = (1)) OR ((id) = (2))");
+      Utils.AssertExpression(exp, @"((""id"") = (1)) OR ((""id"") = (2))");
     }
 
     [Fact]
@@ -177,7 +177,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id == 1 && x.Id == 2);
 
-      Utils.AssertExpression(exp, @"((id) = (1)) AND ((id) = (2))");
+      Utils.AssertExpression(exp, @"((""id"") = (1)) AND ((""id"") = (2))");
     }
 
     // Functions
@@ -186,7 +186,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.Substring(5 + x.Id, 10) == "A");
 
-      Utils.AssertExpression(exp, @"(substring((name) from (5) + (id) for 10)) = ('A')");
+      Utils.AssertExpression(exp, @"(substring((""name"") from (5) + (""id"") for 10)) = ('A')");
     }
 
     #region Operator In
@@ -196,7 +196,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgIn("A", "B"));
 
-      Utils.AssertExpression(exp, @"(name) = ANY(@1::text[])",
+      Utils.AssertExpression(exp, @"(""name"") = ANY(@1::text[])",
                              new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -207,7 +207,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgIn(items));
 
-      Utils.AssertExpression(exp, @"(name) = ANY(@1::text[])",
+      Utils.AssertExpression(exp, @"(""name"") = ANY(@1::text[])",
                              new Param(new[] { null, "A1", "A2", "B3", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -218,7 +218,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgIn(items));
 
-      Utils.AssertExpression(exp, @"(name) = ANY(@1::text[])",
+      Utils.AssertExpression(exp, @"(""name"") = ANY(@1::text[])",
                              new Param(new[] { null, "A1", "A2", "B3", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -230,7 +230,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgIn(items2));
 
-      Utils.AssertExpression(exp, @"(name) = ANY(@1::text[])",
+      Utils.AssertExpression(exp, @"(""name"") = ANY(@1::text[])",
                              new Param(new[] { null, "A1", "A2", "A4" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -242,7 +242,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Id.PgIn(items2));
 
-      Utils.AssertExpression(exp, @"(id) = ANY(@1::int[])",
+      Utils.AssertExpression(exp, @"(""id"") = ANY(@1::int[])",
                              new Param(new[] { 2, 2, 2 }, NpgsqlDbType.Array | NpgsqlDbType.Integer));
     }
 
@@ -251,7 +251,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgNotIn("A", "B"));
 
-      Utils.AssertExpression(exp, @"NOT((name) = ANY(@1::text[]))",
+      Utils.AssertExpression(exp, @"NOT((""name"") = ANY(@1::text[]))",
                              new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
 
@@ -271,7 +271,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.Contains("A"));
 
-      Utils.AssertExpression(exp, @"(name) LIKE ('%' || kdpg_escape_like('A') || '%')");
+      Utils.AssertExpression(exp, @"(""name"") LIKE ('%' || kdpg_escape_like('A') || '%')");
     }
 
     [Fact]
@@ -287,7 +287,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgLike("A"));
 
-      Utils.AssertExpression(exp, @"(name) LIKE ('%' || kdpg_escape_like('A') || '%')");
+      Utils.AssertExpression(exp, @"(""name"") LIKE ('%' || kdpg_escape_like('A') || '%')");
     }
 
     [Fact]
@@ -295,7 +295,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgILike("A"));
 
-      Utils.AssertExpression(exp, @"(name) ILIKE ('%' || kdpg_escape_like('A') || '%')");
+      Utils.AssertExpression(exp, @"(""name"") ILIKE ('%' || kdpg_escape_like('A') || '%')");
     }
 
     [Fact]
@@ -303,7 +303,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgRawLike("A"));
 
-      Utils.AssertExpression(exp, @"(name) LIKE ('A')");
+      Utils.AssertExpression(exp, @"(""name"") LIKE ('A')");
     }
 
     [Fact]
@@ -311,7 +311,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.PgRawILike("A"));
 
-      Utils.AssertExpression(exp, @"(name) ILIKE ('A')");
+      Utils.AssertExpression(exp, @"(""name"") ILIKE ('A')");
     }
 
     [Fact]
@@ -319,7 +319,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.StartsWith("A"));
 
-      Utils.AssertExpression(exp, @"(name) LIKE (kdpg_escape_like('A') || '%')");
+      Utils.AssertExpression(exp, @"(""name"") LIKE (kdpg_escape_like('A') || '%')");
     }
 
     [Fact]
@@ -327,7 +327,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.EndsWith("A"));
 
-      Utils.AssertExpression(exp, @"(name) LIKE ('%' || kdpg_escape_like('A'))");
+      Utils.AssertExpression(exp, @"(""name"") LIKE ('%' || kdpg_escape_like('A'))");
     }
 
     [Fact]
@@ -335,7 +335,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.ToLower());
 
-      Utils.AssertExpression(exp, @"lower(name)");
+      Utils.AssertExpression(exp, @"lower(""name"")");
     }
 
     [Fact]
@@ -343,7 +343,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name.ToUpper());
 
-      Utils.AssertExpression(exp, @"upper(name)");
+      Utils.AssertExpression(exp, @"upper(""name"")");
     }
 
     // Data types
@@ -355,6 +355,17 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertExpression(exp, @"(datetime) = (@1::timestamp)",
                              new Param(date, NpgsqlDbType.Timestamp));
+    }
+
+    // Binary
+    [Fact]
+    public void ExpressionBinary()
+    {
+      var data = new byte[] { 1, 2, 3 };
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Binary == data);
+
+      Utils.AssertExpression(exp, @"(""binary"") = (@1::bytea)",
+                             new Param(data, NpgsqlDbType.Bytea));
     }
 
     // JSON

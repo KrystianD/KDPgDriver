@@ -90,7 +90,7 @@ namespace KDPgDriver.Tests.UnitTests
       rq.ApplyAlias("M1", "t1");
       rq.ApplyAlias("M2", "t2");
 
-      Utils.AssertRawQueryWithAliases(rq, "t1.name = 123, t2.name1 = 456");
+      Utils.AssertRawQueryWithAliases(rq, @"t1.""name"" = 123, t2.name1 = 456");
     }
 
     [Fact]
@@ -114,7 +114,7 @@ namespace KDPgDriver.Tests.UnitTests
       rq.Append(", ");
       rq.Append(rq2);
 
-      Utils.AssertRawQueryWithAliases(rq, "t1.name = 123, t2.name1 = 456");
+      Utils.AssertRawQueryWithAliases(rq, @"t1.""name"" = 123, t2.name1 = 456");
     }
   }
 }

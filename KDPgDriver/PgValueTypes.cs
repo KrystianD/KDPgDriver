@@ -9,18 +9,20 @@ namespace KDPgDriver
 {
   public enum KDPgValueTypeKind
   {
+    Null,
     Boolean,
-    String,
-    Integer,
-    Json,
-    Array,
-    DateTime,
     Date,
     Time,
-    UUID,
+    DateTime,
+    Integer,
+    Integer64,
     Decimal,
+    String,
+    UUID,
+    Json,
+    Binary,
     Enum,
-    Null,
+    Array,
   }
 
   public abstract class KDPgValueType
@@ -47,6 +49,7 @@ namespace KDPgDriver
     public static readonly KDPgValueTypeString String = new KDPgValueTypeString();
     public static readonly KDPgValueTypeUUID UUID = new KDPgValueTypeUUID();
     public static readonly KDPgValueTypeJson Json = new KDPgValueTypeJson();
+    public static readonly KDPgValueTypeBinary Binary = new KDPgValueTypeBinary();
   }
 
   public class KDPgValueTypeNull : KDPgValueType
@@ -131,6 +134,13 @@ namespace KDPgDriver
     {
       BackingType = backingType;
     }
+  }
+
+  public class KDPgValueTypeBinary : KDPgValueType
+  {
+    public override Type CSharpType => typeof(byte[]);
+    public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Bytea;
+    public override string PostgresTypeName => "bytea";
   }
 
   public class KDPgValueTypeEnum : KDPgValueType

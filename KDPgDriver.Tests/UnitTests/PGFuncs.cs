@@ -16,7 +16,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var q = Builders<MyModel>.Select(x => x.Id).Where(x => Func.MD5(x.Name) == "hex");
 
-      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (MD5(name)) = ('hex')");
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model WHERE (MD5(""name"")) = ('hex')");
     }
 
     [Fact]
@@ -24,7 +24,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var q = Builders<MyModel>.Select(x => Func.Count(x.Id));
 
-      Utils.AssertRawQuery(q, @"SELECT COUNT(id) FROM public.model");
+      Utils.AssertRawQuery(q, @"SELECT COUNT(""id"") FROM ""public"".model");
     }
 
     [Fact]
@@ -32,7 +32,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var q = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime > Func.Now());
 
-      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (datetime) > (NOW())");
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model WHERE (datetime) > (NOW())");
     }
 
     [Fact]
@@ -40,7 +40,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var q = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime > Func.Raw<DateTime>("NOW() + INTERVAL 2 SECONDS"));
 
-      Utils.AssertRawQuery(q, @"SELECT id FROM public.model WHERE (datetime) > (NOW() + INTERVAL 2 SECONDS)");
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model WHERE (datetime) > (NOW() + INTERVAL 2 SECONDS)");
     }
   }
 }

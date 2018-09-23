@@ -39,7 +39,8 @@ CREATE TABLE model (
   json_object1 jsonb,
   json_model jsonb,
   json_array1 jsonb,
-  bool bool
+  bool bool,
+  ""binary"" bytea
 );
 
 CREATE TABLE model2 (
@@ -275,14 +276,21 @@ INSERT INTO model2(id, name1, model_id) VALUES(3, 'subtest3', 2);
       var obj = new MyModel() {
           Id = 101,
           Name = "new",
+          Binary = new byte[] { 1, 2, 3 },
       };
 
       await dr.Insert<MyModel>()
               .AddObject(obj)
               .ExecuteAsync();
 
-      var rows = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 101).ToListAsync();
-      Assert.Equal(1, rows.Count);
+      var rows = await dr.From<MyModel>().Select().Where(x => x.Id == 101).ToListAsync();
+      Assert.Collection(rows,
+                        x =>
+                        {
+                          Assert.Equal(101, x.Id);
+                          Assert.Equal("new", x.Name);
+                          Assert.Equal(new byte[] { 1, 2, 3 }, x.Binary);
+                        });
     }
   }
 }

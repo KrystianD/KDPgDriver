@@ -24,7 +24,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.Id)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(id) VALUES (4) RETURNING id");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) RETURNING ""id""");
     }
 
     [Fact]
@@ -46,7 +46,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.Name)
                                .AddMany(objs);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(id,name) VALUES (1,'A'),(2,'B') RETURNING id");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"",""name"") VALUES (1,'A'),(2,'B') RETURNING ""id""");
     }
 
     [Fact]
@@ -62,7 +62,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.ListString)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(list_enum,list_string) VALUES (@1::enum[],@2::text[]) RETURNING id",
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(list_enum,list_string) VALUES (@1::""enum""[],@2::text[]) RETURNING ""id""",
                            new Param(new[] { "A", "C" }, NpgsqlDbType.Array | NpgsqlDbType.Text),
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
@@ -78,7 +78,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.Enum2)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(enum2) VALUES ('A') RETURNING id");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(enum2) VALUES ('A') RETURNING ""id""");
     }
 
     [Fact]
@@ -94,7 +94,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.DateTime)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(datetime) VALUES (@1::timestamp) RETURNING id",
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(datetime) VALUES (@1::timestamp) RETURNING ""id""",
                            new Param(date, NpgsqlDbType.Timestamp));
     }
 
@@ -110,7 +110,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .AddObject(obj)
                                .OnConflict(OnInsertConflict.DoNothing);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(id) VALUES (4) ON CONFLICT DO NOTHING RETURNING id");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT DO NOTHING RETURNING ""id""");
     }
 
     [Fact]
@@ -123,7 +123,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Insert(obj)
                                .UseField(x => x.Name);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO public.model(name) VALUES ('A') RETURNING id");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""name"") VALUES ('A') RETURNING ""id""");
     }
   }
 }

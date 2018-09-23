@@ -5,7 +5,9 @@ using Newtonsoft.Json.Linq;
 
 namespace KDPgDriver.Tests
 {
-  public static class Init { }
+  public static class Init
+  {
+  }
 
   public enum MyEnum
   {
@@ -87,5 +89,8 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("bool")]
     public bool Bool { get; set; }
+
+    [KDPgColumn("binary")]
+    public byte[] Binary { get; set; }
   }
 }
