@@ -79,6 +79,30 @@ BEGIN
   RETURN jsonb_set(data, path, jsonb_extract_path(data, VARIADIC path) || new_value);
 END;
 $$ LANGUAGE plpgsql IMMUTABLE;
+
+CREATE OR REPLACE FUNCTION kdpg_jsonb_remove_by_value(data jsonb, path varchar[], value_to_remove jsonb, only_first bool) RETURNS jsonb AS $$
+DECLARE
+  tmp_data jsonb;
+  item jsonb;
+  index int = 0;
+BEGIN
+  tmp_data := jsonb_extract_path(data, VARIADIC path);
+
+	IF only_first THEN
+		FOR item IN (SELECT value FROM jsonb_array_elements(tmp_data)) LOOP
+    		IF item = value_to_remove THEN
+				tmp_data := tmp_data - index;
+        RETURN jsonb_set(data, path, tmp_data);
+			END IF;
+			index := index + 1;
+		END LOOP;
+		RETURN data;
+	ELSE
+		tmp_data := jsonb_agg(el.value) FROM (SELECT value FROM jsonb_array_elements(tmp_data) WHERE value != value_to_remove) el;
+    RETURN jsonb_set(data, path, tmp_data);
+	END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
 ";
 
         using (var t = connection.CreateCommand()) {

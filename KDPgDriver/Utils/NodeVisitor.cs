@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -56,7 +57,7 @@ namespace KDPgDriver.Utils
 
     public class EvaluationOptions
     {
-      public Dictionary<string, RawQuery.TableNamePlaceholder> parameterToTableAlias = new Dictionary<string, RawQuery.TableNamePlaceholder>();
+      public readonly Dictionary<string, RawQuery.TableNamePlaceholder> ParameterToTableAlias = new Dictionary<string, RawQuery.TableNamePlaceholder>();
 
       public bool ExpandBooleans { get; set; } = false;
     }
@@ -107,11 +108,11 @@ namespace KDPgDriver.Utils
 
         switch (exp) {
           case MemberExpression me:
-            val = ProcessPath(options, me.Expression, (PropertyInfo) me.Member);
+            var pi = VisitPath(options, me);
             if (options.ExpandBooleans && me.Type == typeof(bool)) // for cases like (x => x.BoolValue)
-              return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
+              return ExpressionBuilders.Eq(pi.Expression, TypedExpression.FromValue(true));
 
-            return val;
+            return pi.Expression;
 
           case ConstantExpression me:
           {
@@ -266,95 +267,160 @@ namespace KDPgDriver.Utils
       return VisitInternal(Evaluator.PartialEval(expression, inputParametersNames));
     }
 
-    internal static TypedExpression ProcessPath(EvaluationOptions options, MemberExpression me, out JsonPropertyPath jsonPath)
+    public class PathInfo
     {
-      return ProcessPath(options, me.Expression, (PropertyInfo) me.Member, out jsonPath);
+      public TypedExpression Expression;
+      public KdPgColumnDescriptor Column { get; set; }
+      public List<object> JsonPath { get; } = new List<object>();
+      public string ParameterName;
     }
 
-    private static TypedExpression ProcessPath(EvaluationOptions options, Expression exp, PropertyInfo propertyInfo) => ProcessPath(options, exp, propertyInfo, out _);
-
-    private static TypedExpression ProcessPath(EvaluationOptions options, Expression exp, PropertyInfo propertyInfo, out JsonPropertyPath jsonPath)
+    public static PathInfo VisitPath<TModel>(EvaluationOptions options, Expression<Func<TModel, object>> exp)
     {
-      jsonPath = new JsonPropertyPath();
-      return ProcessPathInternal(options, exp, propertyInfo, jsonPath);
+      return VisitPath(options, exp.Body);
     }
 
-    private static TypedExpression ProcessPathInternal(EvaluationOptions options, Expression exp, PropertyInfo propertyInfo, JsonPropertyPath jsonPath)
+    public static PathInfo VisitPath(EvaluationOptions options, Expression exp)
     {
-      bool isColumn = Helper.IsColumn(propertyInfo);
-      bool isTable = Helper.IsTable(propertyInfo.PropertyType);
-      string fieldName = Helper.GetJsonPropertyNameOrNull(propertyInfo);
-      bool isJsonProperty = fieldName != null;
+      var pi = new PathInfo();
+      var rq = new RawQuery();
+      KDPgValueType pathValueType = null;
 
+      List<object> parts = new List<object>();
 
-      if (isColumn) {
-        var column = Helper.GetColumn(propertyInfo);
-        jsonPath.Column = column;
+      // extract Body expression if Func expression was passed
+      if (exp is LambdaExpression lm)
+        exp = lm.Body;
 
-        var tableVarName = column.Table.Name; // use table name by default (non-join mode)
-        switch (exp) {
-          case MemberExpression memberExpression: // member access for combined mode (join)
-            tableVarName = memberExpression.Member.Name;
+      // remove Convert from last part
+      if (exp is UnaryExpression un && un.NodeType == ExpressionType.Convert) {
+        exp = (MemberExpression) un.Operand;
+      }
+
+      void Traverse(Expression innerExpression)
+      {
+        Expression parentExpression;
+        switch (innerExpression) {
+          case MemberExpression memberExpression:
+            parentExpression = memberExpression.Expression;
+            var member = (PropertyInfo) memberExpression.Member;
+
+            Traverse(parentExpression);
+
+            parts.Add(member);
+
             break;
+
+          case MethodCallExpression callExpression:
+            Debug.Assert(callExpression.Method.Name == "get_Item");
+            parentExpression = callExpression.Object;
+            var indexValue = GetConstant(callExpression.Arguments.First());
+
+            Traverse(parentExpression);
+
+            parts.Add(indexValue);
+
+            break;
+
+          case ParameterExpression parameterExpression: // lambda parameter
+            pi.ParameterName = parameterExpression.Name;
+            break;
+
+          default:
+            throw new Exception("invalid node");
         }
+      }
 
-        var rq = new RawQuery();
-        if (options == null || options.parameterToTableAlias.Count == 0)
-          rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, tableVarName));
-        else {
-          switch (exp) {
-            case ParameterExpression parameterExpression: // lambda parameter
-              tableVarName = parameterExpression.Name;
-              break;
-            case MemberExpression memberExpression: // member access for combined mode (join)
-              break;
-            default: throw new Exception("wrong node");
-          }
+      Traverse(exp);
 
-          rq.AppendColumn(column, options.parameterToTableAlias[tableVarName]);
+      string overrideTableName = null;
+      foreach (var part in parts) {
+        switch (part) {
+          case PropertyInfo member:
+
+            // table
+            if (Helper.IsTable(member.PropertyType)) {
+              if (parts.Count == 1) { // only process table if it is only part in the path (x => x.M1.Name)
+                var table = Helper.GetTable(member.PropertyType);
+
+                rq.AppendTable(new RawQuery.TableNamePlaceholder(table, member.Name));
+
+                pathValueType = null;
+              }
+              else {
+                overrideTableName = member.Name;
+              }
+            }
+            // column
+            else if (Helper.IsColumn(member)) {
+              var column = Helper.GetColumn(member);
+              pi.Column = column;
+
+              if (options == null || options.ParameterToTableAlias.Count == 0) {
+                var tableVarName = overrideTableName ?? column.Table.Name;
+                rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, tableVarName));
+              }
+              else {
+                var tableVarName = overrideTableName ?? pi.ParameterName;
+                rq.AppendColumn(column, options.ParameterToTableAlias[tableVarName]);
+              }
+
+              pathValueType = column.Type;
+            }
+            // json path
+            else {
+              var fieldName = Helper.GetJsonPropertyName(member);
+              var fieldType = Helper.GetJsonPropertyType(member);
+
+              rq.Append("->");
+              rq.Append(Helper.EscapePostgresValue(fieldName));
+              pi.JsonPath.Add(fieldName);
+
+              pathValueType = fieldType;
+            }
+
+            break;
+
+          case string jsonObjectProperty:
+            rq.Append("->");
+            rq.Append(Helper.EscapePostgresValue(jsonObjectProperty));
+            pi.JsonPath.Add(jsonObjectProperty);
+
+            pathValueType = KDPgValueTypeJson.Instance;
+            break;
+
+          case int jsonArrayIndex:
+            rq.Append("->");
+            rq.Append(jsonArrayIndex.ToString());
+            pi.JsonPath.Add(jsonArrayIndex);
+
+            pathValueType = KDPgValueTypeJson.Instance;
+            break;
+
+          default:
+            throw new Exception("invalid node");
         }
-
-        return new TypedExpression(rq, column.Type);
       }
-      else if (isTable) {
-        var table = Helper.GetTable(propertyInfo.PropertyType);
 
-        var rq = new RawQuery();
-        rq.AppendTable(new RawQuery.TableNamePlaceholder(table, propertyInfo.Name));
-        return new TypedExpression(rq, null);
-      }
-      else if (isJsonProperty) {
-        var fieldType = Helper.GetJsonPropertyType(propertyInfo);
+      if (pi.JsonPath.Count > 0) {
+        // cast to native type if known
+        if (pathValueType != KDPgValueTypeJson.Instance) {
+          RawQuery rq2 = new RawQuery();
+          rq2.AppendSurround(rq);
 
-        if (exp is MemberExpression memberExpression) {
-          TypedExpression parentField = ProcessPathInternal(options, memberExpression.Expression, (PropertyInfo) memberExpression.Member, jsonPath);
-          jsonPath.JsonPath.Add(fieldName);
+          if (pathValueType == KDPgValueTypeString.Instance)
+            rq2.Append("::", pathValueType.PostgresTypeName);
+          else
+            rq2.Append("::text::", pathValueType.PostgresTypeName);
 
-          RawQuery rq = new RawQuery();
-          rq.AppendSurround(parentField.RawQuery);
-          rq.Append("->");
-          rq.Append(Helper.EscapePostgresValue(fieldName));
-
-          // cast to native type if known
-          if (fieldType != KDPgValueTypeJson.Instance) {
-            RawQuery rq2 = new RawQuery();
-            rq2.AppendSurround(rq);
-
-            if (fieldType == KDPgValueTypeString.Instance)
-              rq2.Append("::", fieldType.PostgresTypeName);
-            else
-              rq2.Append("::text::", fieldType.PostgresTypeName);
-
-            rq = rq2;
-          }
-
-          return new TypedExpression(rq, fieldType);
+          rq = rq2;
         }
-        else { throw new Exception("invalid path"); }
       }
-      else {
-        throw new Exception("invalid expression");
-      }
+
+
+      pi.Expression = new TypedExpression(rq, pathValueType);
+
+      return pi;
     }
 
     private static object GetConstant(Expression e)
@@ -362,6 +428,14 @@ namespace KDPgDriver.Utils
       switch (e) {
         case ConstantExpression me:
           return me.Value;
+        case UnaryExpression un:
+          switch (un.NodeType) {
+            case ExpressionType.Convert:
+              return ((ConstantExpression) un.Operand).Value;
+
+            default:
+              throw new Exception($"unknown operator: {un.NodeType}");
+          }
         default:
           throw new Exception($"invalid node: {(e == null ? "(null)" : e.NodeType.ToString())}");
       }

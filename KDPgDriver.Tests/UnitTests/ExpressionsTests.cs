@@ -385,7 +385,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Name);
 
-      Utils.AssertExpression(exp, @"((json_model)->'name')::text");
+      Utils.AssertExpression(exp, @"(json_model->'name')::text");
     }
 
     [Fact]
@@ -393,7 +393,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Name.Substring(1, 2));
 
-      Utils.AssertExpression(exp, @"substring((((json_model)->'name')::text) from 1 for 2)");
+      Utils.AssertExpression(exp, @"substring(((json_model->'name')::text) from 1 for 2)");
     }
 
     [Fact]
@@ -401,7 +401,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.MySubsubmodel.Number == 2);
 
-      Utils.AssertExpression(exp, @"((((json_model)->'inner')->'number')::text::int) = (2)");
+      Utils.AssertExpression(exp, @"((json_model->'inner'->'number')::text::int) = (2)");
     }
   }
 }

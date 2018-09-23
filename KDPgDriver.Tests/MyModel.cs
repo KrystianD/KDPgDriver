@@ -40,6 +40,12 @@ namespace KDPgDriver.Tests
 
     [JsonProperty("inner")]
     public MySubsubmodel MySubsubmodel { get; set; }
+
+    [JsonProperty("json_object2")]
+    public JObject JsonObject2 { get; set; }
+
+    [JsonProperty("json_array2")]
+    public JArray JsonArray2 { get; set; }
   }
 
   [KDPgTable("model", schema: "public")]

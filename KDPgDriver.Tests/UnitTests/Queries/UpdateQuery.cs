@@ -66,7 +66,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .AddToList(x => x.JsonArray1, "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE public.model SET json_array1 = kdpg_jsonb_add(json_array1, array[], to_jsonb(@1::jsonb)",
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET json_array1 = kdpg_jsonb_add(json_array1, array[], to_jsonb(@1::jsonb))",
                            new Param("\"A\"", NpgsqlDbType.Jsonb));
     }
 
@@ -74,7 +74,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     public void UpdateRemoveFromList()
     {
       var q = Builders<MyModel>.Update()
-                               .RemoveFromList(x => x.ListString, "A");
+                               .RemoveAllFromList(x => x.ListString, "A");
 
       Utils.AssertRawQuery(q, @"UPDATE public.model SET list_string = array_remove(list_string, 'A')");
     }
@@ -84,7 +84,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     {
       var q = Builders<MyModel>.Update()
                                .AddToList(x => x.ListString, "A")
-                               .RemoveFromList(x => x.ListString, "B")
+                               .RemoveAllFromList(x => x.ListString, "B")
                                .AddToList(x => x.ListString2, "C");
 
       Utils.AssertRawQuery(q, @"
@@ -99,12 +99,22 @@ SET list_string = array_remove(array_cat(list_string, array['A']), 'B'),
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.ListString, new List<string>() { "a1", "a2" })
                                .AddToList(x => x.ListString, "A")
-                               .RemoveFromList(x => x.ListString, "B");
+                               .RemoveAllFromList(x => x.ListString, "B");
 
       Utils.AssertRawQuery(q, @"
 UPDATE public.model
 SET list_string = array_remove(array_cat(@1::text[], array['A']), 'B')",
                            new Param(new List<string>() { "a1", "a2" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
+    }
+
+    [Fact]
+    public void UpdateAssignToJsonObject()
+    {
+      var q = Builders<MyModel>.Update()
+                               .SetField(x => x.JsonModel.JsonObject2["a"][0]["b"], "A");
+
+      Utils.AssertRawQuery(q, @"UPDATE public.model SET json_model = jsonb_set(json_model, array['json_object2','a',0,'b'], to_jsonb(@1::jsonb))", 
+                           new Param("\"A\"", NpgsqlDbType.Jsonb));
     }
   }
 }
