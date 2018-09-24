@@ -1,5 +1,6 @@
 ﻿using System;
 using KDPgDriver.Utils;
+// ReSharper disable UnusedMember.Global
 
 namespace KDPgDriver
 {
@@ -22,6 +23,40 @@ namespace KDPgDriver
       var rq = RawQuery.Create("NOW()");
       return new TypedExpression(rq, KDPgValueTypeInstances.Time);
     }
+
+    public static TypedExpression Coalesce(TypedExpression value1,
+                                           TypedExpression value2 = null,
+                                           TypedExpression value3 = null,
+                                           TypedExpression value4 = null,
+                                           TypedExpression value5 = null)
+    {
+      var rq = RawQuery.Create("COALESCE(");
+      rq.Append(value1.RawQuery);
+
+      if (value2 != null) {
+        rq.Append(", ");
+        rq.Append(value2.RawQuery);
+      }
+
+      if (value3 != null) {
+        rq.Append(", ");
+        rq.Append(value3.RawQuery);
+      }
+
+      if (value4 != null) {
+        rq.Append(", ");
+        rq.Append(value4.RawQuery);
+      }
+
+      if (value5 != null) {
+        rq.Append(", ");
+        rq.Append(value5.RawQuery);
+      }
+
+      rq.Append(")");
+
+      return new TypedExpression(rq, value1.Type);
+    }
   }
 
   public static class Func
@@ -42,6 +77,31 @@ namespace KDPgDriver
     }
 
     public static T Raw<T>(string text)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Coalesce<T>(T value1)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Coalesce<T>(T value1, T value2)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Coalesce<T>(T value1, T value2, T value3)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Coalesce<T>(T value1, T value2, T value3, T value4)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Coalesce<T>(T value1, T value2, T value3, T value4, T value5)
     {
       throw new Exception("do not use directly");
     }

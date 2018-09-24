@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using KDPgDriver.Utils;
 using Xunit;
@@ -250,6 +251,22 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
 
       var newName = await dr.From<MyModel>().Select(x => x.Name).Where(x => x.Id == 1).ToSingleAsync();
       Assert.Equal("A2", newName);
+    }
+
+    [Fact]
+    public async Task TestUpdateCoalesce()
+    {
+      var dr = await CreateDriver();
+
+      await dr.Update<MyModel>()
+              .SetField(x => x.Name, x => Func.Coalesce(x.Name, "Q"))
+              .SetField(x => x.DateTime, x => Func.Coalesce(x.DateTime, new DateTime(1, 1, 1)))
+              .Where(x => x.Id == 1)
+              .ExecuteAsync();
+
+      var val = await dr.From<MyModel>().Select().Where(x => x.Id == 1).ToSingleAsync();
+      Assert.Equal("test1", val.Name);
+      Assert.Equal(new DateTime(1, 1, 1), val.DateTime);
     }
 
     [Fact]

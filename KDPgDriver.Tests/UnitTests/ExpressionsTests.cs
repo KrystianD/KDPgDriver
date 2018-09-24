@@ -345,6 +345,17 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertExpression(exp, @"upper(""name"")");
     }
+    
+    // Coalesce
+    [Fact]
+    public void ExpressionCoalesce()
+    {
+      var exp1 = NodeVisitor.VisitFuncExpression<MyModel>(x => Func.Coalesce(x.Id, 2));
+      Utils.AssertExpression(exp1, @"COALESCE(""id"", 2)");
+
+      var exp2 = NodeVisitor.VisitFuncExpression<MyModel>(x => Func.Coalesce(x.Name, "A", "B"));
+      Utils.AssertExpression(exp2, @"COALESCE(""name"", 'A', 'B')");
+    }
 
     // Data types
     [Fact]
