@@ -53,7 +53,7 @@ namespace KDPgDriver.Tests
   [KDPgTable("model", schema: "public")]
   public class MyModel
   {
-    [KDPgColumn("id", KDPgColumnFlagsEnum.PrimaryKey)]
+    [KDPgColumn("id", KDPgColumnFlagsEnum.PrimaryKey | KDPgColumnFlagsEnum.AutoIncrement)]
     public int Id { get; set; }
 
     [KDPgColumn("name")]

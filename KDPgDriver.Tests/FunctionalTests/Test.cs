@@ -49,13 +49,13 @@ CREATE TABLE model2 (
   model_id int
 );
 
-INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(1, 'test1', '{a,b,c}', 'A', '{A}');
-INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(2, 'test2', '{a,b}', 'B', '{B}');
-INSERT INTO model(id, name, list_string, enum, list_enum) VALUES(3, 'test3', '{a}', 'C', '{B,C}');
+INSERT INTO model(name, list_string, enum, list_enum) VALUES('test1', '{a,b,c}', 'A', '{A}'); -- id: 1
+INSERT INTO model(name, list_string, enum, list_enum) VALUES('test2', '{a,b}', 'B', '{B}'); -- id: 2
+INSERT INTO model(name, list_string, enum, list_enum) VALUES('test3', '{a}', 'C', '{B,C}'); -- id: 3
 
-INSERT INTO model2(id, name1, model_id) VALUES(1, 'subtest1', 1);
-INSERT INTO model2(id, name1, model_id) VALUES(2, 'subtest2', 1);
-INSERT INTO model2(id, name1, model_id) VALUES(3, 'subtest3', 2);
+INSERT INTO model2(name1, model_id) VALUES('subtest1', 1); -- id: 1 
+INSERT INTO model2(name1, model_id) VALUES('subtest2', 1); -- id: 2 
+INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3 
 
 ");
 
@@ -291,6 +291,44 @@ INSERT INTO model2(id, name1, model_id) VALUES(3, 'subtest3', 2);
                           Assert.Equal("new", x.Name);
                           Assert.Equal(new byte[] { 1, 2, 3 }, x.Binary);
                         });
+    }
+
+    [Fact]
+    public async Task TestInsertRefField()
+    {
+      var dr = await CreateDriver();
+
+      var obj = new MyModel() {
+          Name = "new",
+      };
+
+      var obj2 = new MyModel2() {
+          Name1 = "new",
+      };
+
+      var b = dr.CreateTransactionBatch();
+
+      b.Insert(obj)
+       .Schedule();
+
+      b.Insert<MyModel2>()
+       .AddObject(obj2)
+       .AddObject(obj2)
+       .AddObject(obj2)
+       .UseField(x => x.Name1)
+       .UsePreviousInsertId<MyModel>(x => x.ModelId, x => x.Id)
+       .Schedule();
+
+      await b.Execute();
+
+      var rows = await dr.From<MyModel2>().Select(x => x.ModelId).ToListAsync();
+      Assert.Collection(rows,
+                        x => Assert.Equal(1, x),
+                        x => Assert.Equal(1, x),
+                        x => Assert.Equal(2, x),
+                        x => Assert.Equal(4, x),
+                        x => Assert.Equal(4, x),
+                        x => Assert.Equal(4, x));
     }
   }
 }

@@ -29,6 +29,12 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
+    public InsertQueryFluentBuilder1<TModel> UsePreviousInsertId<TRefModel>(Expression<Func<TModel, object>> field, Expression<Func<TRefModel, int>> idField)
+    {
+      _insertQuery.UsePreviousInsertId<TRefModel>(field, idField);
+      return this;
+    }
+
     public InsertQueryFluentBuilder1<TModel> AddObject(TModel obj)
     {
       _insertQuery.AddObject(obj);

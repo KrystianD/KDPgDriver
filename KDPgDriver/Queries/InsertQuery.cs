@@ -2,11 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {
-  public interface IInsertQuery : IQuery { }
+  public interface IInsertQuery : IQuery
+  {
+  }
 
   public enum OnInsertConflict
   {
@@ -26,12 +29,27 @@ namespace KDPgDriver.Queries
     private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
-    private readonly List<TModel> _objects = new List<TModel>();
+    private KdPgColumnDescriptor _idColumn, _idRefColumn;
 
+    private readonly List<TModel> _objects = new List<TModel>();
 
     public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
       _columns.Add(NodeVisitor.EvaluateExpressionToColumn(field));
+      return this;
+    }
+
+    public InsertQuery<TModel> UsePreviousInsertId<TRefModel>(Expression<Func<TModel, object>> field, Expression<Func<TRefModel, int>> idField)
+    {
+      var column = NodeVisitor.EvaluateExpressionToColumn(field);
+      var refColumn = NodeVisitor.EvaluateExpressionToColumn(idField);
+
+      if ((refColumn.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0)
+        throw new ArgumentException("Reference field must be auto increment");
+
+      _idColumn = column;
+      _idRefColumn = refColumn;
+
       return this;
     }
 
@@ -63,7 +81,15 @@ namespace KDPgDriver.Queries
 
       rq.AppendTableName(Table.Name, Table.Schema ?? defaultSchema);
 
-      rq.Append("(").AppendColumnNames(columns.Select(x => x.Name)).Append(")");
+      rq.Append("(");
+      rq.AppendColumnNames(columns.Select(x => x.Name));
+      if (_idColumn != null) {
+        if (columns.Count > 0)
+          rq.Append(",");
+        rq.AppendColumnName(_idColumn.Name);
+      }
+
+      rq.Append(")");
 
       rq.Append(" VALUES ");
 
@@ -82,6 +108,13 @@ namespace KDPgDriver.Queries
             rq.Append(",");
 
           rq.Append(npgValue);
+        }
+
+        if (_idColumn != null) {
+          if (columns.Count > 0)
+            rq.Append(",");
+
+          rq.Append(ExpressionBuilders.CurrSeqValueOfTable(_idRefColumn).RawQuery);
         }
 
         rq.Append(")");

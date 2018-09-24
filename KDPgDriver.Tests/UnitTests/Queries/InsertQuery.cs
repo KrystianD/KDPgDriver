@@ -125,5 +125,19 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""name"") VALUES ('A') RETURNING ""id""");
     }
+
+    [Fact]
+    public void InsertRefId()
+    {
+      var obj = new MyModel2 {
+          Name1 = "A"
+      };
+
+      var q = Builders<MyModel2>.Insert(obj)
+                                .UseField(x => x.Name1)
+                                .UsePreviousInsertId<MyModel>(x => x.ModelId, x => x.Id);
+
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1,model_id) VALUES ('A',currval(pg_get_serial_sequence(""public"".model,""id""))) RETURNING ""id""");
+    }
   }
 }

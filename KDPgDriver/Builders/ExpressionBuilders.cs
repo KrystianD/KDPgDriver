@@ -358,6 +358,21 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, array.Type);
     }
 
+    public static TypedExpression CurrSeqValueOfTable(KdPgColumnDescriptor column)
+    {
+      RawQuery rq = new RawQuery();
+      rq.Append("currval(pg_get_serial_sequence(");
+
+      string table = column.Table.Name;
+      string schema = column.Table.Schema;
+      table = schema == null ? table : $"{schema}.{table}";
+
+      rq.Append(Helper.EscapePostgresValue(table));
+      rq.Append(",");
+      rq.Append(Helper.EscapePostgresValue(column.Name));
+      rq.Append("))");
+      return new TypedExpression(rq, KDPgValueTypeInstances.Integer);
+    }
 
     // helpers
     private static TypedExpression JoinLogicExpressions(string op, IEnumerable<TypedExpression> expressions)
