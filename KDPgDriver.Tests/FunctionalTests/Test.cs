@@ -41,7 +41,8 @@ CREATE TABLE model (
   json_model jsonb,
   json_array1 jsonb,
   bool bool,
-  ""binary"" bytea
+  ""binary"" bytea,
+  private_int int
 );
 
 CREATE TABLE model2 (
@@ -50,9 +51,9 @@ CREATE TABLE model2 (
   model_id int
 );
 
-INSERT INTO model(name, list_string, enum, list_enum) VALUES('test1', '{a,b,c}', 'A', '{A}'); -- id: 1
-INSERT INTO model(name, list_string, enum, list_enum) VALUES('test2', '{a,b}', 'B', '{B}'); -- id: 2
-INSERT INTO model(name, list_string, enum, list_enum) VALUES('test3', '{a}', 'C', '{B,C}'); -- id: 3
+INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test1', '{a,b,c}', 'A', '{A}', 1); -- id: 1
+INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test2', '{a,b}', 'B', '{B}', 2); -- id: 2
+INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test3', '{a}', 'C', '{B,C}', 3); -- id: 3
 
 INSERT INTO model2(name1, model_id) VALUES('subtest1', 1); -- id: 1 
 INSERT INTO model2(name1, model_id) VALUES('subtest2', 1); -- id: 2 
@@ -175,6 +176,8 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
       {
         Assert.Equal(2, item.Id);
         Assert.Equal("test2", item.Name);
+        
+        Assert.Equal(2, item.PrivateInt);
 
         Assert.Collection(item.ListString,
                           subitem => { Assert.Equal("a", subitem); },

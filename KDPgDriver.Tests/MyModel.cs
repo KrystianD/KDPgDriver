@@ -92,5 +92,10 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("binary")]
     public byte[] Binary { get; set; }
+
+    [KDPgColumn("private_int")]
+    private int _privateInt { get; set; }
+    
+    public int PrivateInt => _privateInt;
   }
 }

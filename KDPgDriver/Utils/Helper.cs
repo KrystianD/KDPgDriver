@@ -282,7 +282,7 @@ namespace KDPgDriver.Utils
             name: tableAttribute.Name,
             schema: tableAttribute.Schema);
 
-        table.Columns = tableType.GetProperties()
+        table.Columns = tableType.GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
                                  .Where(x => x.GetCustomAttribute<KDPgColumnAttribute>() != null)
                                  .Select(x => CreateColumnDescriptor(x, table)).ToList();
 

@@ -15,7 +15,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     {
       var q = Builders<MyModel>.Select();
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",list_string,list_string2,(""enum"")::text,(list_enum)::text[],(enum2)::text,datetime,json_object1,json_model,json_array1,bool,""binary"" FROM ""public"".model");
+      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",list_string,list_string2,(""enum"")::text,(list_enum)::text[],(enum2)::text,datetime,json_object1,json_model,json_array1,bool,""binary"",private_int FROM ""public"".model");
     }
 
     // Single values
