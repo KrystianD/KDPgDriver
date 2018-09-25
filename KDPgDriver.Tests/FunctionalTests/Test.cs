@@ -291,7 +291,6 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
       var dr = await CreateDriver();
 
       var obj = new MyModel() {
-          Id = 101,
           Name = "new",
           Binary = new byte[] { 1, 2, 3 },
       };
@@ -300,11 +299,11 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
               .AddObject(obj)
               .ExecuteAsync();
 
-      var rows = await dr.From<MyModel>().Select().Where(x => x.Id == 101).ToListAsync();
+      var rows = await dr.From<MyModel>().Select().Where(x => x.Id == 4).ToListAsync();
       Assert.Collection(rows,
                         x =>
                         {
-                          Assert.Equal(101, x.Id);
+                          Assert.Equal(4, x.Id);
                           Assert.Equal("new", x.Name);
                           Assert.Equal(new byte[] { 1, 2, 3 }, x.Binary);
                         });

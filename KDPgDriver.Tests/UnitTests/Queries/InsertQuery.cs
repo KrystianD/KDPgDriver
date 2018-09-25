@@ -137,7 +137,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                 .UseField(x => x.Name1)
                                 .UsePreviousInsertId<MyModel>(x => x.ModelId, x => x.Id);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1,model_id) VALUES ('A',currval(pg_get_serial_sequence(""public"".model,""id""))) RETURNING ""id""");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1,model_id) VALUES ('A',currval(pg_get_serial_sequence('public.model','id'))) RETURNING ""id""");
     }
   }
 }
