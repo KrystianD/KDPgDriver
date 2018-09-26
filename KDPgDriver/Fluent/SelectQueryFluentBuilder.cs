@@ -357,6 +357,16 @@ namespace KDPgDriver.Fluent
       return res.GetAll();
     }
 
+    public async Task<HashSet<TNewModel>> ToHashSetAsync()
+    {
+      return (await ToListAsync()).ToHashSet();
+    }
+
+    public async Task<HashSet<T>> ToHashSetAsync<T>(Func<TNewModel, T> elementSelector)
+    {
+      return (await ToListAsync()).Select(elementSelector).ToHashSet();
+    }
+
     public async Task<Dictionary<T, TNewModel>> ToDictionaryAsync<T>(Func<TNewModel, T> keySelector)
     {
       return (await ToListAsync()).ToDictionary(keySelector);
