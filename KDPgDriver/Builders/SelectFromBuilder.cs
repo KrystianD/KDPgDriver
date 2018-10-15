@@ -215,8 +215,8 @@ namespace KDPgDriver.Builders
             }
           }
           else {
+            // Select returns single value from combined model
             exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
-
             b.AddSelectPart(exp.RawQuery, exp.Type);
             b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
           }
@@ -225,7 +225,11 @@ namespace KDPgDriver.Builders
         }
 
         default:
-          throw new Exception("invalid state");
+          // Select return constant value
+          exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
+          b.AddSelectPart(exp.RawQuery, exp.Type);
+          b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+          break;
       }
 
       return b;
