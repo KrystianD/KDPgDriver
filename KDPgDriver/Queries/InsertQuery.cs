@@ -114,7 +114,7 @@ namespace KDPgDriver.Queries
           if (columns.Count > 0)
             rq.Append(",");
 
-          rq.Append(ExpressionBuilders.CurrSeqValueOfTable(_idRefColumn).RawQuery);
+          rq.Append(ExpressionBuilders.CurrSeqValueOfTable(_idRefColumn, defaultSchema).RawQuery);
         }
 
         rq.Append(")");
