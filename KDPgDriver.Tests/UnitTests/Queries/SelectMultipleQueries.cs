@@ -149,5 +149,56 @@ SELECT
 FROM
   ""public"".model t0 LEFT JOIN ""public"".model t1 ON ((t0.""id"") = (t1.""id""))");
     }
+
+    [Fact]
+    public void SelectMultipleUseOne()
+    {
+      var q1 = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.Id)
+                           .Map((a, b) => new {
+                               M1 = a,
+                               M2 = b,
+                           })
+                           .Select(x => x.M1.Id);
+
+      Utils.AssertRawQueryWithAliases(q1, @"
+SELECT 
+  t0.""id""
+FROM
+  ""public"".model t0 LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.""id""))");
+
+      var q2 = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3>(
+                               (a, b) => a.Id == b.Id,
+                               (a, b, c) => a.Id == c.Id)
+                           .Map((a, b, c) => new {
+                               M1 = a,
+                           })
+                           .Select(x => x.M1.Id);
+
+      Utils.AssertRawQueryWithAliases(q2, @"
+SELECT 
+  t0.""id""
+FROM
+  ""public"".model t0
+LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.""id""))
+LEFT JOIN ""public"".model3 t2 ON ((t0.""id"") = (t2.""id""))");
+
+      var q3 = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3, MyModel2>(
+                               (a, b) => a.Id == b.Id,
+                               (a, b, c) => a.Id == c.Id,
+                               (a, b, c, d) => a.Id == d.Id)
+                           .Map((a, b, c, d) => new {
+                               M1 = a,
+                           })
+                           .Select(x => x.M1.Id);
+
+      Utils.AssertRawQueryWithAliases(q3, @"
+SELECT 
+  t0.""id""
+FROM
+  ""public"".model t0
+LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.""id""))
+LEFT JOIN ""public"".model3 t2 ON ((t0.""id"") = (t2.""id""))
+LEFT JOIN ""public"".model2 t3 ON ((t0.""id"") = (t3.""id""))");
+    }
   }
 }

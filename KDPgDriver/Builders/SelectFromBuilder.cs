@@ -200,28 +200,32 @@ namespace KDPgDriver.Builders
 
         case MemberExpression memberExpression:
         {
-          var resultProcessor = new ModelResultProcessor<TNewModel>();
-          b.ResultProcessor = resultProcessor;
+          if (Helper.IsTable(typeof(TNewModel))) {
+            var resultProcessor = new ModelResultProcessor<TNewModel>();
+            b.ResultProcessor = resultProcessor;
 
-          var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
-          var table = tablePlaceholder.Table;
+            var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
+            var table = tablePlaceholder.Table;
 
-          foreach (var column in table.Columns) {
-            var rq = new RawQuery();
-            rq.AppendColumn(column, tablePlaceholder);
-            b.AddSelectPart(rq, column.Type);
-            resultProcessor.UseColumn(column);
+            foreach (var column in table.Columns) {
+              var rq = new RawQuery();
+              rq.AppendColumn(column, tablePlaceholder);
+              b.AddSelectPart(rq, column.Type);
+              resultProcessor.UseColumn(column);
+            }
+          }
+          else {
+            exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
+
+            b.AddSelectPart(exp.RawQuery, exp.Type);
+            b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
           }
 
           break;
         }
 
         default:
-          exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
-
-          b.AddSelectPart(exp.RawQuery, exp.Type);
-          b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
-          break;
+          throw new Exception("invalid state");
       }
 
       return b;
