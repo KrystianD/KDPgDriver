@@ -16,7 +16,9 @@ namespace KDPgDriver.Fluent
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly UpdateStatementsBuilder<TModel> _updateStatementsBuilder = new UpdateStatementsBuilder<TModel>();
 
-    public UpdateQueryFluentBuilder1() { }
+    public UpdateQueryFluentBuilder1()
+    {
+    }
 
     public UpdateQueryFluentBuilder1(IQueryExecutor executor)
     {
@@ -44,22 +46,22 @@ namespace KDPgDriver.Fluent
       _updateStatementsBuilder.UnsetField(field);
       return this;
     }
-    
+
     public UpdateQueryFluentBuilder1<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       _updateStatementsBuilder.SetField(field, value);
       return this;
     }
-    
+
     public UpdateQueryFluentBuilder1<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, Expression<Func<TModel, TValue>> valueExpression)
     {
       _updateStatementsBuilder.SetField(field, valueExpression);
       return this;
     }
 
-    public UpdateQueryFluentBuilder1<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
+    public UpdateQueryFluentBuilder1<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value, UpdateAddToListFlags flags = UpdateAddToListFlags.None)
     {
-      _updateStatementsBuilder.AddToList(field, value);
+      _updateStatementsBuilder.AddToList(field, value, flags);
       return this;
     }
 

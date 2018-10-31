@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using KDPgDriver.Builders;
 using NpgsqlTypes;
 using Xunit;
 
@@ -58,6 +59,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .AddToList(x => x.ListString, "A");
 
       Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET list_string = array_cat(list_string, array['A'])");
+    }
+
+    [Fact]
+    public void UpdateAddToListDistinct()
+    {
+      var q = Builders<MyModel>.Update()
+                               .AddToList(x => x.ListString, "A", UpdateAddToListFlags.Distinct);
+
+      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET list_string = kdpg_array_distinct(array_cat(list_string, array['A']))");
     }
 
     [Fact]

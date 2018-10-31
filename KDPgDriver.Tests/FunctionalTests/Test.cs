@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 using Xunit;
 
@@ -176,7 +177,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
       {
         Assert.Equal(2, item.Id);
         Assert.Equal("test2", item.Name);
-        
+
         Assert.Equal(2, item.PrivateInt);
 
         Assert.Collection(item.ListString,
@@ -348,6 +349,45 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
                         x => Assert.Equal(4, x),
                         x => Assert.Equal(4, x),
                         x => Assert.Equal(4, x));
+    }
+
+    [Fact]
+    public async Task TestAddToArray()
+    {
+      var dr = await CreateDriver();
+
+      await dr.Update<MyModel>()
+              .AddToList(x => x.ListString, "c")
+              .AddToList(x => x.ListString, "d")
+              .ExecuteAsync();
+
+      var d = await dr.From<MyModel>().Select(x => x.ListString).Where(x => x.Id == 1).ToSingleAsync();
+
+      Assert.Collection(d,
+                        x => Assert.Equal("a", x),
+                        x => Assert.Equal("b", x),
+                        x => Assert.Equal("c", x),
+                        x => Assert.Equal("c", x),
+                        x => Assert.Equal("d", x));
+    }
+    
+    [Fact]
+    public async Task TestAddToArrayDistinct()
+    {
+      var dr = await CreateDriver();
+
+      await dr.Update<MyModel>()
+              .AddToList(x => x.ListString, "c", UpdateAddToListFlags.Distinct)
+              .AddToList(x => x.ListString, "d", UpdateAddToListFlags.Distinct)
+              .ExecuteAsync();
+
+      var d = await dr.From<MyModel>().Select(x => x.ListString).Where(x => x.Id == 1).ToSingleAsync();
+
+      Assert.Collection(d,
+                        x => Assert.Equal("a", x),
+                        x => Assert.Equal("b", x),
+                        x => Assert.Equal("c", x),
+                        x => Assert.Equal("d", x));
     }
   }
 }

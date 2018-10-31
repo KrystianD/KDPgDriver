@@ -358,6 +358,20 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, array.Type);
     }
 
+
+    public static TypedExpression KDPgArrayDistinct(TypedExpression array)
+    {
+      if (!(array.Type is KDPgValueTypeArray))
+        throw new Exception("obj parameter must be array");
+
+      RawQuery rq = RawQuery.Create("kdpg_array_distinct(")
+                            .Append(array.RawQuery)
+                            .Append(")");
+
+      return new TypedExpression(rq, array.Type);
+    }
+
+
     public static TypedExpression CurrSeqValueOfTable(KdPgColumnDescriptor column, string defaultSchema)
     {
       RawQuery rq = new RawQuery();
