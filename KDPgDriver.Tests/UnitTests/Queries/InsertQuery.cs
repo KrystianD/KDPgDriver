@@ -50,6 +50,19 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
+    public void InsertManyEmpty()
+    {
+      var objs = new List<MyModel>();
+
+      var q = Builders<MyModel>.Insert()
+                               .UseField(x => x.Id)
+                               .UseField(x => x.Name)
+                               .AddMany(objs);
+
+      Utils.AssertRawQuery(q, @"SELECT 0");
+    }
+
+    [Fact]
     public void InsertList()
     {
       var obj = new MyModel {

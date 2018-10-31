@@ -61,11 +61,17 @@ namespace KDPgDriver.Fluent
 
     public async Task<InsertQueryResult> ExecuteAsync()
     {
+      if (_insertQuery.IsEmpty)
+        return new InsertQueryResult(null);
+      
       return await _executor.QueryAsync(GetInsertQuery());
     }
 
     public async Task<int> ExecuteForIdAsync()
     {
+      if (_insertQuery.IsEmpty)
+        throw new Exception("Cannot insert empty list for id");
+      
       var res = await _executor.QueryAsync(GetInsertQuery());
       Debug.Assert(res.LastInsertId != null, "res.LastInsertId != null");
       return res.LastInsertId.Value;
@@ -73,6 +79,9 @@ namespace KDPgDriver.Fluent
 
     public void Schedule()
     {
+      if (_insertQuery.IsEmpty)
+        return;
+      
       _executor.ScheduleQuery(GetInsertQuery());
     }
 

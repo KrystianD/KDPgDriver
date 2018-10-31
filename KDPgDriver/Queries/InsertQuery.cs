@@ -32,6 +32,7 @@ namespace KDPgDriver.Queries
     private KdPgColumnDescriptor _idColumn, _idRefColumn;
 
     private readonly List<TModel> _objects = new List<TModel>();
+    public bool IsEmpty => _objects.Count == 0;
 
     public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
@@ -73,6 +74,9 @@ namespace KDPgDriver.Queries
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
+      if (IsEmpty)
+        return RawQuery.Create("SELECT 0");
+
       RawQuery rq = new RawQuery();
 
       var columns = _columns.Count == 0 ? AllColumnsWithoutAutoIncrement : _columns;
