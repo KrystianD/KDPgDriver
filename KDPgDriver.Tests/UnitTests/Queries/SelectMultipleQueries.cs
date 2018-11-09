@@ -1,6 +1,4 @@
-﻿using System;
-using KDPgDriver.Builders;
-using Xunit;
+﻿using Xunit;
 
 namespace KDPgDriver.Tests.UnitTests.Queries
 {
@@ -12,7 +10,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
-    public void SelectMultiple()
+    public void SelectMultipleAll()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
                           .Map((a, b) => new {
@@ -32,7 +30,7 @@ WHERE
     }
 
     [Fact]
-    public void SelectMultipleSub()
+    public void SelectMultipleNew()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
                           .Map((a, b) => new {
@@ -53,7 +51,7 @@ FROM
     }
 
     [Fact]
-    public void SelectMultiple3()
+    public void SelectMultiple3Tables()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3>(
                               (a, b) => a.Id == b.ModelId,
@@ -87,7 +85,7 @@ FROM
     }
 
     [Fact]
-    public void SelectMultiple4()
+    public void SelectMultiple4Tables()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel2, MyModel3, MyModel3>(
                               (a, b) => a.Id == b.ModelId,
@@ -111,7 +109,7 @@ LEFT JOIN ""public"".model3 t3 ON ((t0.""id"") = (t3.model_id))
     }
 
     [Fact]
-    public void SelectMultipleSelf()
+    public void SelectMultipleSelfJoin()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel>((a, b) => a.Id == b.Id)
                           .Map((a, b) => new {
@@ -134,7 +132,7 @@ WHERE
     }
 
     [Fact]
-    public void SelectMultipleSingleReturn()
+    public void SelectMultipleReturnSingleTable()
     {
       var q = BuildersJoin.FromMany<MyModel, MyModel>((a, b) => a.Id == b.Id)
                           .Map((a, b) => new {
@@ -151,7 +149,7 @@ FROM
     }
 
     [Fact]
-    public void SelectMultipleUseOne()
+    public void SelectMultipleReturnScalar()
     {
       var q1 = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.Id)
                            .Map((a, b) => new {

@@ -24,120 +24,6 @@ namespace KDPgDriver.Builders
     int FieldsCount { get; }
   }
 
-  public class SingleValueResultProcessor : IResultProcessor
-  {
-    private readonly KDPgValueType _type;
-
-    public int FieldsCount => 1;
-
-    public SingleValueResultProcessor(KDPgValueType type)
-    {
-      _type = type;
-    }
-
-    public object ParseResult(object[] values)
-    {
-      return Helper.ConvertFromRawSqlValue(_type, values[0]);
-    }
-  }
-
-  public class ModelResultProcessor<TModel> : IResultProcessor
-  {
-    private static readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
-
-    private bool _useAllColumns = true;
-    private List<KdPgColumnDescriptor> _columns = Table.Columns;
-    public int FieldsCount => _columns.Count;
-
-    public object ParseResult(object[] values)
-    {
-      var obj = Activator.CreateInstance(Table.ModelType);
-
-      for (var i = 0; i < _columns.Count; i++) {
-        var col = _columns[i];
-        var val = Helper.ConvertFromRawSqlValue(col.Type, values[i]);
-        col.PropertyInfo.SetValue(obj, val);
-      }
-
-      return obj;
-    }
-
-    public void UseColumn(KdPgColumnDescriptor column)
-    {
-      if (_useAllColumns) {
-        _columns = new List<KdPgColumnDescriptor>();
-        _useAllColumns = false;
-      }
-
-      _columns.Add(column);
-    }
-  }
-
-  public class AnonymousTypeResultProcessor<TModel> : IResultProcessor
-  {
-    public class Entry
-    {
-      public KdPgTableDescriptor MemberTable;
-
-      public KDPgValueType MemberType;
-    }
-
-    private readonly List<Entry> Entries = new List<Entry>();
-
-    private int fieldsCount = 0;
-
-    public int FieldsCount => fieldsCount;
-
-    public object ParseResult(object[] values)
-    {
-      object[] constructorParams = new object[Entries.Count];
-
-      int columnIdx = 0;
-
-      for (var i = 0; i < Entries.Count; i++) {
-        var entry = Entries[i];
-
-        if (entry.MemberTable != null) {
-          var table = Entries[i].MemberTable;
-
-          var modelObj = Activator.CreateInstance(table.ModelType);
-
-          foreach (var column in table.Columns) {
-            var val = Helper.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
-            column.PropertyInfo.SetValue(modelObj, val);
-          }
-
-          constructorParams[i] = modelObj;
-        }
-        else if (entry.MemberType != null) {
-          constructorParams[i] = Helper.ConvertFromRawSqlValue(entry.MemberType, values[columnIdx++]);
-        }
-        else
-          throw new Exception();
-      }
-
-      return Activator.CreateInstance(typeof(TModel), constructorParams);
-    }
-
-    public void AddModelEntry(KdPgTableDescriptor table)
-    {
-      fieldsCount += table.Columns.Count;
-
-      Entries.Add(new Entry {
-          MemberTable = table,
-      });
-    }
-
-    public void AddMemberEntry(KDPgValueType memberType)
-    {
-      fieldsCount += 1;
-
-      Entries.Add(new Entry {
-          MemberType = memberType,
-      });
-    }
-  }
-
   public class SelectFromBuilder : ISelectFromBuilder
   {
     private class ResultColumnDef
@@ -154,12 +40,12 @@ namespace KDPgDriver.Builders
 
     public static SelectFromBuilder FromCombinedExpression<TCombinedModel, TNewModel>(TablesList tablesList, Expression<Func<TCombinedModel, TNewModel>> prBody)
     {
-      var b = new SelectFromBuilder();
-      b.LeftJoinsExpressions = tablesList.JoinExpressions;
+      var builder = new SelectFromBuilder();
+      builder.LeftJoinsExpressions = tablesList.JoinExpressions;
 
       var options = new NodeVisitor.EvaluationOptions();
       foreach (var table in tablesList.Tables) {
-        b.AddTable(table);
+        builder.AddTable(table);
         options.ParameterToTableAlias.Add(table.Name, table);
       }
 
@@ -167,15 +53,22 @@ namespace KDPgDriver.Builders
 
       TypedExpression exp;
       switch (prBody.Body) {
+        /* For:
+         * .Select(x => new {
+                            M1 = x.M1,
+                            M2_name = x.M2.Name1,
+                            M3_calc = x.M2.Id * 2,
+                        })
+         */
         case NewExpression newExpression:
         {
-          IEnumerable<PropertyInfo> members = newExpression.Members.Cast<PropertyInfo>();
           IEnumerable<Expression> args = newExpression.Arguments;
 
           var resultProcessor = new AnonymousTypeResultProcessor<TNewModel>();
-          b.ResultProcessor = resultProcessor;
+          builder.ResultProcessor = resultProcessor;
 
-          foreach (var (member, argExpression) in members.Zip(args)) {
+          foreach (var argExpression in args) {
+            // Member is Table (like M1 = x.M1)
             if (argExpression is MemberExpression memberExpression && Helper.IsTable(memberExpression.Type)) {
               var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
               var table = tablePlaceholder.Table;
@@ -183,14 +76,15 @@ namespace KDPgDriver.Builders
               foreach (var column in table.Columns) {
                 var rq = new RawQuery();
                 rq.AppendColumn(column, tablePlaceholder);
-                b.AddSelectPart(rq, column.Type);
+                builder.AddSelectPart(rq, column.Type);
               }
 
               resultProcessor.AddModelEntry(table);
             }
+            // Member is Member-expression (like M2_name = x.M2.Name1, M3_calc = x.M2.Id * 2)
             else {
               exp = NodeVisitor.EvaluateToTypedExpression(argExpression, (string) null, options);
-              b.AddSelectPart(exp.RawQuery, exp.Type);
+              builder.AddSelectPart(exp.RawQuery, exp.Type);
               resultProcessor.AddMemberEntry(exp.Type);
             }
           }
@@ -198,11 +92,16 @@ namespace KDPgDriver.Builders
           break;
         }
 
+        /* For:
+         * .Select(x => x.M1)
+         * .Select(x => x.M2.Name1)
+         */
         case MemberExpression memberExpression:
         {
+          // .Select(x => x.M1)
           if (Helper.IsTable(typeof(TNewModel))) {
             var resultProcessor = new ModelResultProcessor<TNewModel>();
-            b.ResultProcessor = resultProcessor;
+            builder.ResultProcessor = resultProcessor;
 
             var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
             var table = tablePlaceholder.Table;
@@ -210,52 +109,58 @@ namespace KDPgDriver.Builders
             foreach (var column in table.Columns) {
               var rq = new RawQuery();
               rq.AppendColumn(column, tablePlaceholder);
-              b.AddSelectPart(rq, column.Type);
+              builder.AddSelectPart(rq, column.Type);
               resultProcessor.UseColumn(column);
             }
           }
+          // .Select(x => x.M2.Name1)
           else {
             // Select returns single value from combined model
             exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
-            b.AddSelectPart(exp.RawQuery, exp.Type);
-            b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+            builder.AddSelectPart(exp.RawQuery, exp.Type);
+            builder.ResultProcessor = new SingleValueResultProcessor(exp.Type);
           }
 
           break;
         }
 
+        /* For:
+         * .Select(x => 0)
+         */
         default:
           // Select return constant value
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
-          b.AddSelectPart(exp.RawQuery, exp.Type);
-          b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+          builder.AddSelectPart(exp.RawQuery, exp.Type);
+          builder.ResultProcessor = new SingleValueResultProcessor(exp.Type);
           break;
       }
 
-      return b;
+      return builder;
     }
 
+    /* For:
+     * .Select()
+     */
     public static SelectFromBuilder AllColumnsFromCombined<TCombinedModel>(TablesList tablesList)
     {
       var b = new SelectFromBuilder();
       b.LeftJoinsExpressions = tablesList.JoinExpressions;
 
-      var pr = new AnonymousTypeResultProcessor<TCombinedModel>();
+      var resultProcessor = new AnonymousTypeResultProcessor<TCombinedModel>();
 
       foreach (var table in tablesList.Tables) {
         b.AddTable(table);
 
-        pr.AddModelEntry(table.Table);
-
         foreach (var column in table.Table.Columns) {
           var rq = new RawQuery();
-          rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, table.Name));
-
+          rq.AppendColumn(column, table);
           b.AddSelectPart(rq, column.Type);
         }
+
+        resultProcessor.AddModelEntry(table.Table);
       }
 
-      b.ResultProcessor = pr;
+      b.ResultProcessor = resultProcessor;
 
       return b;
     }
