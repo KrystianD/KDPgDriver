@@ -370,7 +370,11 @@ namespace KDPgDriver.Utils
       switch (value) {
         case string s:
           return "'" + s.Replace("'", "''") + "'";
+        case short v:
+          return v.ToString();
         case int v:
+          return v.ToString();
+        case long v:
           return v.ToString();
         default:
           throw new Exception($"unable to escape value of type: {value.GetType()}");
