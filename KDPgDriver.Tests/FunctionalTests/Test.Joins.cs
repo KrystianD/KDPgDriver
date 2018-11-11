@@ -10,10 +10,10 @@ namespace KDPgDriver.Tests.FunctionalTests
     {
       var dr = await CreateDriver();
 
-      var rows = await dr.FromMany<MyModel, MyModel2>((model, model2) => model.Id == model2.ModelId)
+      var rows = await dr.FromMany<MyModel2, MyModel>((model2, model) => model2.ModelId == model.Id)
                          .Map((a, b) => new {
-                             M1 = a,
-                             M2 = b,
+                             Model2 = a,
+                             Model = b,
                          })
                          .Select()
                          .ToListAsync();
@@ -21,23 +21,25 @@ namespace KDPgDriver.Tests.FunctionalTests
       Assert.Collection(rows,
                         item =>
                         {
-                          Assert.Equal(1, item.M1.Id);
-                          Assert.Equal(1, item.M2.Id);
+                          Assert.Equal(1, item.Model2.Id);
+                          Assert.Equal(1, item.Model.Id);
                         },
                         item =>
                         {
-                          Assert.Equal(1, item.M1.Id);
-                          Assert.Equal(2, item.M2.Id);
+                          Assert.Equal(2, item.Model2.Id);
+                          Assert.Equal(1, item.Model.Id);
+                          Assert.Equal(1, item.Model2.ModelId);
                         },
                         item =>
                         {
-                          Assert.Equal(2, item.M1.Id);
-                          Assert.Equal(3, item.M2.Id);
+                          Assert.Equal(3, item.Model2.Id);
+                          Assert.Equal(2, item.Model.Id);
+                          Assert.Equal(2, item.Model2.ModelId);
                         },
                         item =>
                         {
-                          Assert.Equal(3, item.M1.Id);
-                          Assert.Null(item.M2.Name1);
+                          Assert.Equal(4, item.Model2.Id);
+                          Assert.Null(item.Model);
                         });
     }
 
@@ -46,42 +48,42 @@ namespace KDPgDriver.Tests.FunctionalTests
     {
       var dr = await CreateDriver();
 
-      var rows = await dr.FromMany<MyModel, MyModel2>((model, model2) => model.Id == model2.ModelId)
+      var rows = await dr.FromMany<MyModel2, MyModel>((model2, model) => model2.ModelId == model.Id)
                          .Map((a, b) => new {
-                             M1 = a,
-                             M2 = b,
+                             Model2 = a,
+                             Model = b,
                          })
                          .Select(x => new {
-                             M1 = x.M1,
-                             M2_name = x.M2.Name1,
-                             M2_id = x.M2.Id * 2,
+                             Model = x.Model,
+                             Model2_name = x.Model2.Name1,
+                             Model2_id = x.Model2.Id * 2,
                          })
                          .ToListAsync();
 
       Assert.Collection(rows,
                         item =>
                         {
-                          Assert.Equal(1, item.M1.Id);
-                          Assert.Equal("subtest1", item.M2_name);
-                          Assert.Equal(2, item.M2_id);
+                          Assert.Equal(1 * 2, item.Model2_id);
+                          Assert.Equal("subtest1", item.Model2_name);
+                          Assert.Equal(1, item.Model.Id);
                         },
                         item =>
                         {
-                          Assert.Equal(1, item.M1.Id);
-                          Assert.Equal("subtest2", item.M2_name);
-                          Assert.Equal(4, item.M2_id);
+                          Assert.Equal(2 * 2, item.Model2_id);
+                          Assert.Equal("subtest2", item.Model2_name);
+                          Assert.Equal(1, item.Model.Id);
                         },
                         item =>
                         {
-                          Assert.Equal(2, item.M1.Id);
-                          Assert.Equal("subtest3", item.M2_name);
-                          Assert.Equal(6, item.M2_id);
+                          Assert.Equal(3 * 2, item.Model2_id);
+                          Assert.Equal("subtest3", item.Model2_name);
+                          Assert.Equal(2, item.Model.Id);
                         },
                         item =>
                         {
-                          Assert.Equal(3, item.M1.Id);
-                          Assert.Null(item.M2_name);
-                          Assert.Equal(0, item.M2_id);
+                          Assert.Equal(4 * 2, item.Model2_id);
+                          Assert.Equal("subtest4", item.Model2_name);
+                          Assert.Null(item.Model);
                         });
     }
 
@@ -90,19 +92,19 @@ namespace KDPgDriver.Tests.FunctionalTests
     {
       var dr = await CreateDriver();
 
-      var rows = await dr.FromMany<MyModel, MyModel2>((model, model2) => model.Id == model2.ModelId)
+      var rows = await dr.FromMany<MyModel2, MyModel>((model2, model) => model2.ModelId == model.Id)
                          .Map((a, b) => new {
-                             M1 = a,
-                             M2 = b,
+                             Model2 = a,
+                             Model = b,
                          })
-                         .Select(x => x.M1)
+                         .Select(x => x.Model)
                          .ToListAsync();
 
       Assert.Collection(rows,
                         item => Assert.Equal(1, item.Id),
                         item => Assert.Equal(1, item.Id),
                         item => Assert.Equal(2, item.Id),
-                        item => Assert.Equal(3, item.Id));
+                        item => Assert.Null(item));
     }
   }
 }

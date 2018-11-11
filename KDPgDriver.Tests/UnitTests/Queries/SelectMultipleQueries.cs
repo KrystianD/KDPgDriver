@@ -22,7 +22,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
-  t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int,t1.""id"",t1.name1,t1.model_id
+  t0 IS NULL,t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int,t1 IS NULL,t1.""id"",t1.name1,t1.model_id
 FROM
   ""public"".model t0 LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.model_id))
 WHERE 
@@ -45,7 +45,7 @@ WHERE
 
       Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
-  t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int,t1.name1,(t1.""id"") * (2)
+ t0 IS NULL,t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int,t1.name1,(t1.""id"") * (2)
 FROM
   ""public"".model t0 LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.model_id))");
     }
@@ -124,7 +124,7 @@ LEFT JOIN ""public"".model3 t3 ON ((t0.""id"") = (t3.model_id))
 
       Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
-  t1.""id"",t1.""name"",t1.list_string,t1.list_string2,(t1.""enum"")::text,(t1.list_enum)::text[],(t1.enum2)::text,t1.datetime,t1.json_object1,t1.json_model,t1.json_array1,t1.bool,t1.""binary"",t1.private_int,t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int
+  t1 IS NULL,t1.""id"",t1.""name"",t1.list_string,t1.list_string2,(t1.""enum"")::text,(t1.list_enum)::text[],(t1.enum2)::text,t1.datetime,t1.json_object1,t1.json_model,t1.json_array1,t1.bool,t1.""binary"",t1.private_int,t0 IS NULL,t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int
 FROM
   ""public"".model t0 LEFT JOIN ""public"".model t1 ON ((t0.""id"") = (t1.""id""))
 WHERE 
@@ -143,7 +143,7 @@ WHERE
 
       Utils.AssertRawQueryWithAliases(q, @"
 SELECT 
-  t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int
+  t0 IS NULL,t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int
 FROM
   ""public"".model t0 LEFT JOIN ""public"".model t1 ON ((t0.""id"") = (t1.""id""))");
     }

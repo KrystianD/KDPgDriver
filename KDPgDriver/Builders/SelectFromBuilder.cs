@@ -73,6 +73,11 @@ namespace KDPgDriver.Builders
               var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
               var table = tablePlaceholder.Table;
 
+              var tableTestRawQuery = new RawQuery();
+              tableTestRawQuery.AppendTable(tablePlaceholder);
+              tableTestRawQuery.Append(" IS NULL");
+              builder.AddSelectPart(tableTestRawQuery, KDPgValueTypeInstances.Boolean);
+              
               foreach (var column in table.Columns) {
                 var rq = new RawQuery();
                 rq.AppendColumn(column, tablePlaceholder);
@@ -100,17 +105,22 @@ namespace KDPgDriver.Builders
         {
           // .Select(x => x.M1)
           if (Helper.IsTable(typeof(TNewModel))) {
-            var resultProcessor = new ModelResultProcessor<TNewModel>();
+            var resultProcessor = new CombinedModelResultProcessor<TNewModel>();
             builder.ResultProcessor = resultProcessor;
 
             var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
             var table = tablePlaceholder.Table;
 
+            var tableTestRawQuery = new RawQuery();
+            tableTestRawQuery.AppendTable(tablePlaceholder);
+            tableTestRawQuery.Append(" IS NULL");
+            builder.AddSelectPart(tableTestRawQuery, KDPgValueTypeInstances.Boolean);
+            
             foreach (var column in table.Columns) {
               var rq = new RawQuery();
               rq.AppendColumn(column, tablePlaceholder);
               builder.AddSelectPart(rq, column.Type);
-              resultProcessor.UseColumn(column);
+              // resultProcessor.UseColumn(column);
             }
           }
           // .Select(x => x.M2.Name1)
@@ -143,26 +153,31 @@ namespace KDPgDriver.Builders
      */
     public static SelectFromBuilder AllColumnsFromCombined<TCombinedModel>(TablesList tablesList)
     {
-      var b = new SelectFromBuilder();
-      b.LeftJoinsExpressions = tablesList.JoinExpressions;
+      var builder = new SelectFromBuilder();
+      builder.LeftJoinsExpressions = tablesList.JoinExpressions;
 
       var resultProcessor = new AnonymousTypeResultProcessor<TCombinedModel>();
 
-      foreach (var table in tablesList.Tables) {
-        b.AddTable(table);
+      foreach (var tablePlaceholder in tablesList.Tables) {
+        builder.AddTable(tablePlaceholder);
+        
+        var tableTestRawQuery = new RawQuery();
+        tableTestRawQuery.AppendTable(tablePlaceholder);
+        tableTestRawQuery.Append(" IS NULL");
+        builder.AddSelectPart(tableTestRawQuery, KDPgValueTypeInstances.Boolean);
 
-        foreach (var column in table.Table.Columns) {
+        foreach (var column in tablePlaceholder.Table.Columns) {
           var rq = new RawQuery();
-          rq.AppendColumn(column, table);
-          b.AddSelectPart(rq, column.Type);
+          rq.AppendColumn(column, tablePlaceholder);
+          builder.AddSelectPart(rq, column.Type);
         }
 
-        resultProcessor.AddModelEntry(table.Table);
+        resultProcessor.AddModelEntry(tablePlaceholder.Table);
       }
 
-      b.ResultProcessor = resultProcessor;
+      builder.ResultProcessor = resultProcessor;
 
-      return b;
+      return builder;
     }
 
     public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)

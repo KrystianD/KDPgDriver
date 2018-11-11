@@ -56,9 +56,10 @@ INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test1
 INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test2', '{a,b}', 'B', '{B}', 2); -- id: 2
 INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test3', '{a}', 'C', '{B,C}', 3); -- id: 3
 
-INSERT INTO model2(name1, model_id) VALUES('subtest1', 1); -- id: 1 
-INSERT INTO model2(name1, model_id) VALUES('subtest2', 1); -- id: 2 
-INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3 
+INSERT INTO model2(name1, model_id) VALUES('subtest1', 1); -- id: 1
+INSERT INTO model2(name1, model_id) VALUES('subtest2', 1); -- id: 2
+INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
+INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
 
 ");
 
@@ -346,6 +347,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
                         x => Assert.Equal(1, x),
                         x => Assert.Equal(1, x),
                         x => Assert.Equal(2, x),
+                        x => Assert.Equal(4, x),
                         x => Assert.Equal(4, x),
                         x => Assert.Equal(4, x),
                         x => Assert.Equal(4, x));

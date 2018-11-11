@@ -31,14 +31,22 @@ namespace KDPgDriver.Builders
         if (entry.MemberTable != null) {
           var table = entry.MemberTable;
 
-          var modelObj = Activator.CreateInstance(table.ModelType);
+          var isNull = (bool)Helper.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[columnIdx++]);
+          if (isNull) {
+            constructorParams[i] = null;
 
-          foreach (var column in table.Columns) {
-            var val = Helper.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
-            column.PropertyInfo.SetValue(modelObj, val);
+            columnIdx += table.Columns.Count;
           }
+          else {
+            var modelObj = Activator.CreateInstance(table.ModelType);
+          
+            foreach (var column in table.Columns) {
+              var val = Helper.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
+              column.PropertyInfo.SetValue(modelObj, val);
+            }
 
-          constructorParams[i] = modelObj;
+            constructorParams[i] = modelObj;
+          }
         }
         else if (entry.MemberType != null) {
           constructorParams[i] = Helper.ConvertFromRawSqlValue(entry.MemberType, values[columnIdx++]);
@@ -52,7 +60,7 @@ namespace KDPgDriver.Builders
 
     public void AddModelEntry(KdPgTableDescriptor table)
     {
-      fieldsCount += table.Columns.Count;
+      fieldsCount += 1 + table.Columns.Count;
 
       Entries.Add(new Entry {
           MemberTable = table,
