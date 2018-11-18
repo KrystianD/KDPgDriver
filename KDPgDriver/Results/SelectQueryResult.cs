@@ -47,6 +47,6 @@ namespace KDPgDriver.Results
       return _objects[0];
     }
 
-    public T GetSingleOrDefault() => _objects.Count == 0 ? default : _objects[0];
+    public T GetSingleOrDefault(T def = default) => _objects.Count == 0 ? def : _objects[0];
   }
 }

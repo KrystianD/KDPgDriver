@@ -345,10 +345,10 @@ namespace KDPgDriver.Fluent
       return res.GetSingle();
     }
 
-    public async Task<TNewModel> ToSingleOrDefaultAsync()
+    public async Task<TNewModel> ToSingleOrDefaultAsync(TNewModel def = default)
     {
       var res = await _executor.QueryAsync(GetSelectQuery());
-      return res.GetSingleOrDefault();
+      return res.GetSingleOrDefault(def);
     }
 
     public async Task<List<TNewModel>> ToListAsync()
