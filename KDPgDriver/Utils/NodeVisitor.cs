@@ -237,7 +237,13 @@ namespace KDPgDriver.Utils
               string methodName = call.Method.Name;
 
               // TODO: optimize
-              var methods = typeof(FuncInternal).GetMethods();
+              MethodInfo[] methods;
+              if (call.Method.DeclaringType == typeof(Func))
+                methods = typeof(FuncInternal).GetMethods();
+              else if (call.Method.DeclaringType == typeof(AggregateFunc))
+                methods = typeof(AggregateFuncInternal).GetMethods();
+              else
+                throw new Exception("Invalid function");
 
               if (methodName == "Raw") {
                 var valueType = Helper.CreatePgValueTypeFromObjectType(call.Method.ReturnType);

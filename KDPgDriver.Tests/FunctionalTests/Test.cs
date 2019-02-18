@@ -436,5 +436,17 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
         Assert.Equal(5, modelId); // one record inserted above
       }
     }
+
+    [Fact]
+    public async Task TestAggregateFunc()
+    {
+      var dr = await CreateDriver();
+
+      var d = await dr.From<MyModel>()
+                      .Select(x => AggregateFunc.Max(x.Id))
+                      .ToSingleAsync();
+
+      Assert.Equal(3, d);
+    }
   }
 }

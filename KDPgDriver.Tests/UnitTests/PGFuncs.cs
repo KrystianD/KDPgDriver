@@ -47,10 +47,20 @@ namespace KDPgDriver.Tests.UnitTests
     public void FuncGetVariable()
     {
       var q1 = Builders<MyModel>.Select(x => x.Id).Where(x => x.Id > Func.GetVariableInt("var1"));
-      Utils.AssertRawQuery(q1, @"SELECT ""id"" FROM ""public"".model WHERE (""id"") > (current_value('vars.var1')::int)");
-   
+      Utils.AssertRawQuery(q1, @"SELECT ""id"" FROM ""public"".model WHERE (""id"") > (current_setting('vars.var1')::int)");
+
       var q2 = Builders<MyModel>.Select(x => x.Id).Where(x => x.Name == Func.GetVariableText("var1"));
-      Utils.AssertRawQuery(q2, @"SELECT ""id"" FROM ""public"".model WHERE (""name"") = (current_value('vars.var1')::text)");
+      Utils.AssertRawQuery(q2, @"SELECT ""id"" FROM ""public"".model WHERE (""name"") = (current_setting('vars.var1')::text)");
+    }
+
+    [Fact]
+    public void FuncAggregateMaxMin()
+    {
+      var q1 = Builders<MyModel>.Select(x => AggregateFunc.Max(x.Id)).Where(x => x.DateTime > Func.Now());
+      Utils.AssertRawQuery(q1, @"SELECT MAX(""id"") FROM ""public"".model WHERE (datetime) > (NOW())");
+   
+      var q2 = Builders<MyModel>.Select(x => AggregateFunc.Min(x.Id)).Where(x => x.DateTime > Func.Now());
+      Utils.AssertRawQuery(q2, @"SELECT MIN(""id"") FROM ""public"".model WHERE (datetime) > (NOW())");
     }
   }
 }
