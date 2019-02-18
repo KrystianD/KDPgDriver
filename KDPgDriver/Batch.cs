@@ -25,6 +25,8 @@ namespace KDPgDriver
     private Transaction _transaction;
     private KDPgIsolationLevel _isolationLevel;
 
+    public bool IsEmpty => _operations.Count == 0;
+    
     private interface IOperation
     {
       Task Process(NpgsqlDataReader r);
