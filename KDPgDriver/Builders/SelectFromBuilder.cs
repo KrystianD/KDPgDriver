@@ -239,7 +239,7 @@ namespace KDPgDriver.Builders
       var b = new SelectFromBuilder();
       b.AddTable(Helper.GetTable<TModel>());
 
-      foreach (var column in Helper.GetTable(typeof(TModel)).Columns)
+      foreach (var column in Helper.GetTable<TModel>().Columns)
         b.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
 
       b.ResultProcessor = new ModelResultProcessor<TModel>();

@@ -16,7 +16,9 @@ namespace KDPgDriver.Fluent
 
     private InsertQuery<TModel> _insertQuery = new InsertQuery<TModel>();
 
-    public InsertQueryFluentBuilder1() { }
+    public InsertQueryFluentBuilder1()
+    {
+    }
 
     public InsertQueryFluentBuilder1(IQueryExecutor executor)
     {
@@ -32,6 +34,12 @@ namespace KDPgDriver.Fluent
     public InsertQueryFluentBuilder1<TModel> UsePreviousInsertId<TRefModel>(Expression<Func<TModel, object>> field, Expression<Func<TRefModel, int>> idField)
     {
       _insertQuery.UsePreviousInsertId<TRefModel>(field, idField);
+      return this;
+    }
+
+    public InsertQueryFluentBuilder1<TModel> IntoVariable(string name)
+    {
+      _insertQuery.IntoVariable(name);
       return this;
     }
 
@@ -63,7 +71,7 @@ namespace KDPgDriver.Fluent
     {
       if (_insertQuery.IsEmpty)
         return new InsertQueryResult(null);
-      
+
       return await _executor.QueryAsync(GetInsertQuery());
     }
 
@@ -71,7 +79,7 @@ namespace KDPgDriver.Fluent
     {
       if (_insertQuery.IsEmpty)
         throw new Exception("Cannot insert empty list for id");
-      
+
       var res = await _executor.QueryAsync(GetInsertQuery());
       Debug.Assert(res.LastInsertId != null, "res.LastInsertId != null");
       return res.LastInsertId.Value;
@@ -81,7 +89,7 @@ namespace KDPgDriver.Fluent
     {
       if (_insertQuery.IsEmpty)
         return;
-      
+
       _executor.ScheduleQuery(GetInsertQuery());
     }
 

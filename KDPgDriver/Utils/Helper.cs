@@ -261,7 +261,7 @@ namespace KDPgDriver.Utils
             return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), KDPgValueTypeInstances.Json);
 
         default:
-          throw new Exception($"ConvertToNpgsql: Type {type} not implemented");
+          throw new Exception($"ConvertToPgValue: Type {type} not implemented");
       }
     }
 

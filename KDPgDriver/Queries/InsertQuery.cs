@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Text.RegularExpressions;
 using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
@@ -22,14 +23,16 @@ namespace KDPgDriver.Queries
     private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
 
     private static readonly List<KdPgColumnDescriptor> AllColumnsWithoutAutoIncrement =
-        Helper.GetTable(typeof(TModel)).Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
+        Helper.GetTable<TModel>().Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
 
-    private static readonly KdPgTableDescriptor TableModel = Helper.GetTable(typeof(TModel));
+    private static readonly KdPgTableDescriptor TableModel = Helper.GetTable<TModel>();
 
     private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
     private KdPgColumnDescriptor _idColumn, _idRefColumn;
+
+    private string _outputVariable;
 
     private readonly List<TModel> _objects = new List<TModel>();
     public bool IsEmpty => _objects.Count == 0;
@@ -51,6 +54,14 @@ namespace KDPgDriver.Queries
       _idColumn = column;
       _idRefColumn = refColumn;
 
+      return this;
+    }
+
+    public InsertQuery<TModel> IntoVariable(string name)
+    {
+      if (!Regex.IsMatch(name, "^[a-zA-Z0-9_-]+$"))
+        throw new Exception("invalid variable name, allowed [a-zA-Z0-9_-]");
+      _outputVariable = name;
       return this;
     }
 
@@ -132,6 +143,12 @@ namespace KDPgDriver.Queries
       if (TableModel.PrimaryKey != null) {
         rq.Append(" RETURNING ");
         rq.AppendColumnName(TableModel.PrimaryKey.Name);
+      }
+
+      rq.Append(";");
+
+      if (_outputVariable != null) {
+        rq.Append($" SELECT set_config('vars.{_outputVariable}', to_jsonb(lastval())::text, true);");
       }
 
       rq.SkipExplicitColumnTableNames();
