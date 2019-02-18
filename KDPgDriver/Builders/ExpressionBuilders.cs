@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using KDLib;
 using KDPgDriver.Utils;
 
@@ -371,7 +372,6 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, array.Type);
     }
 
-
     public static TypedExpression CurrSeqValueOfTable(KdPgColumnDescriptor column, string defaultSchema)
     {
       RawQuery rq = new RawQuery();
@@ -385,6 +385,48 @@ namespace KDPgDriver.Builders
       rq.Append(Helper.EscapePostgresValue(column.Name));
       rq.Append("))");
       return new TypedExpression(rq, KDPgValueTypeInstances.Integer);
+    }
+
+    private static readonly Regex VariableRegex = new Regex("^[a-zA-Z0-9_-]+$");
+
+    public static TypedExpression SetConfigText(string name, TypedExpression value, bool local)
+    {
+      if (!VariableRegex.IsMatch(name))
+        throw new Exception("invalid variable name, allowed [a-zA-Z0-9_-]");
+
+      RawQuery rq = new RawQuery();
+      rq.Append($"set_config('vars.{name}', ");
+      rq.Append(value.RawQuery);
+      rq.Append("::text, ", local ? "true" : "false", ");");
+
+      return new TypedExpression(rq, KDPgValueTypeInstances.Null);
+    }
+    
+    public static TypedExpression GetConfigInt(string name)
+    {
+      if (!VariableRegex.IsMatch(name))
+        throw new Exception("invalid variable name, allowed [a-zA-Z0-9_-]");
+
+      RawQuery rq = new RawQuery();
+      rq.Append($"current_value('vars.{name}')::int");
+
+      return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
+    }
+    
+    public static TypedExpression GetConfigText(string name)
+    {
+      if (!VariableRegex.IsMatch(name))
+        throw new Exception("invalid variable name, allowed [a-zA-Z0-9_-]");
+
+      RawQuery rq = new RawQuery();
+      rq.Append($"current_value('vars.{name}')::text");
+
+      return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
+    }
+
+    public static TypedExpression LastVal()
+    {
+      return new TypedExpression(RawQuery.Create("lastval()"), KDPgValueTypeInstances.Integer64);
     }
 
     // helpers

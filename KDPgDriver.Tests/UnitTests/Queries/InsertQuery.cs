@@ -169,7 +169,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1) 
                                               VALUES ('A')
                                               RETURNING ""id"";
-                                              SELECT set_config('vars.insert_id1', to_jsonb(lastval())::text, true);");
+                                              SELECT set_config('vars.insert_id1', lastval()::text, true);");
     }
   }
 }

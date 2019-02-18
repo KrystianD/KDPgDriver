@@ -1,5 +1,7 @@
 ﻿using System;
+using KDPgDriver.Builders;
 using KDPgDriver.Utils;
+
 // ReSharper disable UnusedMember.Global
 
 namespace KDPgDriver
@@ -57,6 +59,16 @@ namespace KDPgDriver
 
       return new TypedExpression(rq, value1.Type);
     }
+
+    public static TypedExpression GetVariableInt(string name)
+    {
+      return ExpressionBuilders.GetConfigInt(name);
+    }
+
+    public static TypedExpression GetVariableText(string name)
+    {
+      return ExpressionBuilders.GetConfigText(name);
+    }
   }
 
   public static class Func
@@ -102,6 +114,16 @@ namespace KDPgDriver
     }
 
     public static T Coalesce<T>(T value1, T value2, T value3, T value4, T value5)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static int GetVariableInt(string name)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static string GetVariableText(string name)
     {
       throw new Exception("do not use directly");
     }

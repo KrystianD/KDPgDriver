@@ -148,7 +148,8 @@ namespace KDPgDriver.Queries
       rq.Append(";");
 
       if (_outputVariable != null) {
-        rq.Append($" SELECT set_config('vars.{_outputVariable}', to_jsonb(lastval())::text, true);");
+        rq.Append($" SELECT ");
+        rq.Append(ExpressionBuilders.SetConfigText(_outputVariable, ExpressionBuilders.LastVal(), true).RawQuery);
       }
 
       rq.SkipExplicitColumnTableNames();

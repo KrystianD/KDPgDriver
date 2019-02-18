@@ -250,10 +250,17 @@ namespace KDPgDriver.Utils
                   throw new Exception($"invalid method: {call.Method.Name}");
 
                 var passedArgsCount = call.Arguments.Count;
-                var methodArgsCount = internalMethod.GetParameters().Length;
+                var methodArgs = internalMethod.GetParameters();
+                var methodArgsCount = methodArgs.Length;
 
-                var args = call.Arguments
-                               .Select(VisitInternal)
+                var args = call.Arguments.Zip(methodArgs, (Value, Parameter) => (Value, Parameter))
+                               .Select(x =>
+                               {
+                                 if (x.Parameter.ParameterType == typeof(TypedExpression))
+                                   return VisitInternal(x.Value);
+                                 else
+                                   return GetConstant(x.Value);
+                               })
                                .Concat(Enumerable.Repeat(Type.Missing, Math.Max(0, methodArgsCount - passedArgsCount)))
                                .ToArray();
 

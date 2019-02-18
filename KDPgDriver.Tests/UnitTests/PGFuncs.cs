@@ -42,5 +42,15 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model WHERE (datetime) > (NOW() + INTERVAL 2 SECONDS)");
     }
+
+    [Fact]
+    public void FuncGetVariable()
+    {
+      var q1 = Builders<MyModel>.Select(x => x.Id).Where(x => x.Id > Func.GetVariableInt("var1"));
+      Utils.AssertRawQuery(q1, @"SELECT ""id"" FROM ""public"".model WHERE (""id"") > (current_value('vars.var1')::int)");
+   
+      var q2 = Builders<MyModel>.Select(x => x.Id).Where(x => x.Name == Func.GetVariableText("var1"));
+      Utils.AssertRawQuery(q2, @"SELECT ""id"" FROM ""public"".model WHERE (""name"") = (current_value('vars.var1')::text)");
+    }
   }
 }
