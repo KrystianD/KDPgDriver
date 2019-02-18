@@ -408,7 +408,7 @@ namespace KDPgDriver.Builders
         throw new Exception("invalid variable name, allowed [a-zA-Z0-9_-]");
 
       RawQuery rq = new RawQuery();
-      rq.Append($"current_value('vars.{name}')::int");
+      rq.Append($"current_setting('vars.{name}')::int");
 
       return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
     }
@@ -419,9 +419,9 @@ namespace KDPgDriver.Builders
         throw new Exception("invalid variable name, allowed [a-zA-Z0-9_-]");
 
       RawQuery rq = new RawQuery();
-      rq.Append($"current_value('vars.{name}')::text");
+      rq.Append($"current_setting('vars.{name}')::text");
 
-      return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
+      return new TypedExpression(rq, KDPgValueTypeInstances.String);
     }
 
     public static TypedExpression LastVal()

@@ -15,7 +15,7 @@ namespace KDPgDriver.Tests.FunctionalTests
 
     private async Task<Driver> CreateDriver()
     {
-      var dr = new Driver("postgresql://test:test@localhost:5432/kdpgdriver_test", "public");
+      var dr = new Driver("postgresql://postgres:test@localhost:9999/postgres", "public");
       await dr.InitializeAsync();
 
       await dr.QueryRawAsync(@"
@@ -372,7 +372,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                         x => Assert.Equal("c", x),
                         x => Assert.Equal("d", x));
     }
-    
+
     [Fact]
     public async Task TestAddToArrayDistinct()
     {
@@ -390,6 +390,51 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                         x => Assert.Equal("b", x),
                         x => Assert.Equal("c", x),
                         x => Assert.Equal("d", x));
+    }
+
+    [Fact]
+    public async Task TestVariables()
+    {
+      var dr = await CreateDriver();
+
+      var obj = new MyModel() { Name = "new" };
+
+      // Transaction
+      using (var tr = await dr.CreateTransaction()) {
+        var insertId = await tr.Insert<MyModel>()
+                               .AddObject(obj)
+                               .IntoVariable("var1")
+                               .ExecuteForIdAsync();
+
+        var modelId = await tr.From<MyModel>()
+                              .Select(x => x.Id)
+                              .Where(x => x.Id == Func.GetVariableInt("var1"))
+                              .ToSingleAsync();
+
+        Assert.Equal(4, insertId);
+        Assert.Equal(4, modelId);
+      }
+
+      // Batch
+      {
+        var b = dr.CreateBatch();
+
+        b.Insert<MyModel>()
+         .AddObject(obj)
+         .IntoVariable("var2")
+         .Schedule();
+
+        var task = b.From<MyModel>()
+                    .Select(x => x.Id)
+                    .Where(x => x.Id == Func.GetVariableInt("var2"))
+                    .ToSingleAsync();
+
+        await b.Execute();
+
+        var modelId = task.Result;
+
+        Assert.Equal(5, modelId); // one record inserted above
+      }
     }
   }
 }
