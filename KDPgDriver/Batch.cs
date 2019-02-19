@@ -25,8 +25,8 @@ namespace KDPgDriver
     private Transaction _transaction;
     private KDPgIsolationLevel _isolationLevel;
 
-    public bool IsEmpty => _operations.Count == 0;
-    
+    public bool IsEmpty { get; private set; } = true;
+
     private interface IOperation
     {
       Task Process(NpgsqlDataReader r);
@@ -75,6 +75,7 @@ namespace KDPgDriver
     {
       _combinedRawQuery.Append(query.GetRawQuery(_driver.Schema));
       _combinedRawQuery.Append(";\n");
+      IsEmpty = false;
     }
 
     public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
@@ -91,6 +92,7 @@ namespace KDPgDriver
         op.TaskCompletionSource.SetResult(res);
       };
       _operations.Add(op);
+      IsEmpty = false;
 
       return op.TaskCompletionSource.Task;
     }
@@ -110,6 +112,7 @@ namespace KDPgDriver
         op.TaskCompletionSource.SetResult(res);
       };
       _operations.Add(op);
+      IsEmpty = false;
 
       return op.TaskCompletionSource.Task;
     }
@@ -126,6 +129,7 @@ namespace KDPgDriver
         op.TaskCompletionSource.SetResult(res);
       };
       _operations.Add(op);
+      IsEmpty = false;
 
       return op.TaskCompletionSource.Task;
     }
@@ -142,6 +146,7 @@ namespace KDPgDriver
         op.TaskCompletionSource.SetResult(res);
       };
       _operations.Add(op);
+      IsEmpty = false;
 
       return op.TaskCompletionSource.Task;
     }
