@@ -29,7 +29,7 @@ namespace KDPgDriver
     // public string Dsn { get; }
     public string Schema { get; }
 
-    public Driver(string dsn, string schema, string appName = null)
+    public Driver(string dsn, string schema, string appName = null, int minPoolSize = 1, int maxPoolSize = 10)
     {
       // Dsn = dsn;
       Schema = schema;
@@ -43,9 +43,10 @@ namespace KDPgDriver
           Password = pass,
           Host = host,
           Port = port,
-          Pooling = true,
           ApplicationName = appName,
-          
+          Pooling = true,
+          MinPoolSize = minPoolSize,
+          MaxPoolSize = maxPoolSize,
       }.ToString();
     }
 
