@@ -44,9 +44,9 @@ namespace KDPgDriver.Builders
       builder.LeftJoinsExpressions = tablesList.JoinExpressions;
 
       var options = new NodeVisitor.EvaluationOptions();
-      foreach (var table in tablesList.Tables) {
-        builder.AddTable(table);
-        options.ParameterToTableAlias.Add(table.Name, table);
+      foreach (var tablePlaceholder in tablesList.Tables) {
+        builder.AddTable(tablePlaceholder);
+        // options.ParameterToTableAlias.Add(tablePlaceholder.Name, tablePlaceholder);
       }
 
       var tableToPlaceholder = tablesList.Tables.ToDictionary(x => x.Name);

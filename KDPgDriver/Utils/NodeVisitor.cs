@@ -57,7 +57,7 @@ namespace KDPgDriver.Utils
 
     public class EvaluationOptions
     {
-      public readonly Dictionary<string, RawQuery.TableNamePlaceholder> ParameterToTableAlias = new Dictionary<string, RawQuery.TableNamePlaceholder>();
+      public readonly Dictionary<ParameterExpression, RawQuery.TableNamePlaceholder> ParameterToTableAlias = new Dictionary<ParameterExpression, RawQuery.TableNamePlaceholder>();
 
       public bool ExpandBooleans { get; set; } = false;
     }
@@ -287,7 +287,7 @@ namespace KDPgDriver.Utils
       public TypedExpression Expression;
       public KdPgColumnDescriptor Column { get; set; }
       public List<object> JsonPath { get; } = new List<object>();
-      public string ParameterName;
+      public ParameterExpression ParameterExp;
     }
 
     public static PathInfo VisitPath<TModel>(EvaluationOptions options, Expression<Func<TModel, object>> exp)
@@ -338,7 +338,7 @@ namespace KDPgDriver.Utils
             break;
 
           case ParameterExpression parameterExpression: // lambda parameter
-            pi.ParameterName = parameterExpression.Name;
+            pi.ParameterExp = parameterExpression;
             break;
 
           default:
@@ -376,8 +376,8 @@ namespace KDPgDriver.Utils
                 rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, tableVarName));
               }
               else {
-                var tableVarName = overrideTableName ?? pi.ParameterName;
-                rq.AppendColumn(column, options.ParameterToTableAlias[tableVarName]);
+                // var tableVarName = overrideTableName ?? pi.ParameterName;
+                rq.AppendColumn(column, options.ParameterToTableAlias[pi.ParameterExp]);
               }
 
               pathValueType = column.Type;
