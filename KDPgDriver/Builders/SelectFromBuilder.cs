@@ -33,7 +33,7 @@ namespace KDPgDriver.Builders
     }
 
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
-    private readonly List<RawQuery.TableNamePlaceholder> _tables = new List<RawQuery.TableNamePlaceholder>();
+    private readonly List<RawQuery.TableNamePlaceholder> _tablePlaceholders = new List<RawQuery.TableNamePlaceholder>();
 
     private List<TypedExpression> LeftJoinsExpressions { get; set; }
     private IResultProcessor ResultProcessor { get; set; }
@@ -268,21 +268,21 @@ namespace KDPgDriver.Builders
 
       int tableNum = 0;
       // bool firstTable = true;
-      if (_tables.Count > 1) {
-        var firstTable = _tables[0].Table;
+      if (_tablePlaceholders.Count > 1) {
+        var firstTable = _tablePlaceholders[0].Table;
         string alias = $"t{tableNum}";
         rq.AppendTableName(firstTable.Name, firstTable.Schema ?? defaultSchema, alias);
-        rq.ApplyAlias(_tables[0].Name, alias);
+        rq.ApplyAlias(_tablePlaceholders[0].Name, alias);
         tableNum++;
 
-        foreach (var _table in _tables.Skip(1)) {
-          var table = _table.Table;
+        foreach (var tablePlaceholder in _tablePlaceholders.Skip(1)) {
+          var table = tablePlaceholder.Table;
 
           rq.Append(" LEFT JOIN ");
 
           alias = $"t{tableNum}";
           rq.AppendTableName(table.Name, table.Schema ?? defaultSchema, alias);
-          rq.ApplyAlias(_table.Name, alias);
+          rq.ApplyAlias(tablePlaceholder.Name, alias);
 
           rq.Append(" ON ");
           rq.AppendSurround(LeftJoinsExpressions[tableNum].RawQuery);
@@ -291,10 +291,10 @@ namespace KDPgDriver.Builders
         }
       }
       else {
-        rq.AppendTableName(_tables[0].Name, _tables[0].Table.Schema ?? defaultSchema);
+        rq.AppendTableName(_tablePlaceholders[0].Name, _tablePlaceholders[0].Table.Schema ?? defaultSchema);
       }
 
-      if (_tables.Count == 1)
+      if (_tablePlaceholders.Count == 1)
         rq.SkipExplicitColumnTableNames();
       return rq;
     }
@@ -307,12 +307,12 @@ namespace KDPgDriver.Builders
     // helpers
     private void AddTable(RawQuery.TableNamePlaceholder table)
     {
-      _tables.Add(table);
+      _tablePlaceholders.Add(table);
     }
 
     private void AddTable(KdPgTableDescriptor table)
     {
-      _tables.Add(new RawQuery.TableNamePlaceholder(table, table.Name));
+      _tablePlaceholders.Add(new RawQuery.TableNamePlaceholder(table, table.Name));
     }
 
     private void AddSelectPart(RawQuery exp, KDPgValueType type)
