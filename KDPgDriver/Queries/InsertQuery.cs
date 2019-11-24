@@ -30,6 +30,8 @@ namespace KDPgDriver.Queries
 
     private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
     private Action<UpdateStatementsBuilder<TModel>> _onInsertConflictUpdate;
+    private Action<FieldListBuilder<TModel>> _onInsertConflictUpdateFields;
+
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
     private KdPgColumnDescriptor _idColumn, _idRefColumn;
@@ -85,15 +87,18 @@ namespace KDPgDriver.Queries
       return this;
     }
 
-    public InsertQuery<TModel> OnConflictDoUpdate(Action<UpdateStatementsBuilder<TModel>> builder)
+    public InsertQuery<TModel> OnConflictDoUpdate(Action<FieldListBuilder<TModel>> fields, Action<UpdateStatementsBuilder<TModel>> builder)
     {
       _onInsertConflict = OnInsertConflict.DoUpdate;
       _onInsertConflictUpdate = builder;
+      _onInsertConflictUpdateFields = fields;
       return this;
     }
 
     public RawQuery GetRawQuery(string defaultSchema = null)
     {
+      bool first;
+
       if (IsEmpty)
         return RawQuery.Create("SELECT 0");
 
@@ -117,7 +122,7 @@ namespace KDPgDriver.Queries
 
       rq.Append(" VALUES ");
 
-      bool first = true;
+      first = true;
       foreach (var obj in _objects) {
         if (!first)
           rq.Append(",");
@@ -150,21 +155,36 @@ namespace KDPgDriver.Queries
       }
 
       if (_onInsertConflict == OnInsertConflict.DoUpdate) {
-        rq.Append(" ON CONFLICT DO UPDATE SET ");
+        rq.Append(" ON CONFLICT (");
+
+        var fields = new FieldListBuilder<TModel>();
+        _onInsertConflictUpdateFields(fields);
+        first = true;
+        foreach (var fieldExpression in fields.Fields) {
+          if (!first)
+            rq.Append(", ");
+
+          var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
+          rq.AppendColumnName(column.Name);
+
+          first = false;
+        }
+
+        rq.Append(") DO UPDATE SET ");
 
         var updateStatementsBuilder = new UpdateStatementsBuilder<TModel>();
         _onInsertConflictUpdate(updateStatementsBuilder);
 
-        bool first2 = true;
+        first = true;
         foreach (var (column, typedExpression) in updateStatementsBuilder.UpdateParts) {
-          if (!first2)
+          if (!first)
             rq.Append(", ");
 
           rq.AppendColumnName(column.Name)
             .Append(" = ")
             .Append(typedExpression.RawQuery);
 
-          first2 = false;
+          first = false;
         }
       }
 

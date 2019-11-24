@@ -136,10 +136,11 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Insert()
                                .UseField(x => x.Id)
                                .AddObject(obj)
-                               .OnConflictDoUpdate(x => x.SetField(y => y.Name, "a")
+                               .OnConflictDoUpdate(x => x.AddField(y => y.Enum).AddField(y => y.Id),
+                                                   x => x.SetField(y => y.Name, "a")
                                                          .UnsetField(y => y.Bool));
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT DO UPDATE SET ""name"" = 'a', bool = NULL RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT (""enum"", ""id"") DO UPDATE SET ""name"" = 'a', bool = NULL RETURNING ""id"";");
     }
 
     [Fact]

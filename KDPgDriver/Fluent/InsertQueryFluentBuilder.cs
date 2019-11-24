@@ -61,9 +61,9 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
-    public InsertQueryFluentBuilder1<TModel> OnConflictDoUpdate(Action<UpdateStatementsBuilder<TModel>> builder)
+    public InsertQueryFluentBuilder1<TModel> OnConflictDoUpdate(Action<FieldListBuilder<TModel>> fields, Action<UpdateStatementsBuilder<TModel>> builder)
     {
-      _insertQuery.OnConflictDoUpdate(builder);
+      _insertQuery.OnConflictDoUpdate(fields, builder);
       return this;
     }
 
