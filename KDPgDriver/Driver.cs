@@ -136,114 +136,36 @@ $f$ LANGUAGE SQL IMMUTABLE;
       throw new Exception("Schedule works only for batch query");
     }
 
-    public async Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
+    public async Task<InsertQueryResult> QueryAsync(IInsertQuery query)
     {
-      using (var connection = await CreateConnection()) {
-        return await QueryAsyncInternal(insertQuery, connection, null);
-      }
+      var b = Batch.CreateSimple(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
     }
 
-    public async Task<UpdateQueryResult> QueryAsync(IUpdateQuery updateQuery)
+    public async Task<UpdateQueryResult> QueryAsync(IUpdateQuery query)
     {
-      using (var connection = await CreateConnection()) {
-        return await QueryAsyncInternal(updateQuery, connection, null);
-      }
+      var b = Batch.CreateSimple(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
     }
 
-    public async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
+    public async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> query)
     {
-      using (var connection = await CreateConnection()) {
-        return await QueryAsyncInternal(selectQuery, connection, null);
-      }
+      var b = Batch.CreateSimple(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
     }
 
-    public async Task<DeleteQueryResult> QueryAsync(IDeleteQuery updateQuery)
+    public async Task<DeleteQueryResult> QueryAsync(IDeleteQuery query)
     {
-      using (var connection = await CreateConnection()) {
-        return await QueryAsyncInternal(updateQuery, connection, null);
-      }
-    }
-
-    internal async Task<SelectQueryResult<TOut>> QueryAsyncInternal<TModel, TOut>(SelectQuery<TModel, TOut> builder,
-                                                                                  NpgsqlConnection connection,
-                                                                                  NpgsqlTransaction trans)
-    {
-      RawQuery rq = builder.GetRawQuery(Schema);
-
-      string query;
-      ParametersContainer parameters;
-      rq.Render(out query, out parameters);
-
-      Console.WriteLine(query);
-
-      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        parameters.AssignToCommand(cmd);
-        using (var reader = await cmd.ExecuteReaderAsync()) {
-          var res = new SelectQueryResult<TOut>(builder);
-          await res.ProcessResultSet((NpgsqlDataReader) reader);
-          return res;
-        }
-      }
-    }
-
-    internal async Task<InsertQueryResult> QueryAsyncInternal(IInsertQuery builder,
-                                                              NpgsqlConnection connection,
-                                                              NpgsqlTransaction trans)
-    {
-      RawQuery rq = builder.GetRawQuery(Schema);
-
-      string query;
-      ParametersContainer parameters;
-      rq.Render(out query, out parameters);
-
-      Console.WriteLine(query);
-
-      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        parameters.AssignToCommand(cmd);
-        var lastInsertId = await cmd.ExecuteScalarAsync();
-
-        return new InsertQueryResult((int?) lastInsertId);
-      }
-    }
-
-    internal async Task<UpdateQueryResult> QueryAsyncInternal(IUpdateQuery builder,
-                                                              NpgsqlConnection connection,
-                                                              NpgsqlTransaction trans)
-    {
-      RawQuery rq = builder.GetRawQuery(Schema);
-
-      string query;
-      ParametersContainer parameters;
-      rq.Render(out query, out parameters);
-
-      Console.WriteLine(query);
-
-      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        parameters.AssignToCommand(cmd);
-        await cmd.ExecuteNonQueryAsync();
-      }
-
-      return null;
-    }
-
-    internal async Task<DeleteQueryResult> QueryAsyncInternal(IDeleteQuery builder,
-                                                              NpgsqlConnection connection,
-                                                              NpgsqlTransaction trans)
-    {
-      RawQuery rq = builder.GetRawQuery(Schema);
-
-      string query;
-      ParametersContainer parameters;
-      rq.Render(out query, out parameters);
-
-      Console.WriteLine(query);
-
-      using (var cmd = new NpgsqlCommand(query, connection, trans)) {
-        parameters.AssignToCommand(cmd);
-        await cmd.ExecuteNonQueryAsync();
-      }
-
-      return null;
+      var b = Batch.CreateSimple(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
     }
 
     public async Task QueryRawAsync(string query)

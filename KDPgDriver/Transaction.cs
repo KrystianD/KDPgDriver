@@ -39,17 +39,37 @@ namespace KDPgDriver
       throw new Exception("Schedule works only for batch query");
     }
 
-    public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
-      => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
+    public async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> query)
+    {
+      var b = Batch.CreateUsingTransaction(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
+    }
 
-    public Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
-      => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
+    public async Task<InsertQueryResult> QueryAsync(IInsertQuery query)
+    {
+      var b = Batch.CreateUsingTransaction(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
+    }
 
-    public Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
-      => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
+    public async Task<UpdateQueryResult> QueryAsync(IUpdateQuery query)
+    {
+      var b = Batch.CreateUsingTransaction(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
+    }
 
-    public Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
-      => Driver.QueryAsyncInternal(builder, NpgsqlConnection, NpgsqlTransaction);
+    public async Task<DeleteQueryResult> QueryAsync(IDeleteQuery query)
+    {
+      var b = Batch.CreateUsingTransaction(this);
+      var res = b.QueryAsync(query);
+      await b.Execute();
+      return res.Result;
+    }
 
     // Chains
     public SelectQueryFluentBuilder1Prep<TModel> From<TModel>() => new SelectQueryFluentBuilder1Prep<TModel>(this);
