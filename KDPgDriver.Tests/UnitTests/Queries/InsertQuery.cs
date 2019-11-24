@@ -121,7 +121,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Insert()
                                .UseField(x => x.Id)
                                .AddObject(obj)
-                               .OnConflict(OnInsertConflict.DoNothing);
+                               .OnConflictDoNothing();
 
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT DO NOTHING RETURNING ""id"";");
     }

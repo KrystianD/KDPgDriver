@@ -12,7 +12,7 @@ namespace KDPgDriver.Queries
   {
   }
 
-  public enum OnInsertConflict
+  internal enum OnInsertConflict
   {
     None = 0,
     DoNothing = 1,
@@ -79,9 +79,9 @@ namespace KDPgDriver.Queries
       return this;
     }
 
-    public InsertQuery<TModel> OnConflict(OnInsertConflict action)
+    public InsertQuery<TModel> OnConflictDoNothing()
     {
-      _onInsertConflict = action;
+      _onInsertConflict = OnInsertConflict.DoNothing;
       return this;
     }
 
