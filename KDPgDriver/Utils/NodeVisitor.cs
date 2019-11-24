@@ -104,8 +104,6 @@ namespace KDPgDriver.Utils
 
       TypedExpression VisitInternal(Expression exp)
       {
-        TypedExpression val;
-
         switch (exp) {
           case MemberExpression me:
             var pi = VisitPath(options, me);
@@ -115,13 +113,11 @@ namespace KDPgDriver.Utils
             return pi.Expression;
 
           case ConstantExpression me:
-          {
             var pgValue = Helper.ConvertObjectToPgValue(me.Value);
             return new TypedExpression(RawQuery.Create(pgValue), pgValue.Type);
-          }
 
           case UnaryExpression un:
-            val = VisitInternal(un.Operand);
+            var val = VisitInternal(un.Operand);
 
             switch (un.NodeType) {
               case ExpressionType.Convert:
