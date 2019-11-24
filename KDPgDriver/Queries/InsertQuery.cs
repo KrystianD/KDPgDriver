@@ -16,6 +16,7 @@ namespace KDPgDriver.Queries
   {
     None = 0,
     DoNothing = 1,
+    DoUpdate
   }
 
   public class InsertQuery<TModel> : IInsertQuery
@@ -28,6 +29,7 @@ namespace KDPgDriver.Queries
     private static readonly KdPgTableDescriptor TableModel = Helper.GetTable<TModel>();
 
     private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
+    private Action<UpdateStatementsBuilder<TModel>> _onInsertConflictUpdate;
     private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
 
     private KdPgColumnDescriptor _idColumn, _idRefColumn;
@@ -80,6 +82,13 @@ namespace KDPgDriver.Queries
     public InsertQuery<TModel> OnConflict(OnInsertConflict action)
     {
       _onInsertConflict = action;
+      return this;
+    }
+
+    public InsertQuery<TModel> OnConflictDoUpdate(Action<UpdateStatementsBuilder<TModel>> builder)
+    {
+      _onInsertConflict = OnInsertConflict.DoUpdate;
+      _onInsertConflictUpdate = builder;
       return this;
     }
 
@@ -138,6 +147,25 @@ namespace KDPgDriver.Queries
 
       if (_onInsertConflict == OnInsertConflict.DoNothing) {
         rq.Append(" ON CONFLICT DO NOTHING ");
+      }
+
+      if (_onInsertConflict == OnInsertConflict.DoUpdate) {
+        rq.Append(" ON CONFLICT DO UPDATE SET ");
+
+        var updateStatementsBuilder = new UpdateStatementsBuilder<TModel>();
+        _onInsertConflictUpdate(updateStatementsBuilder);
+
+        bool first2 = true;
+        foreach (var (column, typedExpression) in updateStatementsBuilder.UpdateParts) {
+          if (!first2)
+            rq.Append(", ");
+
+          rq.AppendColumnName(column.Name)
+            .Append(" = ")
+            .Append(typedExpression.RawQuery);
+
+          first2 = false;
+        }
       }
 
       if (TableModel.PrimaryKey != null) {

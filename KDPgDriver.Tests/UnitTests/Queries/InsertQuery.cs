@@ -127,6 +127,22 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
+    public void InsertOnConflictUpdate()
+    {
+      var obj = new MyModel {
+          Id = 4
+      };
+
+      var q = Builders<MyModel>.Insert()
+                               .UseField(x => x.Id)
+                               .AddObject(obj)
+                               .OnConflictDoUpdate(x => x.SetField(y => y.Name, "a")
+                                                         .UnsetField(y => y.Bool));
+
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT DO UPDATE SET ""name"" = 'a', bool = NULL RETURNING ""id"";");
+    }
+
+    [Fact]
     public void InsertEasy()
     {
       var obj = new MyModel {
@@ -154,7 +170,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                               VALUES ('A',currval(pg_get_serial_sequence('""public"".model','id')))
                                               RETURNING ""id"";");
     }
-    
+
     [Fact]
     public void InsertIntoVariable()
     {
