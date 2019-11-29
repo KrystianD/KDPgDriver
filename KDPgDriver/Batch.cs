@@ -105,9 +105,14 @@ namespace KDPgDriver
       var op = new Operation<InsertQueryResult>();
       op.ResultProcessorFunc = async reader =>
       {
-        await reader.ReadAsync();
-        var lastInsertId = reader.GetInt32(0);
-        var res = new InsertQueryResult(lastInsertId);
+        InsertQueryResult res;
+        if (await reader.ReadAsync()) {
+          var lastInsertId = reader.GetInt32(0);
+          res = InsertQueryResult.CreateRowInserted(lastInsertId);
+        }
+        else {
+          res = InsertQueryResult.CreateRowNotInserted();
+        }
 
         op.TaskCompletionSource.SetResult(res);
       };

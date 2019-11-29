@@ -1,11 +1,18 @@
-﻿namespace KDPgDriver.Results {
+﻿namespace KDPgDriver.Results
+{
   public class InsertQueryResult
   {
-    public int? LastInsertId { get; }
+    public bool RowInserted { get; private set; }
+    public int? LastInsertId { get; private set; }
 
-    public InsertQueryResult(int? lastInsertId)
+    public static InsertQueryResult CreateRowInserted(int lastInsertId)
     {
-      LastInsertId = lastInsertId;
+      return new InsertQueryResult() { RowInserted = true, LastInsertId = lastInsertId, };
+    }
+
+    public static InsertQueryResult CreateRowNotInserted()
+    {
+      return new InsertQueryResult() { RowInserted = false };
     }
   }
 }
