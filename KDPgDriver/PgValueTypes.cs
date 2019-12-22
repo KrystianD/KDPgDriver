@@ -82,7 +82,7 @@ namespace KDPgDriver
 
   public class KDPgValueTypeDateTime : KDPgValueType
   {
-    public override Type CSharpType => typeof(TimeSpan);
+    public override Type CSharpType => typeof(DateTime);
     public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Timestamp;
     public override string PostgresTypeName => "timestamp";
   }

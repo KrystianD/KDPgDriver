@@ -69,6 +69,12 @@ namespace KDPgDriver
     {
       return ExpressionBuilders.GetConfigText(name);
     }
+
+    public static TypedExpression Date(TypedExpression query)
+    {
+      var rq = RawQuery.Create("DATE(").Append(query.RawQuery).Append(")");
+      return new TypedExpression(rq, KDPgValueTypeInstances.Date);
+    }
   }
 
   public static class Func
@@ -124,6 +130,11 @@ namespace KDPgDriver
     }
 
     public static string GetVariableText(string name)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static DateTime Date(DateTime date)
     {
       throw new Exception("do not use directly");
     }

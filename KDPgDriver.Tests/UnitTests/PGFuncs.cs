@@ -1,5 +1,6 @@
 ﻿using System;
 using KDPgDriver.Builders;
+using NpgsqlTypes;
 using Xunit;
 
 namespace KDPgDriver.Tests.UnitTests
@@ -58,9 +59,19 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var q1 = Builders<MyModel>.Select(x => AggregateFunc.Max(x.Id)).Where(x => x.DateTime > Func.Now());
       Utils.AssertRawQuery(q1, @"SELECT MAX(""id"") FROM ""public"".model WHERE (datetime) > (NOW())");
-   
+
       var q2 = Builders<MyModel>.Select(x => AggregateFunc.Min(x.Id)).Where(x => x.DateTime > Func.Now());
       Utils.AssertRawQuery(q2, @"SELECT MIN(""id"") FROM ""public"".model WHERE (datetime) > (NOW())");
+    }
+
+    [Fact]
+    public void FuncDate()
+    {
+      var dt = new DateTime(2000, 1, 2, 3, 4, 5);
+      var q = Builders<MyModel>.Select(x => x.Id).Where(x => Func.Date(x.DateTime) == Func.Date(dt));
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model WHERE (DATE(datetime)) = (DATE(@1::timestamp))",
+                           new[] { new Param(dt, NpgsqlDbType.Timestamp), });
     }
   }
 }
