@@ -7,7 +7,7 @@ namespace KDPgDriver.Queries
 
   public class UpdateQuery<TModel> : IUpdateQuery
   {
-    private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
+    private readonly KdPgTableDescriptor Table = ModelsRegistry.GetTable<TModel>();
 
     private readonly UpdateStatementsBuilder<TModel> _updateStatementsBuilder;
     private readonly WhereBuilder<TModel> _whereBuilder;

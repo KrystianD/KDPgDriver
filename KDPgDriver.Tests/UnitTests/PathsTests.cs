@@ -14,7 +14,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       Assert.Equal(type, pi.Expression.Type);
       Assert.Equal(query, pi.Expression.RawQuery.ToString());
-      Assert.Equal(Helper.GetTable<TModel>().Columns.Find(x => x.Name == columnName), pi.Column);
+      Assert.Equal(ModelsRegistry.GetTable<TModel>().Columns.Find(x => x.Name == columnName), pi.Column);
     }
 
     [Fact]

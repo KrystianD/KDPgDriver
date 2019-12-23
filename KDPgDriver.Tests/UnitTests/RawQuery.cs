@@ -77,8 +77,8 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void WithColumn()
     {
-      var t1 = Helper.GetTable<MyModel>();
-      var t2 = Helper.GetTable<MyModel2>();
+      var t1 = ModelsRegistry.GetTable<MyModel>();
+      var t2 = ModelsRegistry.GetTable<MyModel2>();
 
       var rq = new RawQuery();
       rq.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name), new RawQuery.TableNamePlaceholder(t1, "M1"));
@@ -96,8 +96,8 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void WithColumnCombined()
     {
-      var t1 = Helper.GetTable<MyModel>();
-      var t2 = Helper.GetTable<MyModel2>();
+      var t1 = ModelsRegistry.GetTable<MyModel>();
+      var t2 = ModelsRegistry.GetTable<MyModel2>();
 
       var rq1 = new RawQuery();
       rq1.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel>(x => x.Name), new RawQuery.TableNamePlaceholder(t1, "M1"));

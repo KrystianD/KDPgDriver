@@ -7,7 +7,7 @@ namespace KDPgDriver.Queries
 
   public class DeleteQuery<TModel> : IDeleteQuery
   {
-    private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
+    private readonly KdPgTableDescriptor Table = ModelsRegistry.GetTable<TModel>();
 
     private readonly WhereBuilder<TModel> _whereBuilder;
 

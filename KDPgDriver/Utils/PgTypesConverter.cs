@@ -38,7 +38,7 @@ namespace KDPgDriver.Utils
       if (type == typeof(JToken) || type == typeof(JArray) || type == typeof(JObject) || type == typeof(JValue))
         return KDPgValueTypeInstances.Json;
 
-      if (Helper.CheckIfEnumerable(type, out itemType)) {
+      if (Utils.CheckIfEnumerable(type, out itemType)) {
         return new KDPgValueTypeArray(
             // listType: type,
             itemType: CreatePgValueTypeFromObjectType(itemType),

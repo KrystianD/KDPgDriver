@@ -52,7 +52,7 @@ namespace KDPgDriver.Utils
         }
       }
 
-      return Helper.GetColumn(EvaluateToPropertyInfo(exp));
+      return ModelsRegistry.GetColumn(EvaluateToPropertyInfo(exp));
     }
 
     public class EvaluationOptions
@@ -350,9 +350,9 @@ namespace KDPgDriver.Utils
           case PropertyInfo member:
 
             // table
-            if (Helper.IsTable(member.PropertyType)) {
+            if (ModelsRegistry.IsTable(member.PropertyType)) {
               if (parts.Count == 1) { // only process table if it is only part in the path (x => x.M1.Name)
-                var table = Helper.GetTable(member.PropertyType);
+                var table = ModelsRegistry.GetTable(member.PropertyType);
 
                 rq.AppendTable(new RawQuery.TableNamePlaceholder(table, member.Name));
 
@@ -363,8 +363,8 @@ namespace KDPgDriver.Utils
               }
             }
             // column
-            else if (Helper.IsColumn(member)) {
-              var column = Helper.GetColumn(member);
+            else if (ModelsRegistry.IsColumn(member)) {
+              var column = ModelsRegistry.GetColumn(member);
               pi.Column = column;
 
               if (options == null || options.ParameterToTableAlias.Count == 0) {
@@ -380,11 +380,11 @@ namespace KDPgDriver.Utils
             }
             // json path
             else {
-              var fieldName = Helper.GetJsonPropertyName(member);
-              var fieldType = Helper.GetJsonPropertyType(member);
+              var fieldName = ModelsRegistry.GetJsonPropertyName(member);
+              var fieldType = ModelsRegistry.GetJsonPropertyType(member);
 
               rq.Append("->");
-              rq.Append(Helper.EscapePostgresValue(fieldName));
+              rq.Append(EscapeUtils.EscapePostgresValue(fieldName));
               pi.JsonPath.Add(fieldName);
 
               pathValueType = fieldType;
@@ -394,7 +394,7 @@ namespace KDPgDriver.Utils
 
           case string jsonObjectProperty:
             rq.Append("->");
-            rq.Append(Helper.EscapePostgresValue(jsonObjectProperty));
+            rq.Append(EscapeUtils.EscapePostgresValue(jsonObjectProperty));
             pi.JsonPath.Add(jsonObjectProperty);
 
             pathValueType = KDPgValueTypeInstances.Json;

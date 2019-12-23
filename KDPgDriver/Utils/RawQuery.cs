@@ -182,25 +182,25 @@ namespace KDPgDriver.Utils
     public RawQuery AppendTableName(string tableName, string schema = null, string alias = null)
     {
       if (schema == null)
-        Append(Helper.QuoteObjectName(tableName));
+        Append(EscapeUtils.QuoteObjectName(tableName));
       else
-        Append($"{Helper.QuoteObjectName(schema)}.{Helper.QuoteObjectName(tableName)}");
+        Append($"{EscapeUtils.QuoteObjectName(schema)}.{EscapeUtils.QuoteObjectName(tableName)}");
 
       if (alias != null)
-        Append(" ", Helper.QuoteObjectName(alias));
+        Append(" ", EscapeUtils.QuoteObjectName(alias));
 
       return this;
     }
 
     public RawQuery AppendColumnName(string columnName)
     {
-      Append(Helper.QuoteObjectName(columnName));
+      Append(EscapeUtils.QuoteObjectName(columnName));
       return this;
     }
 
     public RawQuery AppendObjectName(string name)
     {
-      Append(Helper.QuoteObjectName(name));
+      Append(EscapeUtils.QuoteObjectName(name));
       return this;
     }
 
@@ -278,19 +278,19 @@ namespace KDPgDriver.Utils
         if (part.Table != null) {
           var alias = ResolvePlaceholder(ctx, part.Table);
           if (alias != null)
-            sb.Append(Helper.QuoteObjectName(alias));
+            sb.Append(EscapeUtils.QuoteObjectName(alias));
           else
-            sb.Append(Helper.QuoteTable(part.Table.Table.Name, part.Table.Table.Schema));
+            sb.Append(EscapeUtils.QuoteTable(part.Table.Table.Name, part.Table.Table.Schema));
         }
 
         if (part.Column != null) {
           var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
           if (alias != null) {
-            sb.Append(Helper.QuoteObjectName(alias));
+            sb.Append(EscapeUtils.QuoteObjectName(alias));
             sb.Append(".");
           }
 
-          sb.Append(Helper.QuoteObjectName(part.Column.Column.Name));
+          sb.Append(EscapeUtils.QuoteObjectName(part.Column.Column.Name));
         }
 
         if (part.ParamIdx != -1)
@@ -317,24 +317,24 @@ namespace KDPgDriver.Utils
         if (part.Table != null) {
           var alias = ResolvePlaceholder(ctx, part.Table);
           if (alias != null)
-            sb.Append(Helper.QuoteObjectName(alias));
+            sb.Append(EscapeUtils.QuoteObjectName(alias));
           else
-            sb.Append(Helper.QuoteTable(part.Table.Table.Name, part.Table.Table.Schema));
+            sb.Append(EscapeUtils.QuoteTable(part.Table.Table.Name, part.Table.Table.Schema));
         }
 
         if (part.Column != null) {
           // if (!ctx.skipExplicitColumnTableNames) {
           var alias = ResolvePlaceholder(ctx, part.Column.TablePlaceholder);
           if (alias != null) {
-            sb.Append(Helper.QuoteObjectName(alias));
+            sb.Append(EscapeUtils.QuoteObjectName(alias));
             sb.Append(".");
           }
 
-          sb.Append(Helper.QuoteObjectName(part.Column.Column.Name));
+          sb.Append(EscapeUtils.QuoteObjectName(part.Column.Column.Name));
         }
 
         else if (part.ParamIdx != -1)
-          sb.Append(Helper.EscapePostgresValue(_parameters[part.ParamIdx].Value));
+          sb.Append(EscapeUtils.EscapePostgresValue(_parameters[part.ParamIdx].Value));
 
         else if (part.RawQuery != null)
           sb.Append(part.RawQuery.RenderSimple(ctx));

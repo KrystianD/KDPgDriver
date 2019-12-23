@@ -157,7 +157,7 @@ namespace KDPgDriver
     public KDPgValueTypeEnum(TypeRegistry.EnumEntry enumEntry)
     {
       EnumEntry = enumEntry;
-      PostgresTypeName = Helper.QuoteTable(enumEntry.EnumName, enumEntry.Schema);
+      PostgresTypeName = EscapeUtils.QuoteTable(enumEntry.EnumName, enumEntry.Schema);
     }
   }
 

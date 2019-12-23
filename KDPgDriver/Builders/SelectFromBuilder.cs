@@ -69,7 +69,7 @@ namespace KDPgDriver.Builders
 
           foreach (var argExpression in args) {
             // Member is Table (like M1 = x.M1)
-            if (argExpression is MemberExpression memberExpression && Helper.IsTable(memberExpression.Type)) {
+            if (argExpression is MemberExpression memberExpression && ModelsRegistry.IsTable(memberExpression.Type)) {
               var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
               var table = tablePlaceholder.Table;
 
@@ -104,7 +104,7 @@ namespace KDPgDriver.Builders
         case MemberExpression memberExpression:
         {
           // .Select(x => x.M1)
-          if (Helper.IsTable(typeof(TNewModel))) {
+          if (ModelsRegistry.IsTable(typeof(TNewModel))) {
             var resultProcessor = new CombinedModelResultProcessor<TNewModel>();
             builder.ResultProcessor = resultProcessor;
 
@@ -183,7 +183,7 @@ namespace KDPgDriver.Builders
     public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)
     {
       var b = new SelectFromBuilder();
-      b.AddTable(Helper.GetTable<TModel>());
+      b.AddTable(ModelsRegistry.GetTable<TModel>());
       TypedExpression exp;
 
       switch (prBody.Body) {
@@ -219,7 +219,7 @@ namespace KDPgDriver.Builders
     public static SelectFromBuilder FromFieldListBuilder<TModel>(FieldListBuilder<TModel> builder)
     {
       var b = new SelectFromBuilder();
-      b.AddTable(Helper.GetTable<TModel>());
+      b.AddTable(ModelsRegistry.GetTable<TModel>());
 
       var resultProcessor = new ModelResultProcessor<TModel>();
 
@@ -237,9 +237,9 @@ namespace KDPgDriver.Builders
     public static SelectFromBuilder AllColumns<TModel>()
     {
       var b = new SelectFromBuilder();
-      b.AddTable(Helper.GetTable<TModel>());
+      b.AddTable(ModelsRegistry.GetTable<TModel>());
 
-      foreach (var column in Helper.GetTable<TModel>().Columns)
+      foreach (var column in ModelsRegistry.GetTable<TModel>().Columns)
         b.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
 
       b.ResultProcessor = new ModelResultProcessor<TModel>();

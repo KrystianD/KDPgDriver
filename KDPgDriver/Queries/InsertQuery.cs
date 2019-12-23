@@ -21,12 +21,12 @@ namespace KDPgDriver.Queries
 
   public class InsertQuery<TModel> : IInsertQuery
   {
-    private readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
+    private readonly KdPgTableDescriptor Table = ModelsRegistry.GetTable<TModel>();
 
     private static readonly List<KdPgColumnDescriptor> AllColumnsWithoutAutoIncrement =
-        Helper.GetTable<TModel>().Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
+        ModelsRegistry.GetTable<TModel>().Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
 
-    private static readonly KdPgTableDescriptor TableModel = Helper.GetTable<TModel>();
+    private static readonly KdPgTableDescriptor TableModel = ModelsRegistry.GetTable<TModel>();
 
     private OnInsertConflict _onInsertConflict = OnInsertConflict.None;
     private Action<UpdateStatementsBuilder<TModel>> _onInsertConflictUpdate;
@@ -130,7 +130,7 @@ namespace KDPgDriver.Queries
 
         for (int i = 0; i < columns.Count; i++) {
           var column = columns[i];
-          object val = Helper.GetModelValueByColumn(obj, column);
+          object val = ModelsRegistry.GetModelValueByColumn(obj, column);
           var npgValue = PgTypesConverter.ConvertToPgValue(column.Type, val);
 
           if (i > 0)

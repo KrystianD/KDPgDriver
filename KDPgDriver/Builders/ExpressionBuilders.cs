@@ -273,7 +273,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression JsonSet(TypedExpression obj, IEnumerable<object> jsonPath, TypedExpression item)
     {
-      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+      string jsonPathStr = jsonPath.Select(EscapeUtils.EscapePostgresValue).JoinString(",");
 
       if (!(obj.Type is KDPgValueTypeJson))
         throw new Exception("obj parameter must be json");
@@ -297,7 +297,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression KDPgJsonbAdd(TypedExpression array, IEnumerable<object> jsonPath, TypedExpression item)
     {
-      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+      string jsonPathStr = jsonPath.Select(EscapeUtils.EscapePostgresValue).JoinString(",");
 
       if (!(array.Type is KDPgValueTypeJson))
         throw new Exception("array parameter must be json");
@@ -315,7 +315,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression KDPgJsonbRemoveByIndex(TypedExpression array, IEnumerable<object> jsonPath, TypedExpression item)
     {
-      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+      string jsonPathStr = jsonPath.Select(EscapeUtils.EscapePostgresValue).JoinString(",");
 
       if (!(array.Type is KDPgValueTypeJson))
         throw new Exception("array parameter must be json");
@@ -341,7 +341,7 @@ namespace KDPgDriver.Builders
                                                          TypedExpression item,
                                                          bool firstOnly)
     {
-      string jsonPathStr = jsonPath.Select(Helper.EscapePostgresValue).JoinString(",");
+      string jsonPathStr = jsonPath.Select(EscapeUtils.EscapePostgresValue).JoinString(",");
 
       if (!(array.Type is KDPgValueTypeJson))
         throw new Exception("array parameter must be json");
@@ -377,12 +377,12 @@ namespace KDPgDriver.Builders
       RawQuery rq = new RawQuery();
       rq.Append("currval(pg_get_serial_sequence(");
 
-      string table = Helper.QuoteObjectName(column.Table.Name);
-      string schema = Helper.QuoteObjectName(defaultSchema ?? column.Table.Schema);
+      string table = EscapeUtils.QuoteObjectName(column.Table.Name);
+      string schema = EscapeUtils.QuoteObjectName(defaultSchema ?? column.Table.Schema);
 
-      rq.Append(Helper.EscapePostgresValue($"{schema}.{table}"));
+      rq.Append(EscapeUtils.EscapePostgresValue($"{schema}.{table}"));
       rq.Append(",");
-      rq.Append(Helper.EscapePostgresValue(column.Name));
+      rq.Append(EscapeUtils.EscapePostgresValue(column.Name));
       rq.Append("))");
       return new TypedExpression(rq, KDPgValueTypeInstances.Integer);
     }

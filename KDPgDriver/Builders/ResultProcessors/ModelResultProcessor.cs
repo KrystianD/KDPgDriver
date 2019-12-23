@@ -6,7 +6,7 @@ namespace KDPgDriver.Builders
 {
   public class ModelResultProcessor<TModel> : IResultProcessor
   {
-    private static readonly KdPgTableDescriptor Table = Helper.GetTable<TModel>();
+    private static readonly KdPgTableDescriptor Table = ModelsRegistry.GetTable<TModel>();
 
     private bool _useAllColumns = true;
     private List<KdPgColumnDescriptor> _columns = Table.Columns;

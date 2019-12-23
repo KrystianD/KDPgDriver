@@ -17,16 +17,16 @@ namespace KDPgDriver.Utils
 
       switch (pgValue.Type) {
         case KDPgValueTypeEnum _:
-          inlined = Helper.EscapePostgresValue(value);
+          inlined = EscapeUtils.EscapePostgresValue(value);
           return true;
       }
 
       switch (value) {
         case string s when pgValue.Type == KDPgValueTypeInstances.String && s.Length < 30:
-          inlined = Helper.EscapePostgresValue(s);
+          inlined = EscapeUtils.EscapePostgresValue(s);
           return true;
         case int v:
-          inlined = Helper.EscapePostgresValue(v);
+          inlined = EscapeUtils.EscapePostgresValue(v);
           return true;
         case null:
           inlined = "NULL";

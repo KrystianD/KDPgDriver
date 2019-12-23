@@ -72,8 +72,8 @@ namespace KDPgDriver.Fluent
     private readonly IQueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
 
-    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel1>(), null);
-    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel2>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel1>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel2>(), null);
 
     public SelectMultipleQueryFluentBuilderPrep2(IQueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition)
@@ -108,9 +108,9 @@ namespace KDPgDriver.Fluent
     private readonly TypedExpression _joinCondition1;
     private readonly TypedExpression _joinCondition2;
 
-    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel1>(), null);
-    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel2>(), null);
-    private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel3>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel1>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel2>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel3>(), null);
 
     public SelectMultipleQueryFluentBuilderPrep3(IQueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition1,
@@ -156,10 +156,10 @@ namespace KDPgDriver.Fluent
     private readonly TypedExpression _joinCondition2;
     private readonly TypedExpression _joinCondition3;
 
-    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel1>(), null);
-    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel2>(), null);
-    private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel3>(), null);
-    private readonly RawQuery.TableNamePlaceholder _p4 = new RawQuery.TableNamePlaceholder(Helper.GetTable<TModel4>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel1>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel2>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel3>(), null);
+    private readonly RawQuery.TableNamePlaceholder _p4 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel4>(), null);
 
     public SelectMultipleQueryFluentBuilderPrep4(IQueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition1,

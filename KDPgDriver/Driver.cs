@@ -123,7 +123,7 @@ $f$ LANGUAGE SQL IMMUTABLE;
     public async Task<Transaction> CreateTransaction(KDPgIsolationLevel isolationLevel = KDPgIsolationLevel.ReadCommitted)
     {
       var connection = await CreateConnection();
-      var tr = connection.BeginTransaction(Helper.ToIsolationLevel(isolationLevel));
+      var tr = connection.BeginTransaction(Utils.Utils.ToIsolationLevel(isolationLevel));
       return new Transaction(this, connection, tr);
     }
 
