@@ -29,7 +29,7 @@ namespace KDPgDriver.Builders
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
       var pi = NodeVisitor.VisitPath(null, field);
-      var npgValue = Helper.ConvertToPgValue(pi.Expression.Type, value);
+      var npgValue = PgTypesConverter.ConvertToPgValue(pi.Expression.Type, value);
 
       if (pi.JsonPath.Count > 0) {
         AddUpdate(pi.Column, src => ExpressionBuilders.JsonSet(src, pi.JsonPath, TypedExpression.FromPgValue(npgValue)));

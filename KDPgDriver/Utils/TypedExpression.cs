@@ -30,7 +30,7 @@ namespace KDPgDriver
 
     public static TypedExpression FromValue(object value)
     {
-      return FromPgValue(Helper.ConvertObjectToPgValue(value));
+      return FromPgValue(PgTypesConverter.ConvertObjectToPgValue(value));
     }
 
     // public static TypedExpression FromColumn(KdPgColumnDescriptor column)

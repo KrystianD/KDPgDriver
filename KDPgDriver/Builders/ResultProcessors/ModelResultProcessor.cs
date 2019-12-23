@@ -18,7 +18,7 @@ namespace KDPgDriver.Builders
 
       for (var i = 0; i < _columns.Count; i++) {
         var col = _columns[i];
-        var val = Helper.ConvertFromRawSqlValue(col.Type, values[i]);
+        var val = PgTypesConverter.ConvertFromRawSqlValue(col.Type, values[i]);
         col.PropertyInfo.SetValue(obj, val);
       }
 

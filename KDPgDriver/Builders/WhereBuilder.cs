@@ -52,7 +52,7 @@ namespace KDPgDriver.Builders
     public static WhereBuilder<TModel> Eq<T>(Expression<Func<TModel, T>> field, T value)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
-      var pgValue = Helper.ConvertObjectToPgValue(value);
+      var pgValue = PgTypesConverter.ConvertObjectToPgValue(value);
 
       var right = TypedExpression.FromPgValue(pgValue);
 

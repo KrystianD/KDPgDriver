@@ -65,7 +65,7 @@ namespace KDPgDriver.Builders
 
       rq.AppendSurround(left.RawQuery)
         .Append(" = ANY(")
-        .Append(Helper.ConvertObjectToPgValue(array))
+        .Append(PgTypesConverter.ConvertObjectToPgValue(array))
         .Append(")");
 
       return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
@@ -95,7 +95,7 @@ namespace KDPgDriver.Builders
     public static TypedExpression GreaterThanEqual(TypedExpression left, TypedExpression right) => CreateComparisonOperator(">=", left, right);
 
     public static TypedExpression ContainsAny(TypedExpression left, IEnumerable array)
-      => ContainsAny(left, TypedExpression.FromPgValue(Helper.ConvertObjectToPgValue(array)));
+      => ContainsAny(left, TypedExpression.FromPgValue(PgTypesConverter.ConvertObjectToPgValue(array)));
 
     public static TypedExpression ContainsAny(TypedExpression left, TypedExpression right)
     {
@@ -233,7 +233,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression ArrayAddItem<T>(TypedExpression array, T item)
     {
-      var pgValue = Helper.ConvertObjectToPgValue(item);
+      var pgValue = PgTypesConverter.ConvertObjectToPgValue(item);
       return ArrayAddItem(array, TypedExpression.FromPgValue(pgValue));
     }
 
@@ -253,7 +253,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression ArrayRemoveItem<T>(TypedExpression array, T item)
     {
-      var pgValue = Helper.ConvertObjectToPgValue(item);
+      var pgValue = PgTypesConverter.ConvertObjectToPgValue(item);
       return ArrayRemoveItem(array, TypedExpression.FromPgValue(pgValue));
     }
 
@@ -291,7 +291,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression KDPgJsonbAdd<T>(TypedExpression array, IEnumerable<object> jsonPath, T item)
     {
-      var pgValue = Helper.ConvertObjectToPgValue(item);
+      var pgValue = PgTypesConverter.ConvertObjectToPgValue(item);
       return KDPgJsonbAdd(array, jsonPath, TypedExpression.FromPgValue(pgValue));
     }
 
@@ -332,7 +332,7 @@ namespace KDPgDriver.Builders
 
     public static TypedExpression KDPgJsonbRemoveByValue<T>(TypedExpression array, IEnumerable<object> jsonPath, T item, bool firstOnly)
     {
-      var pgValue = Helper.ConvertObjectToPgValue(item);
+      var pgValue = PgTypesConverter.ConvertObjectToPgValue(item);
       return KDPgJsonbRemoveByValue(array, jsonPath, TypedExpression.FromPgValue(pgValue), firstOnly);
     }
 
@@ -401,7 +401,7 @@ namespace KDPgDriver.Builders
 
       return new TypedExpression(rq, KDPgValueTypeInstances.Null);
     }
-    
+
     public static TypedExpression GetConfigInt(string name)
     {
       if (!VariableRegex.IsMatch(name))
@@ -412,7 +412,7 @@ namespace KDPgDriver.Builders
 
       return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
     }
-    
+
     public static TypedExpression GetConfigText(string name)
     {
       if (!VariableRegex.IsMatch(name))

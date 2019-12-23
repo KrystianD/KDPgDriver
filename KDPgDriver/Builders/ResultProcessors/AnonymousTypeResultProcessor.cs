@@ -31,7 +31,7 @@ namespace KDPgDriver.Builders
         if (entry.MemberTable != null) {
           var table = entry.MemberTable;
 
-          var isNull = (bool)Helper.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[columnIdx++]);
+          var isNull = (bool)PgTypesConverter.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[columnIdx++]);
           if (isNull) {
             constructorParams[i] = null;
 
@@ -41,7 +41,7 @@ namespace KDPgDriver.Builders
             var modelObj = Activator.CreateInstance(table.ModelType);
           
             foreach (var column in table.Columns) {
-              var val = Helper.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
+              var val = PgTypesConverter.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
               column.PropertyInfo.SetValue(modelObj, val);
             }
 
@@ -49,7 +49,7 @@ namespace KDPgDriver.Builders
           }
         }
         else if (entry.MemberType != null) {
-          constructorParams[i] = Helper.ConvertFromRawSqlValue(entry.MemberType, values[columnIdx++]);
+          constructorParams[i] = PgTypesConverter.ConvertFromRawSqlValue(entry.MemberType, values[columnIdx++]);
         }
         else
           throw new Exception();

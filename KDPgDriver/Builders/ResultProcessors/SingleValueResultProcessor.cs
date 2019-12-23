@@ -15,7 +15,7 @@ namespace KDPgDriver.Builders
 
     public object ParseResult(object[] values)
     {
-      return Helper.ConvertFromRawSqlValue(_type, values[0]);
+      return PgTypesConverter.ConvertFromRawSqlValue(_type, values[0]);
     }
   }
 }

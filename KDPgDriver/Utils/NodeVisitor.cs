@@ -113,7 +113,7 @@ namespace KDPgDriver.Utils
             return pi.Expression;
 
           case ConstantExpression me:
-            var pgValue = Helper.ConvertObjectToPgValue(me.Value);
+            var pgValue = PgTypesConverter.ConvertObjectToPgValue(me.Value);
             return new TypedExpression(RawQuery.Create(pgValue), pgValue.Type);
 
           case UnaryExpression un:
@@ -242,7 +242,7 @@ namespace KDPgDriver.Utils
                 throw new Exception("Invalid function");
 
               if (methodName == "Raw") {
-                var valueType = Helper.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
+                var valueType = PgTypesConverter.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
                 var text = (string) ((ConstantExpression) call.Arguments[0]).Value;
                 return new TypedExpression(RawQuery.Create(text), valueType);
               }

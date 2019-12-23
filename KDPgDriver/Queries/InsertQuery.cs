@@ -131,7 +131,7 @@ namespace KDPgDriver.Queries
         for (int i = 0; i < columns.Count; i++) {
           var column = columns[i];
           object val = Helper.GetModelValueByColumn(obj, column);
-          var npgValue = Helper.ConvertToPgValue(column.Type, val);
+          var npgValue = PgTypesConverter.ConvertToPgValue(column.Type, val);
 
           if (i > 0)
             rq.Append(",");

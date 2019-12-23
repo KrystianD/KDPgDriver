@@ -16,13 +16,13 @@ namespace KDPgDriver.Builders
     {
       var obj = Activator.CreateInstance(Table.ModelType);
 
-      var isNull = (bool) Helper.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[0]);
+      var isNull = (bool) PgTypesConverter.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[0]);
       if (isNull)
         return null;
 
       for (var i = 0; i < _columns.Count; i++) {
         var col = _columns[i];
-        var val = Helper.ConvertFromRawSqlValue(col.Type, values[1 + i]);
+        var val = PgTypesConverter.ConvertFromRawSqlValue(col.Type, values[1 + i]);
         col.PropertyInfo.SetValue(obj, val);
       }
 
