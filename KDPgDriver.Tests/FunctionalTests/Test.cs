@@ -52,9 +52,9 @@ CREATE TABLE model2 (
   model_id int
 );
 
-INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test1', '{a,b,c}', 'A', '{A}', 1); -- id: 1
-INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test2', '{a,b}', 'B', '{B}', 2); -- id: 2
-INSERT INTO model(name, list_string, enum, list_enum, private_int) VALUES('test3', '{a}', 'C', '{B,C}', 3); -- id: 3
+INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test1', '{a,b,c}', 'A', '{A}', 1, 'bin1'); -- id: 1
+INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test2', '{a,b}', 'B', '{B}', 2, 'bin22'); -- id: 2
+INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test3', '{a}', 'C', '{B,C}', 3, 'bin333'); -- id: 3
 
 INSERT INTO model2(name1, model_id) VALUES('subtest1', 1); -- id: 1
 INSERT INTO model2(name1, model_id) VALUES('subtest2', 1); -- id: 2
@@ -447,6 +447,40 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                       .ToSingleAsync();
 
       Assert.Equal(3, d);
+    }
+
+    [Fact]
+    public async Task SelectArrayLengths()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .Select(x => new {
+                            A1 = x.Binary.Length,
+                            A2 = x.ListString.Count,
+                            A3 = x.Name.Length,
+                        })
+                        .ToListAsync();
+
+      Assert.Collection(res,
+                        item =>
+                        {
+                          Assert.Equal(4, item.A1);
+                          Assert.Equal(3, item.A2);
+                          Assert.Equal(5, item.A3);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(5, item.A1);
+                          Assert.Equal(2, item.A2);
+                          Assert.Equal(5, item.A3);
+                        },
+                        item =>
+                        {
+                          Assert.Equal(6, item.A1);
+                          Assert.Equal(1, item.A2);
+                          Assert.Equal(5, item.A3);
+                        });
     }
   }
 }

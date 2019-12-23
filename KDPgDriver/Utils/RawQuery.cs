@@ -116,6 +116,15 @@ namespace KDPgDriver.Utils
       return this;
     }
 
+    public RawQuery AppendFuncInvocation(string funcName, RawQuery rawQuery)
+    {
+      Append(funcName);
+      Append("(");
+      Append(rawQuery);
+      Append(")");
+      return this;
+    }
+
     public RawQuery AppendTable(TableNamePlaceholder alias)
     {
       _parts.Add(new QueryPart() {

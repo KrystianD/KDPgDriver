@@ -125,6 +125,7 @@ namespace KDPgDriver.Utils
                   return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
                 return val;
               case ExpressionType.Not: return ExpressionBuilders.Not(val);
+              case ExpressionType.ArrayLength: return ExpressionBuilders.ArrayLength(val);
               default:
                 throw new Exception($"unknown operator: {un.NodeType}");
             }
@@ -294,7 +295,6 @@ namespace KDPgDriver.Utils
     public static PathInfo VisitPath(EvaluationOptions options, Expression exp)
     {
       var pi = new PathInfo();
-      var rq = new RawQuery();
       KDPgValueType pathValueType = null;
 
       List<object> parts = new List<object>();
@@ -344,6 +344,8 @@ namespace KDPgDriver.Utils
 
       Traverse(exp);
 
+      var rq = new RawQuery();
+
       string overrideTableName = null;
       foreach (var part in parts) {
         switch (part) {
@@ -379,7 +381,7 @@ namespace KDPgDriver.Utils
               pathValueType = column.Type;
             }
             // json path
-            else {
+            else if (ModelsRegistry.IsJsonPropertyName(member)) {
               var fieldName = ModelsRegistry.GetJsonPropertyName(member);
               var fieldType = ModelsRegistry.GetJsonPropertyType(member);
 
@@ -388,6 +390,20 @@ namespace KDPgDriver.Utils
               pi.JsonPath.Add(fieldName);
 
               pathValueType = fieldType;
+            }
+            // property
+            else if (member.MemberType == MemberTypes.Property) {
+              if (member.Name == "Count" || member.Name == "Length") {
+                var newRq = ExpressionBuilders.ArrayLength(new TypedExpression(rq, pathValueType));
+                rq = newRq.RawQuery;
+                pathValueType = newRq.Type;
+              }
+              else {
+                throw new Exception($"Unsupported function: {member.Name}");
+              }
+            }
+            else {
+              throw new Exception("Unable to process path part");
             }
 
             break;

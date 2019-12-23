@@ -89,6 +89,29 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
+    public static TypedExpression ArrayLength(TypedExpression exp)
+    {
+      RawQuery rq = new RawQuery();
+
+      switch (exp.Type) {
+        case KDPgValueTypeBinary _:
+          rq.AppendFuncInvocation("octet_length", exp.RawQuery);
+          break;
+        case KDPgValueTypeString _:
+          rq.AppendFuncInvocation("LENGTH", exp.RawQuery);
+          break;
+        case KDPgValueTypeArray _:
+          rq.Append("array_length(");
+          rq.Append(exp.RawQuery);
+          rq.Append(",1)");
+          break;
+        default:
+          throw new Exception("Invalid value to get array count");
+      }
+
+      return new TypedExpression(rq, KDPgValueTypeInstances.Integer);
+    }
+
     public static TypedExpression LessThan(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<", left, right);
     public static TypedExpression LessThanEqual(TypedExpression left, TypedExpression right) => CreateComparisonOperator("<=", left, right);
     public static TypedExpression GreaterThan(TypedExpression left, TypedExpression right) => CreateComparisonOperator(">", left, right);

@@ -345,7 +345,7 @@ namespace KDPgDriver.Tests.UnitTests
 
       Utils.AssertExpression(exp, @"upper(""name"")");
     }
-    
+
     // Coalesce
     [Fact]
     public void ExpressionCoalesce()
@@ -424,6 +424,17 @@ namespace KDPgDriver.Tests.UnitTests
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.MySubsubmodel.Number == 2);
 
       Utils.AssertExpression(exp, @"((json_model->'inner'->'number')::text::int) = (2)");
+    }
+
+    // Functions
+    [Fact]
+    public void ExpressionArrayLength()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Binary.Length == 3 &&
+                                                              x.ListString.Count == 4 &&
+                                                              x.Name.Length == 1);
+
+      Utils.AssertExpression(exp, @"(((octet_length(""binary"")) = (3)) AND ((array_length(list_string,1)) = (4))) AND ((LENGTH(""name"")) = (1))");
     }
   }
 }

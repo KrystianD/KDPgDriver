@@ -14,6 +14,13 @@ namespace KDPgDriver.Utils
 
     // private static KDPgValueType CreatePgValueType(object obj) => CreatePgValueType(obj.GetType());
 
+    public static bool IsJsonPropertyName(MemberInfo memberInfo)
+    {
+      var q = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), false);
+
+      return q.Length > 0;
+    }
+
     public static string GetJsonPropertyName(MemberInfo memberInfo)
     {
       var q = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), false);
