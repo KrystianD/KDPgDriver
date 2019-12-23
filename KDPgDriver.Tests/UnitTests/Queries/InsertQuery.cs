@@ -202,9 +202,28 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       var q = Builders<MyModel2>.Insert(obj)
                                 .UseField(x => x.Name1, subq);
-        
+
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1) 
                                               VALUES ((SELECT ""name"" FROM ""public"".model WHERE (""id"") = (1)))
+                                              RETURNING ""id"";");
+    }
+
+    [Fact]
+    public void InsertWithSubqueryOptional()
+    {
+      var subq = Builders<MyModel>.Select(x => x.Id)
+                                  .Where(x => x.Name == "subtest4")
+                                  .AsScalarSubquery();
+
+
+      var obj = new MyModel2 {
+      };
+
+      var q = Builders<MyModel2>.Insert(obj)
+                                .UseField(x => x.ModelId.Value, subq);
+
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(model_id) 
+                                              VALUES ((SELECT ""id"" FROM ""public"".model WHERE (""name"") = ('subtest4')))
                                               RETURNING ""id"";");
     }
   }

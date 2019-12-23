@@ -15,6 +15,6 @@ namespace KDPgDriver.Tests
     public string Name1 { get; set; }
 
     [KDPgColumn("model_id")]
-    public int ModelId { get; set; }
+    public int? ModelId { get; set; }
   }
 }
