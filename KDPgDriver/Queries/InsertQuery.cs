@@ -154,7 +154,7 @@ namespace KDPgDriver.Queries
             rq.Append(npgValue);
           }
           else {
-            rq.AppendSurround(column.subquery.GetRawQuery());
+            rq.AppendSurround(column.subquery.GetRawQuery(defaultSchema));
           }
         }
 
