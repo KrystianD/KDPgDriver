@@ -14,7 +14,7 @@ namespace KDPgDriver.Fluent
   {
     private readonly IQueryExecutor _executor;
 
-    private InsertQuery<TModel> _insertQuery = new InsertQuery<TModel>();
+    private readonly InsertQuery<TModel> _insertQuery = new InsertQuery<TModel>();
 
     public InsertQueryFluentBuilder1()
     {
