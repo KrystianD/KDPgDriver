@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Resources;
 using System.Text;
 
 namespace KDPgDriver.Utils
@@ -27,8 +25,8 @@ namespace KDPgDriver.Utils
 
       public TableNamePlaceholder(KdPgTableDescriptor table, string name)
       {
-        this.Table = table;
-        this.Name = name;
+        Table = table;
+        Name = name;
       }
     }
 
@@ -96,7 +94,7 @@ namespace KDPgDriver.Utils
 
     public RawQuery Append(PgValue value)
     {
-      if (ParametersContainer.TryInline(value, out string inlined)) {
+      if (ParametersContainer.TryInlineShortValue(value, out string inlined)) {
         Append(inlined);
       }
       else {

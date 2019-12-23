@@ -9,7 +9,7 @@ namespace KDPgDriver.Utils
   {
     private readonly List<Tuple<object, NpgsqlDbType?>> _params = new List<Tuple<object, NpgsqlDbType?>>();
 
-    public static bool TryInline(PgValue pgValue, out string inlined)
+    public static bool TryInlineShortValue(PgValue pgValue, out string inlined)
     {
       inlined = null;
 
