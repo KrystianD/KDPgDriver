@@ -21,10 +21,18 @@ namespace KDPgDriver.Queries
 
   public class InsertQuery<TModel> : IInsertQuery
   {
+    private struct InsertColumnMeta
+    {
+      public KdPgColumnDescriptor columnDescriptor;
+      public ISelectSubquery subquery;
+    }
+
     private readonly KdPgTableDescriptor Table = ModelsRegistry.GetTable<TModel>();
 
-    private static readonly List<KdPgColumnDescriptor> AllColumnsWithoutAutoIncrement =
-        ModelsRegistry.GetTable<TModel>().Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0).ToList();
+    private static readonly List<InsertColumnMeta> AllColumnsWithoutAutoIncrement =
+        ModelsRegistry.GetTable<TModel>().Columns.Where(x => (x.Flags & KDPgColumnFlagsEnum.AutoIncrement) == 0)
+                      .Select(x => new InsertColumnMeta() { columnDescriptor = x })
+                      .ToList();
 
     private static readonly KdPgTableDescriptor TableModel = ModelsRegistry.GetTable<TModel>();
 
@@ -32,7 +40,7 @@ namespace KDPgDriver.Queries
     private Action<UpdateStatementsBuilder<TModel>> _onInsertConflictUpdate;
     private Action<FieldListBuilder<TModel>> _onInsertConflictUpdateFields;
 
-    private readonly List<KdPgColumnDescriptor> _columns = new List<KdPgColumnDescriptor>();
+    private readonly List<InsertColumnMeta> _columns = new List<InsertColumnMeta>();
 
     private KdPgColumnDescriptor _idColumn, _idRefColumn;
 
@@ -43,7 +51,13 @@ namespace KDPgDriver.Queries
 
     public InsertQuery<TModel> UseField(Expression<Func<TModel, object>> field)
     {
-      _columns.Add(NodeVisitor.EvaluateExpressionToColumn(field));
+      _columns.Add(new InsertColumnMeta() { columnDescriptor = NodeVisitor.EvaluateExpressionToColumn(field) });
+      return this;
+    }
+
+    public InsertQuery<TModel> UseField<TValue>(Expression<Func<TModel, TValue>> field, SelectSubquery<TValue> subquery)
+    {
+      _columns.Add(new InsertColumnMeta() { columnDescriptor = NodeVisitor.EvaluateExpressionToColumn(field), subquery = subquery });
       return this;
     }
 
@@ -111,7 +125,7 @@ namespace KDPgDriver.Queries
       rq.AppendTableName(Table.Name, Table.Schema ?? defaultSchema);
 
       rq.Append("(");
-      rq.AppendColumnNames(columns.Select(x => x.Name));
+      rq.AppendColumnNames(columns.Select(x => x.columnDescriptor.Name));
       if (_idColumn != null) {
         if (columns.Count > 0)
           rq.Append(",");
@@ -130,13 +144,18 @@ namespace KDPgDriver.Queries
 
         for (int i = 0; i < columns.Count; i++) {
           var column = columns[i];
-          object val = ModelsRegistry.GetModelValueByColumn(obj, column);
-          var npgValue = PgTypesConverter.ConvertToPgValue(column.Type, val);
 
           if (i > 0)
             rq.Append(",");
 
-          rq.Append(npgValue);
+          if (column.subquery == null) {
+            object val = ModelsRegistry.GetModelValueByColumn(obj, column.columnDescriptor);
+            var npgValue = PgTypesConverter.ConvertToPgValue(column.columnDescriptor.Type, val);
+            rq.Append(npgValue);
+          }
+          else {
+            rq.AppendSurround(column.subquery.GetRawQuery());
+          }
         }
 
         if (_idColumn != null) {

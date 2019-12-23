@@ -339,6 +339,16 @@ namespace KDPgDriver.Fluent
       return new SelectQuery<TModel, TNewModel>(_whereBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
     }
 
+    public SelectSubquery<TNewModel> AsScalarSubquery()
+    {
+      return new SelectSubquery<TNewModel>(GetSelectQuery());
+    }
+
+    public SelectSubquery<IList<TNewModel>> AsListSubquery()
+    {
+      return new SelectSubquery<IList<TNewModel>>(GetSelectQuery());
+    }
+
     public async Task<TNewModel> ToSingleAsync()
     {
       var res = await _executor.QueryAsync(GetSelectQuery());

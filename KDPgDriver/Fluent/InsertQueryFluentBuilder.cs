@@ -31,6 +31,12 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
+    public InsertQueryFluentBuilder1<TModel> UseField<TValue>(Expression<Func<TModel, TValue>> field, SelectSubquery<TValue> subquery)
+    {
+      _insertQuery.UseField(field, subquery);
+      return this;
+    }
+
     public InsertQueryFluentBuilder1<TModel> UsePreviousInsertId<TRefModel>(Expression<Func<TModel, object>> field, Expression<Func<TRefModel, int>> idField)
     {
       _insertQuery.UsePreviousInsertId<TRefModel>(field, idField);

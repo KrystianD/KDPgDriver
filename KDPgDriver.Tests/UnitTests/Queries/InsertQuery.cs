@@ -188,5 +188,24 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                               RETURNING ""id"";
                                               SELECT set_config('vars.insert_id1', lastval()::text, true);");
     }
+
+    [Fact]
+    public void InsertWithSubquery()
+    {
+      var subq = Builders<MyModel>.Select(x => x.Name)
+                                  .Where(x => x.Id == 1)
+                                  .AsScalarSubquery();
+
+
+      var obj = new MyModel2 {
+      };
+
+      var q = Builders<MyModel2>.Insert(obj)
+                                .UseField(x => x.Name1, subq);
+        
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1) 
+                                              VALUES ((SELECT ""name"" FROM ""public"".model WHERE (""id"") = (1)))
+                                              RETURNING ""id"";");
+    }
   }
 }
