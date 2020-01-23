@@ -34,6 +34,7 @@ namespace KDPgDriver.Builders
 
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
     private readonly List<RawQuery.TableNamePlaceholder> _tablePlaceholders = new List<RawQuery.TableNamePlaceholder>();
+    private bool distinct = false;
 
     private List<TypedExpression> LeftJoinsExpressions { get; set; }
     private IResultProcessor ResultProcessor { get; set; }
@@ -77,7 +78,7 @@ namespace KDPgDriver.Builders
               tableTestRawQuery.AppendTable(tablePlaceholder);
               tableTestRawQuery.Append(" IS NULL");
               builder.AddSelectPart(tableTestRawQuery, KDPgValueTypeInstances.Boolean);
-              
+
               foreach (var column in table.Columns) {
                 var rq = new RawQuery();
                 rq.AppendColumn(column, tablePlaceholder);
@@ -115,7 +116,7 @@ namespace KDPgDriver.Builders
             tableTestRawQuery.AppendTable(tablePlaceholder);
             tableTestRawQuery.Append(" IS NULL");
             builder.AddSelectPart(tableTestRawQuery, KDPgValueTypeInstances.Boolean);
-            
+
             foreach (var column in table.Columns) {
               var rq = new RawQuery();
               rq.AppendColumn(column, tablePlaceholder);
@@ -160,7 +161,7 @@ namespace KDPgDriver.Builders
 
       foreach (var tablePlaceholder in tablesList.Tables) {
         builder.AddTable(tablePlaceholder);
-        
+
         var tableTestRawQuery = new RawQuery();
         tableTestRawQuery.AppendTable(tablePlaceholder);
         tableTestRawQuery.Append(" IS NULL");
@@ -247,10 +248,18 @@ namespace KDPgDriver.Builders
       return b;
     }
 
+    public void Distinct()
+    {
+      distinct = true;
+    }
+
     public RawQuery GetRawQuery(string defaultSchema)
     {
       RawQuery rq = new RawQuery();
       rq.Append("SELECT ");
+
+      if (distinct)
+        rq.Append("DISTINCT ");
 
       bool firstColumn = true;
       foreach (var col in _columns) {

@@ -298,6 +298,12 @@ namespace KDPgDriver.Fluent
       _selectFromBuilder = selectFromBuilder;
     }
 
+    public SelectQueryFluentBuilder<TModel, TNewModel> Distinct()
+    {
+      _selectFromBuilder.Distinct();
+      return this;
+    }
+
     public SelectQueryFluentBuilder<TModel, TNewModel> Where(Expression<Func<TModel, bool>> exp)
     {
       _whereBuilder.AndWith(WhereBuilder<TModel>.FromExpression(exp));

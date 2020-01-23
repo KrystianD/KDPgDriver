@@ -127,5 +127,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model LIMIT 1 OFFSET 2");
     }
+
+    // Distinct
+    [Fact]
+    public void SelectDistinct()
+    {
+      var q = Builders<MyModel>.Select(x => x.Id)
+                               .Distinct();
+
+      Utils.AssertRawQuery(q, @"SELECT DISTINCT ""id"" FROM ""public"".model");
+    }
   }
 }
