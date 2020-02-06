@@ -95,7 +95,13 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("private_int")]
     private int _privateInt { get; set; }
-    
+
     public int PrivateInt => _privateInt;
+
+    [KDPgColumn("val_f32")]
+    public float ValFloat { get; set; }
+
+    [KDPgColumn("val_f64")]
+    public double ValDouble { get; set; }
   }
 }

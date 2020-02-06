@@ -16,6 +16,8 @@ namespace KDPgDriver
     DateTime,
     Integer,
     Integer64,
+    Float,
+    Double,
     Decimal,
     String,
     UUID,
@@ -45,6 +47,8 @@ namespace KDPgDriver
     public static readonly KDPgValueTypeDateTime DateTime = new KDPgValueTypeDateTime();
     public static readonly KDPgValueTypeInteger Integer = new KDPgValueTypeInteger();
     public static readonly KDPgValueTypeInteger64 Integer64 = new KDPgValueTypeInteger64();
+    public static readonly KDPgValueTypeReal Float = new KDPgValueTypeReal();
+    public static readonly KDPgValueTypeDoublePrecision Double = new KDPgValueTypeDoublePrecision();
     public static readonly KDPgValueTypeDecimal Decimal = new KDPgValueTypeDecimal();
     public static readonly KDPgValueTypeString String = new KDPgValueTypeString();
     public static readonly KDPgValueTypeUUID UUID = new KDPgValueTypeUUID();
@@ -106,6 +110,20 @@ namespace KDPgDriver
     public override Type CSharpType => typeof(decimal);
     public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Numeric;
     public override string PostgresTypeName => "numeric";
+  }
+
+  public class KDPgValueTypeReal : KDPgValueType
+  {
+    public override Type CSharpType => typeof(float);
+    public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Real;
+    public override string PostgresTypeName => "real";
+  }
+
+  public class KDPgValueTypeDoublePrecision : KDPgValueType
+  {
+    public override Type CSharpType => typeof(double);
+    public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Double;
+    public override string PostgresTypeName => "double precision";
   }
 
   public class KDPgValueTypeString : KDPgValueType

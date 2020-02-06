@@ -22,6 +22,10 @@ namespace KDPgDriver.Utils
         return KDPgValueTypeInstances.Integer;
       if (type == typeof(long))
         return KDPgValueTypeInstances.Integer64;
+      if (type == typeof(float))
+        return KDPgValueTypeInstances.Float;
+      if (type == typeof(double))
+        return KDPgValueTypeInstances.Double;
       if (type == typeof(bool))
         return KDPgValueTypeInstances.Boolean;
       if (type == typeof(DateTime))
@@ -69,6 +73,8 @@ namespace KDPgDriver.Utils
           case KDPgValueTypeKind.String: return KDPgValueTypeInstances.String;
           case KDPgValueTypeKind.Integer: return KDPgValueTypeInstances.Integer;
           case KDPgValueTypeKind.Integer64: return KDPgValueTypeInstances.Integer64;
+          case KDPgValueTypeKind.Float: return KDPgValueTypeInstances.Float;
+          case KDPgValueTypeKind.Double: return KDPgValueTypeInstances.Double;
           case KDPgValueTypeKind.Boolean: return KDPgValueTypeInstances.Boolean;
           case KDPgValueTypeKind.UUID: return KDPgValueTypeInstances.UUID;
           case KDPgValueTypeKind.Decimal: return KDPgValueTypeInstances.Decimal;
@@ -109,6 +115,8 @@ namespace KDPgDriver.Utils
         case KDPgValueTypeString _:
         case KDPgValueTypeInteger _:
         case KDPgValueTypeInteger64 _:
+        case KDPgValueTypeReal _:
+        case KDPgValueTypeDoublePrecision _:
         case KDPgValueTypeBoolean _:
         case KDPgValueTypeDateTime _:
         case KDPgValueTypeDate _:
@@ -159,6 +167,8 @@ namespace KDPgDriver.Utils
         case KDPgValueTypeString _:
         case KDPgValueTypeInteger _:
         case KDPgValueTypeInteger64 _:
+        case KDPgValueTypeReal _:
+        case KDPgValueTypeDoublePrecision _:
         case KDPgValueTypeBoolean _:
         case KDPgValueTypeDateTime _:
         case KDPgValueTypeTime _:

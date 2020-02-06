@@ -17,14 +17,20 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     public void InsertSingle()
     {
       var obj = new MyModel {
-          Id = 4
+          Id = 4,
+          ValFloat = 1.23f,
+          ValDouble = 1.2345,
       };
 
       var q = Builders<MyModel>.Insert()
                                .UseField(x => x.Id)
+                               .UseField(x => x.ValFloat)
+                               .UseField(x => x.ValDouble)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"",val_f32,val_f64) VALUES (4,@1::real,@2::double precision) RETURNING ""id"";",
+                           new Param(1.23f, NpgsqlDbType.Real),
+                           new Param(1.2345, NpgsqlDbType.Double));
     }
 
     [Fact]
