@@ -4,6 +4,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KDPgDriver", "KDPgDriver\KD
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KDPgDriver.Tests", "KDPgDriver.Tests\KDPgDriver.Tests.csproj", "{D1257344-215E-4744-A775-E6CDA68F5B7A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KDPgDriver.Example", "KDPgDriver.Example\KDPgDriver.Example.csproj", "{CC4E7501-1BCD-4C3E-8E4A-4D0A974D7232}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{D1257344-215E-4744-A775-E6CDA68F5B7A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D1257344-215E-4744-A775-E6CDA68F5B7A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D1257344-215E-4744-A775-E6CDA68F5B7A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CC4E7501-1BCD-4C3E-8E4A-4D0A974D7232}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CC4E7501-1BCD-4C3E-8E4A-4D0A974D7232}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CC4E7501-1BCD-4C3E-8E4A-4D0A974D7232}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CC4E7501-1BCD-4C3E-8E4A-4D0A974D7232}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
