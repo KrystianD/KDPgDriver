@@ -43,8 +43,8 @@ CREATE TABLE model (
   json_array1 jsonb,
   bool bool,
   ""binary"" bytea,
-  private_int int
-  val_f32 real
+  private_int int,
+  val_f32 real,
   val_f64 double precision
 );
 
