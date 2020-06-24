@@ -3,6 +3,10 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <Version>0.1.4.3</Version>
     <LangVersion>7.3</LangVersion>
+    <Authors>Krystian Dużyński</Authors>
+    <PackageProjectUrl>https://github.com/KrystianD/KDPgDriver</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/KrystianD/KDPgDriver</RepositoryUrl>
+    <PackageTags>postgres;query;builder</PackageTags>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="KDLib.NET" Version="0.2.4.4" />
