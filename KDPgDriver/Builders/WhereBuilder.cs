@@ -26,6 +26,8 @@ namespace KDPgDriver.Builders
       _typedExpression = rq;
     }
 
+    public WhereBuilder<TModel> AndWith(Expression<Func<TModel, bool>> exp) => AndWith(FromExpression(exp));
+
     public WhereBuilder<TModel> AndWith(WhereBuilder<TModel> other)
     {
       if (_typedExpression.IsEmpty)
@@ -34,6 +36,8 @@ namespace KDPgDriver.Builders
         _typedExpression = And(this, other)._typedExpression;
       return this;
     }
+
+    public WhereBuilder<TModel> OrWith(Expression<Func<TModel, bool>> exp) => OrWith(FromExpression(exp));
 
     public WhereBuilder<TModel> OrWith(WhereBuilder<TModel> other)
     {
