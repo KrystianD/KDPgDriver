@@ -294,6 +294,8 @@ namespace KDPgDriver.Fluent
       _selectFromBuilder = selectFromBuilder;
     }
 
+    public WhereBuilder<TModel> CreateWhereBuilder() => WhereBuilder<TModel>.Empty;
+
     public SelectQueryFluentBuilder<TModel, TNewModel> Distinct()
     {
       _selectFromBuilder.Distinct();
