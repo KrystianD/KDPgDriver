@@ -28,7 +28,7 @@ namespace KDPgDriver.Utils
       if (q.Length == 0)
         throw new Exception("no prop info");
 
-      return ((JsonPropertyAttribute) q[0]).PropertyName;
+      return ((JsonPropertyAttribute)q[0]).PropertyName;
     }
 
     public static string GetJsonPropertyNameOrNull(MemberInfo memberInfo)
@@ -38,7 +38,7 @@ namespace KDPgDriver.Utils
       if (q.Length == 0)
         return null;
 
-      return ((JsonPropertyAttribute) q[0]).PropertyName;
+      return ((JsonPropertyAttribute)q[0]).PropertyName;
     }
 
     public static KDPgValueType GetJsonPropertyType(PropertyInfo memberInfo)

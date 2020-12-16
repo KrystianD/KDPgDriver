@@ -203,8 +203,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                   .AsScalarSubquery();
 
 
-      var obj = new MyModel2 {
-      };
+      var obj = new MyModel2 { };
 
       var q = Builders<MyModel2>.Insert(obj)
                                 .UseField(x => x.Name1, subq);
@@ -222,8 +221,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                   .AsScalarSubquery();
 
 
-      var obj = new MyModel2 {
-      };
+      var obj = new MyModel2 { };
 
       var q = Builders<MyModel2>.Insert(obj)
                                 .UseField(x => x.ModelId.Value, subq);

@@ -13,7 +13,7 @@ namespace KDPgDriver.Tests.FunctionalTests
       var dr = await CreateDriver();
 
       var res = await dr.From<MyModel>()
-                        .Select(x => (bool?) (x.JsonModel.MySubsubmodel.Number == 2))
+                        .Select(x => (bool?)(x.JsonModel.MySubsubmodel.Number == 2))
                         .ToListAsync();
 
       Assert.Equal(3, res.Count);

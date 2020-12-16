@@ -83,7 +83,7 @@ namespace KDPgDriver.Utils
           if (callExpression.Method.DeclaringType == typeof(Func))
             return false;
         }
-        
+
         if (expression is ParameterExpression parameterExpression) {
           if (_inputParameterName == null) {
             return false;

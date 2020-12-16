@@ -10,7 +10,7 @@ namespace KDPgDriver
     PrimaryKey = 1,
     AutoIncrement = 2,
   }
-  
+
   public class KDPgTableAttribute : Attribute
   {
     public string Name { get; }

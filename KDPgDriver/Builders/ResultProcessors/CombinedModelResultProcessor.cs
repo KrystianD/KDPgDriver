@@ -16,7 +16,7 @@ namespace KDPgDriver.Builders
     {
       var obj = Activator.CreateInstance(Table.ModelType);
 
-      var isNull = (bool) PgTypesConverter.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[0]);
+      var isNull = (bool)PgTypesConverter.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[0]);
       if (isNull)
         return null;
 

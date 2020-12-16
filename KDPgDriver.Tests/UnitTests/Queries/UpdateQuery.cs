@@ -43,7 +43,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     [Fact]
     public void UpdateSetFieldDateTime()
     {
-      var date = (DateTime?) DateTime.Parse("2018-01-01 12:34");
+      var date = (DateTime?)DateTime.Parse("2018-01-01 12:34");
 
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.DateTime, date);
@@ -123,7 +123,7 @@ SET list_string = array_remove(array_cat(@1::text[], array['A']), 'B')",
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.JsonModel.JsonObject2["a"][0]["b"], "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET json_model = jsonb_set(json_model, array['json_object2','a',0,'b'], to_jsonb(@1::jsonb))", 
+      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET json_model = jsonb_set(json_model, array['json_object2','a',0,'b'], to_jsonb(@1::jsonb))",
                            new Param("\"A\"", NpgsqlDbType.Jsonb));
     }
   }

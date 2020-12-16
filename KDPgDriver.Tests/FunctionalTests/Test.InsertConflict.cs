@@ -50,7 +50,7 @@ namespace KDPgDriver.Tests.FunctionalTests
                         .Select()
                         .Where(x => x.Id == 3)
                         .ToSingleAsync();
-      
+
       Assert.Equal("changed1", res.Name);
     }
   }

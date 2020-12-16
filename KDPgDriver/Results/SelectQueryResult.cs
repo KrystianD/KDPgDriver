@@ -34,7 +34,7 @@ namespace KDPgDriver.Results
         for (int i = 0; i < reader.FieldCount; i++)
           values[i] = reader.IsDBNull(i) ? null : reader.GetValue(i);
 
-        _objects.Add((T) proc.ParseResult(values));
+        _objects.Add((T)proc.ParseResult(values));
       }
     }
 

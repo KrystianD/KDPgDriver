@@ -1,7 +1,4 @@
 ﻿namespace KDPgDriver.Results
 {
-  public class UpdateQueryResult
-  {
-    
-  }
+  public class UpdateQueryResult { }
 }

@@ -21,7 +21,7 @@ namespace KDPgDriver.Tests
 
         if (expected.GetType().IsArray) {
           var expectedList = ReflectionUtils.CreateListInstance(expected.GetType().GetElementType());
-          foreach (var item in (Array) expected) expectedList.Add(item);
+          foreach (var item in (Array)expected) expectedList.Add(item);
           expected = expectedList;
         }
 

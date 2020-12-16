@@ -45,8 +45,7 @@ namespace KDPgDriver.Tests.FunctionalTests
         var b = dr.CreateTransactionBatch();
         var task1 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }).ExecuteAsync();
         var task2 = b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 3 }).ExecuteAsync();
-        await Assert.ThrowsAsync<Npgsql.PostgresException>(async () =>
-        {
+        await Assert.ThrowsAsync<Npgsql.PostgresException>(async () => {
           await b.Execute();
         });
       }

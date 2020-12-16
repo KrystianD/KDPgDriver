@@ -8,9 +8,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {
-  public interface IInsertQuery : IQuery
-  {
-  }
+  public interface IInsertQuery : IQuery { }
 
   internal enum OnInsertConflict
   {

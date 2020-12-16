@@ -12,7 +12,7 @@ namespace KDPgDriver
       var rq = RawQuery.Create("MAX(").Append(query.RawQuery).Append(")");
       return new TypedExpression(rq, query.Type);
     }
-    
+
     public static TypedExpression Min(TypedExpression query)
     {
       var rq = RawQuery.Create("MIN(").Append(query.RawQuery).Append(")");
@@ -26,7 +26,7 @@ namespace KDPgDriver
     {
       throw new Exception("do not use directly");
     }
-    
+
     public static T Min<T>(T value)
     {
       throw new Exception("do not use directly");

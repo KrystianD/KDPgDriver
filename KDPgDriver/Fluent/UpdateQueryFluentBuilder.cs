@@ -16,9 +16,7 @@ namespace KDPgDriver.Fluent
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly UpdateStatementsBuilder<TModel> _updateStatementsBuilder = new UpdateStatementsBuilder<TModel>();
 
-    public UpdateQueryFluentBuilder1()
-    {
-    }
+    public UpdateQueryFluentBuilder1() { }
 
     public UpdateQueryFluentBuilder1(IQueryExecutor executor)
     {

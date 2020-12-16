@@ -13,7 +13,7 @@ namespace KDPgDriver.Builders
   //   RawQuery GetRawQuery();
   // }
 
-  public class LimitBuilder 
+  public class LimitBuilder
   {
     internal int? LimitValue { get; set; }
     internal int? OffsetValue { get; set; }

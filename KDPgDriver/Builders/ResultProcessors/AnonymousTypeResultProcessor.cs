@@ -39,7 +39,7 @@ namespace KDPgDriver.Builders
           }
           else {
             var modelObj = Activator.CreateInstance(table.ModelType);
-          
+
             foreach (var column in table.Columns) {
               var val = PgTypesConverter.ConvertFromRawSqlValue(column.Type, values[columnIdx++]);
               column.PropertyInfo.SetValue(modelObj, val);

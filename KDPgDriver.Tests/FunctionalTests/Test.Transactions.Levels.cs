@@ -20,8 +20,7 @@ namespace KDPgDriver.Tests.FunctionalTests
           await tr1.CommitAsync();
 
           // should fail due to RepeatableRead isolation level
-          await Assert.ThrowsAsync<Npgsql.PostgresException>(async () =>
-          {
+          await Assert.ThrowsAsync<Npgsql.PostgresException>(async () => {
             await tr2.Update<MyModel>().Where(x => x.Id == 1).SetField(x => x.Name, "B").ExecuteAsync();
             await tr2.CommitAsync();
           });

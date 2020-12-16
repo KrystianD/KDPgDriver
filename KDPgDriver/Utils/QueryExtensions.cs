@@ -14,7 +14,7 @@ namespace KDPgDriver.Utils
     {
       throw new Exception("do not use directly");
     }
-    
+
     public static bool PgNotIn<T>(this T source, params T[] values)
     {
       throw new Exception("do not use directly");

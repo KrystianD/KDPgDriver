@@ -25,7 +25,7 @@ namespace KDPgDriver.Builders
 
       _rq.AppendSeparatorIfNotEmpty();
       _rq.Append(e.RawQuery);
-      
+
       return this;
     }
 
@@ -36,7 +36,7 @@ namespace KDPgDriver.Builders
       _rq.AppendSeparatorIfNotEmpty();
       _rq.Append(e.RawQuery);
       _rq.Append(" DESC");
-      
+
       return this;
     }
 

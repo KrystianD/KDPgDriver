@@ -20,7 +20,7 @@ namespace KDPgDriver.Utils
 
       return false;
     }
-    
+
     internal static IsolationLevel ToIsolationLevel(KDPgIsolationLevel level)
     {
       switch (level) {

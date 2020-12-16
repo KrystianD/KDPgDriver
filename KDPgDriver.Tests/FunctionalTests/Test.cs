@@ -84,18 +84,15 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                         .ToListAsync();
 
       Assert.Collection(res,
-                        item =>
-                        {
+                        item => {
                           Assert.Equal("test1", item.Name);
                           Assert.Equal(6, item.IdCalc);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal("test2", item.Name);
                           Assert.Equal(7, item.IdCalc);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal("test3", item.Name);
                           Assert.Equal(8, item.IdCalc);
                         });
@@ -158,8 +155,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
       Assert.Collection(res,
                         item => { Assert.Collection(item.ListEnum, x => { Assert.Equal(MyEnum.A, x); }); },
                         item => { Assert.Collection(item.ListEnum, x => { Assert.Equal(MyEnum.B, x); }); },
-                        item =>
-                        {
+                        item => {
                           Assert.Collection(item.ListEnum,
                                             x => { Assert.Equal(MyEnum.B, x); },
                                             x => { Assert.Equal(MyEnum.C, x); });
@@ -176,8 +172,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                         .Where(x => x.Id == 2)
                         .ToListAsync();
 
-      Assert.Collection(res, item =>
-      {
+      Assert.Collection(res, item => {
         Assert.Equal(2, item.Id);
         Assert.Equal("test2", item.Name);
 
@@ -216,8 +211,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                         .OrderBy(x => x.DateTime)
                         .ToListAsync();
 
-      Assert.Collection(res, item =>
-      {
+      Assert.Collection(res, item => {
         Assert.Equal(2, item.Id);
         Assert.Equal("test2", item.Name);
 
@@ -308,8 +302,7 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
 
       var rows = await dr.From<MyModel>().Select().Where(x => x.Id == 4).ToListAsync();
       Assert.Collection(rows,
-                        x =>
-                        {
+                        x => {
                           Assert.Equal(4, x.Id);
                           Assert.Equal("new", x.Name);
                           Assert.Equal(new byte[] { 1, 2, 3 }, x.Binary);
@@ -465,20 +458,17 @@ INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
                         .ToListAsync();
 
       Assert.Collection(res,
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(4, item.A1);
                           Assert.Equal(3, item.A2);
                           Assert.Equal(5, item.A3);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(5, item.A1);
                           Assert.Equal(2, item.A2);
                           Assert.Equal(5, item.A3);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(6, item.A1);
                           Assert.Equal(1, item.A2);
                           Assert.Equal(5, item.A3);

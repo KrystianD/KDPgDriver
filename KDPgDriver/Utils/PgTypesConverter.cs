@@ -127,7 +127,7 @@ namespace KDPgDriver.Utils
           return rawSqlValue;
 
         case KDPgValueTypeArray arrayType:
-          var rawItems = (IList) rawSqlValue;
+          var rawItems = (IList)rawSqlValue;
           var outputList = ReflectionUtils.CreateListInstance(arrayType.CSharpType);
           foreach (var rawItem in rawItems)
             outputList.Add(ConvertFromRawSqlValue(arrayType.ItemType, rawItem));
@@ -135,13 +135,13 @@ namespace KDPgDriver.Utils
           return outputList;
 
         case KDPgValueTypeEnum enumType:
-          return enumType.EnumEntry.NameToEnumFunc((string) rawSqlValue);
+          return enumType.EnumEntry.NameToEnumFunc((string)rawSqlValue);
 
         case KDPgValueTypeJson jsonType:
           if (jsonType.BackingType == null)
-            return JToken.Parse((string) rawSqlValue);
+            return JToken.Parse((string)rawSqlValue);
           else
-            return JToken.Parse((string) rawSqlValue).ToObject(jsonType.BackingType);
+            return JToken.Parse((string)rawSqlValue).ToObject(jsonType.BackingType);
 
         default:
           throw new Exception($"ConvertFromNpgsql: Type {type} not implemented");
@@ -182,11 +182,11 @@ namespace KDPgDriver.Utils
           return new PgValue(v, type);
 
         case KDPgValueTypeDate _:
-          return new PgValue(((DateTime) rawValue).Date, type);
+          return new PgValue(((DateTime)rawValue).Date, type);
 
         case KDPgValueTypeArray arrayType:
           var objs = arrayType.CreateToPgList();
-          foreach (var rawItem in (IEnumerable) rawValue) {
+          foreach (var rawItem in (IEnumerable)rawValue) {
             objs.Add(ConvertToPgValue(arrayType.ItemType, rawItem).Value);
           }
 
@@ -194,7 +194,7 @@ namespace KDPgDriver.Utils
 
         case KDPgValueTypeJson jsonType:
           if (jsonType.BackingType == null)
-            return new PgValue(((JToken) rawValue).ToString(Formatting.None), KDPgValueTypeInstances.Json);
+            return new PgValue(((JToken)rawValue).ToString(Formatting.None), KDPgValueTypeInstances.Json);
           else
             return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), KDPgValueTypeInstances.Json);
 

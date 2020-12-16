@@ -23,7 +23,7 @@ namespace KDPgDriver
       var entry = new EnumEntry();
       entry.Type = typeof(T);
       entry.EnumName = enumName;
-      entry.EnumToNameFunc = o => enumToNameFunc((T) o);
+      entry.EnumToNameFunc = o => enumToNameFunc((T)o);
       entry.NameToEnumFunc = name => nameToEnumFunc(name);
       entry.Schema = schema;
 

@@ -84,8 +84,7 @@ namespace KDPgDriver
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<SelectQueryResult<TOut>>();
-      op.ResultProcessorFunc = async reader =>
-      {
+      op.ResultProcessorFunc = async reader => {
         var res = new SelectQueryResult<TOut>(builder);
         await res.ProcessResultSet(reader);
 
@@ -103,8 +102,7 @@ namespace KDPgDriver
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<InsertQueryResult>();
-      op.ResultProcessorFunc = async reader =>
-      {
+      op.ResultProcessorFunc = async reader => {
         InsertQueryResult res;
         if (await reader.ReadAsync()) {
           var lastInsertId = reader.GetInt32(0);
@@ -128,8 +126,7 @@ namespace KDPgDriver
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<UpdateQueryResult>();
-      op.ResultProcessorFunc = async reader =>
-      {
+      op.ResultProcessorFunc = async reader => {
         var res = new UpdateQueryResult();
         op.TaskCompletionSource.SetResult(res);
       };
@@ -145,8 +142,7 @@ namespace KDPgDriver
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<DeleteQueryResult>();
-      op.ResultProcessorFunc = async reader =>
-      {
+      op.ResultProcessorFunc = async reader => {
         var res = new DeleteQueryResult();
         op.TaskCompletionSource.SetResult(res);
       };
@@ -171,7 +167,7 @@ namespace KDPgDriver
 
           using (var reader = await cmd.ExecuteReaderAsync()) {
             foreach (var operation in _operations) {
-              await operation.Process((NpgsqlDataReader) reader);
+              await operation.Process((NpgsqlDataReader)reader);
               await reader.NextResultAsync();
             }
           }

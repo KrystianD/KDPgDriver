@@ -3,9 +3,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {
-  public interface ISelectSubquery : IQuery
-  {
-  }
+  public interface ISelectSubquery : IQuery { }
 
   public class SelectSubquery<TValue> : ISelectSubquery
   {

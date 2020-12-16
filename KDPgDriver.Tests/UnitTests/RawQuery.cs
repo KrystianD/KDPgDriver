@@ -108,7 +108,7 @@ namespace KDPgDriver.Tests.UnitTests
       rq2.AppendColumn(NodeVisitor.EvaluateFuncExpressionToColumn<MyModel2>(x => x.Name1), new RawQuery.TableNamePlaceholder(t2, "M2"));
       rq2.Append(" = 456");
       rq2.ApplyAlias("M2", "t2");
-      
+
       var rq = new RawQuery();
       rq.Append(rq1);
       rq.Append(", ");

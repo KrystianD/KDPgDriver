@@ -89,7 +89,7 @@ namespace KDPgDriver.Builders
             }
             // Member is Member-expression (like M2_name = x.M2.Name1, M3_calc = x.M2.Id * 2)
             else {
-              exp = NodeVisitor.EvaluateToTypedExpression(argExpression, (string) null, options);
+              exp = NodeVisitor.EvaluateToTypedExpression(argExpression, (string)null, options);
               builder.AddSelectPart(exp.RawQuery, exp.Type);
               resultProcessor.AddMemberEntry(exp.Type);
             }

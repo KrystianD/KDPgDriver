@@ -37,13 +37,13 @@ namespace KDPgDriver.Utils
 
           case MemberExpression me:
             if (me.Member.Name == "Value") // unwrap optional type
-              return (PropertyInfo) ((MemberExpression) me.Expression).Member;
-            return (PropertyInfo) me.Member;
+              return (PropertyInfo)((MemberExpression)me.Expression).Member;
+            return (PropertyInfo)me.Member;
 
           case UnaryExpression un:
             switch (un.NodeType) {
               case ExpressionType.Convert:
-                return (PropertyInfo) ((MemberExpression) un.Operand).Member;
+                return (PropertyInfo)((MemberExpression)un.Operand).Member;
 
               default:
                 throw new Exception($"unknown operator: {un.NodeType}");
@@ -199,12 +199,12 @@ namespace KDPgDriver.Utils
             else if (call.Method.Name == "PgIn") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
               var arg1 = GetConstant(call.Arguments[1]);
-              return ExpressionBuilders.In(extensionObject, (IEnumerable) arg1);
+              return ExpressionBuilders.In(extensionObject, (IEnumerable)arg1);
             }
             else if (call.Method.Name == "PgNotIn") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
               var arg1 = GetConstant(call.Arguments[1]);
-              return ExpressionBuilders.NotIn(extensionObject, (IEnumerable) arg1);
+              return ExpressionBuilders.NotIn(extensionObject, (IEnumerable)arg1);
             }
             else if (call.Method.Name == "PgLike") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
@@ -246,7 +246,7 @@ namespace KDPgDriver.Utils
 
               if (methodName == "Raw") {
                 var valueType = PgTypesConverter.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
-                var text = (string) ((ConstantExpression) call.Arguments[0]).Value;
+                var text = (string)((ConstantExpression)call.Arguments[0]).Value;
                 return new TypedExpression(RawQuery.Create(text), valueType);
               }
               else {
@@ -259,8 +259,7 @@ namespace KDPgDriver.Utils
                 var methodArgsCount = methodArgs.Length;
 
                 var args = call.Arguments.Zip(methodArgs, (Value, Parameter) => (Value, Parameter))
-                               .Select(x =>
-                               {
+                               .Select(x => {
                                  if (x.Parameter.ParameterType == typeof(TypedExpression))
                                    return VisitInternal(x.Value);
                                  else
@@ -269,7 +268,7 @@ namespace KDPgDriver.Utils
                                .Concat(Enumerable.Repeat(Type.Missing, Math.Max(0, methodArgsCount - passedArgsCount)))
                                .ToArray();
 
-                return (TypedExpression) internalMethod.Invoke(null, args);
+                return (TypedExpression)internalMethod.Invoke(null, args);
               }
             }
 
@@ -306,9 +305,8 @@ namespace KDPgDriver.Utils
         exp = lm.Body;
 
       // remove Convert from last part
-      if (exp is UnaryExpression un && un.NodeType == ExpressionType.Convert) {
-        exp = (MemberExpression) un.Operand;
-      }
+      if (exp is UnaryExpression un && un.NodeType == ExpressionType.Convert)
+        exp = (MemberExpression)un.Operand;
 
       void Traverse(Expression innerExpression)
       {
@@ -316,7 +314,7 @@ namespace KDPgDriver.Utils
         switch (innerExpression) {
           case MemberExpression memberExpression:
             parentExpression = memberExpression.Expression;
-            var member = (PropertyInfo) memberExpression.Member;
+            var member = (PropertyInfo)memberExpression.Member;
 
             Traverse(parentExpression);
 
@@ -460,7 +458,7 @@ namespace KDPgDriver.Utils
         case UnaryExpression un:
           switch (un.NodeType) {
             case ExpressionType.Convert:
-              return ((ConstantExpression) un.Operand).Value;
+              return ((ConstantExpression)un.Operand).Value;
 
             default:
               throw new Exception($"unknown operator: {un.NodeType}");

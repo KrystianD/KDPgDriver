@@ -19,25 +19,21 @@ namespace KDPgDriver.Tests.FunctionalTests
                          .ToListAsync();
 
       Assert.Collection(rows,
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(1, item.Model2.Id);
                           Assert.Equal(1, item.Model.Id);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(2, item.Model2.Id);
                           Assert.Equal(1, item.Model.Id);
                           Assert.Equal(1, item.Model2.ModelId);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(3, item.Model2.Id);
                           Assert.Equal(2, item.Model.Id);
                           Assert.Equal(2, item.Model2.ModelId);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(4, item.Model2.Id);
                           Assert.Null(item.Model);
                         });
@@ -61,26 +57,22 @@ namespace KDPgDriver.Tests.FunctionalTests
                          .ToListAsync();
 
       Assert.Collection(rows,
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(1 * 2, item.Model2_id);
                           Assert.Equal("subtest1", item.Model2_name);
                           Assert.Equal(1, item.Model.Id);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(2 * 2, item.Model2_id);
                           Assert.Equal("subtest2", item.Model2_name);
                           Assert.Equal(1, item.Model.Id);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(3 * 2, item.Model2_id);
                           Assert.Equal("subtest3", item.Model2_name);
                           Assert.Equal(2, item.Model.Id);
                         },
-                        item =>
-                        {
+                        item => {
                           Assert.Equal(4 * 2, item.Model2_id);
                           Assert.Equal("subtest4", item.Model2_name);
                           Assert.Null(item.Model);

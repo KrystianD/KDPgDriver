@@ -15,8 +15,7 @@ namespace KDPgDriver.Tests.FunctionalTests
                                   .AsScalarSubquery();
 
 
-      var obj = new MyModel2 {
-      };
+      var obj = new MyModel2 { };
 
       await dr.Insert(obj)
               .UseField(x => x.Name1, subq)
@@ -43,8 +42,7 @@ namespace KDPgDriver.Tests.FunctionalTests
                                   .AsScalarSubquery();
 
 
-      var obj = new MyModel2 {
-      };
+      var obj = new MyModel2 { };
 
       await Assert.ThrowsAsync<Npgsql.PostgresException>(() => dr.Insert(obj)
                                                                  .UseField(x => x.Name1, subq)

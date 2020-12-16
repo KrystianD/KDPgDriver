@@ -5,9 +5,7 @@ using Newtonsoft.Json.Linq;
 
 namespace KDPgDriver.Tests
 {
-  public static class Init
-  {
-  }
+  public static class Init { }
 
   public enum MyEnum
   {
