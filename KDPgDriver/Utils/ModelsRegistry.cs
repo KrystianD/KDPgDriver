@@ -12,8 +12,6 @@ namespace KDPgDriver.Utils
     private static readonly Dictionary<Type, KdPgTableDescriptor> TypeToTableDesc = new Dictionary<Type, KdPgTableDescriptor>();
     private static readonly Dictionary<PropertyInfo, KdPgColumnDescriptor> PropertyInfoToColumnDesc = new Dictionary<PropertyInfo, KdPgColumnDescriptor>();
 
-    // private static KDPgValueType CreatePgValueType(object obj) => CreatePgValueType(obj.GetType());
-
     public static bool IsJsonPropertyName(MemberInfo memberInfo)
     {
       var q = memberInfo.GetCustomAttributes(typeof(JsonPropertyAttribute), false);
@@ -76,11 +74,6 @@ namespace KDPgDriver.Utils
       return TypeToTableDesc.ContainsKey(type);
     }
 
-    // public static KdPgColumnDescriptor GetColumn(MemberInfo memberType)
-    // {
-    //   return GetColumn((PropertyInfo) memberType);
-    // }
-
     public static KdPgColumnDescriptor GetColumn(PropertyInfo memberType)
     {
       InitializeTable(memberType.DeclaringType);
@@ -104,11 +97,6 @@ namespace KDPgDriver.Utils
     {
       return column.PropertyInfo.GetValue(model);
     }
-
-    // public static object GetModelValueByColumn(object model, PropertyInfo column)
-    // {
-    //   return column.GetValue(model);
-    // }
 
     // Initializers
     private static void InitializeTable(Type tableType)

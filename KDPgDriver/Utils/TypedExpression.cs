@@ -1,7 +1,4 @@
-﻿using KDPgDriver.Builders;
-using KDPgDriver.Utils;
-
-namespace KDPgDriver
+﻿namespace KDPgDriver.Utils
 {
   public class TypedExpression
   {
@@ -32,10 +29,5 @@ namespace KDPgDriver
     {
       return FromPgValue(PgTypesConverter.ConvertObjectToPgValue(value));
     }
-
-    // public static TypedExpression FromColumn(KdPgColumnDescriptor column)
-    // {
-    //   return new TypedExpression(RawQuery.CreateColumn(column), column.Type);
-    // }
   }
 }

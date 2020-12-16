@@ -44,7 +44,6 @@ namespace KDPgDriver.Utils
 
       if (Utils.CheckIfEnumerable(type, out itemType)) {
         return new KDPgValueTypeArray(
-            // listType: type,
             itemType: CreatePgValueTypeFromObjectType(itemType),
             nativeItemType: itemType);
       }
@@ -52,7 +51,6 @@ namespace KDPgDriver.Utils
       if (type.IsArray) {
         itemType = type.GetElementType();
         return new KDPgValueTypeArray(
-            // listType: type,
             itemType: CreatePgValueTypeFromObjectType(itemType),
             nativeItemType: itemType);
       }

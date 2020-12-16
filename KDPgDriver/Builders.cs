@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
-using System.Reflection.Metadata.Ecma335;
 using KDPgDriver.Builders;
 using KDPgDriver.Fluent;
-using KDPgDriver.Queries;
 
 namespace KDPgDriver
 {

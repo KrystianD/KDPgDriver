@@ -187,7 +187,6 @@ namespace KDPgDriver
   public class KDPgValueTypeArray : KDPgValueType
   {
     public KDPgValueType ItemType { get; }
-    // public Type ListType { get; }
 
     public override Type CSharpType { get; }
 
@@ -201,11 +200,10 @@ namespace KDPgDriver
       return ReflectionUtils.CreateListInstance(ItemType.PostgresPutType);
     }
 
-    public KDPgValueTypeArray(KDPgValueType itemType, Type nativeItemType /*, Type listType*/)
+    public KDPgValueTypeArray(KDPgValueType itemType, Type nativeItemType)
     {
       CSharpType = nativeItemType;
       ItemType = itemType;
-      // ListType = listType;
     }
   }
 }

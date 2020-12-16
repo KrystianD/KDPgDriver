@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Data.Common;
 using System.Diagnostics;
-using System.Reflection;
 using System.Threading.Tasks;
-using KDLib;
 using KDPgDriver.Queries;
-using KDPgDriver.Utils;
 using Npgsql;
 
 namespace KDPgDriver.Results

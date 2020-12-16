@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
-using KDPgDriver.Results;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent

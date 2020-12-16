@@ -1,16 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq.Expressions;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
 using KDLib;
-using KDPgDriver.Builders;
 using KDPgDriver.Fluent;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
-using KDPgDriver.Utils;
 using Npgsql;
 
 namespace KDPgDriver
@@ -61,7 +56,8 @@ namespace KDPgDriver
     public async Task InitializeAsync()
     {
       using (var connection = await CreateConnection()) {
-        string fn = @"
+        // ReSharper disable StringLiteralTypo
+        const string PgInitCode = @"
 CREATE OR REPLACE FUNCTION kdpg_escape_regexp(text) RETURNS text AS
 $func$
 SELECT regexp_replace($1, '([!$()*+.:<=>?[\\\]^{|}-])', '\\\1', 'g')
@@ -111,9 +107,10 @@ CREATE OR REPLACE FUNCTION kdpg_array_distinct(anyarray) RETURNS anyarray AS $f$
   SELECT array_agg(DISTINCT x) FROM unnest($1) t(x);
 $f$ LANGUAGE SQL IMMUTABLE;
 ";
+        // ReSharper restore StringLiteralTypo
 
         using (var t = connection.CreateCommand()) {
-          t.CommandText = fn;
+          t.CommandText = PgInitCode;
           await t.ExecuteNonQueryAsync();
         }
       }
@@ -175,19 +172,6 @@ $f$ LANGUAGE SQL IMMUTABLE;
           await t.ExecuteNonQueryAsync();
         }
       }
-    }
-
-    // Helpers
-    public async Task<List<TOut>> QueryGetAllAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
-    {
-      var res = await QueryAsync(selectQuery);
-      return res.GetAll();
-    }
-
-    public async Task<TOut> QueryGetSingleAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
-    {
-      var res = await QueryAsync(selectQuery);
-      return res.GetSingle();
     }
 
     // Chains

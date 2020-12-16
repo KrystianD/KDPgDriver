@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
-using KDPgDriver.Results;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent

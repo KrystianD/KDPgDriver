@@ -1,4 +1,4 @@
-﻿namespace KDPgDriver.Utils
+﻿namespace KDPgDriver
 {
   public class PgValue
   {
