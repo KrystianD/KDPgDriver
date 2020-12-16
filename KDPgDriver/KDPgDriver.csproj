@@ -2,7 +2,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <Version>0.1.4.4</Version>
-    <LangVersion>7.3</LangVersion>
+    <LangVersion>8</LangVersion>
     <Authors>Krystian Dużyński</Authors>
     <PackageProjectUrl>https://github.com/KrystianD/KDPgDriver</PackageProjectUrl>
     <RepositoryUrl>https://github.com/KrystianD/KDPgDriver</RepositoryUrl>
