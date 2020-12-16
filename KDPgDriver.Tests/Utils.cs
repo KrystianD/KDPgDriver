@@ -79,19 +79,19 @@ namespace KDPgDriver.Tests
 
     public static void AssertRawQuery(IQuery q, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = q.GetRawQuery(null);
+      RawQuery rq = q.GetRawQuery();
       AssertRawQuery(rq, expectedQuery, parameters);
     }
 
     public static void AssertRawQueryWithAliases(IQuery q, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = q.GetRawQuery(null);
+      RawQuery rq = q.GetRawQuery();
       AssertRawQueryWithAliases(rq, expectedQuery, parameters);
     }
 
     public static void AssertRawQuery(IQuery q, IQuery q2, string expectedQuery, params Param[] parameters)
     {
-      RawQuery rq = q.GetRawQuery(null);
+      RawQuery rq = q.GetRawQuery();
       AssertRawQuery(rq, expectedQuery, parameters);
       AssertRawQuery(q2, expectedQuery, parameters);
     }

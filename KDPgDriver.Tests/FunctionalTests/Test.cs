@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using KDPgDriver.Builders;
 using KDPgDriver.Utils;
+using Npgsql;
 using Xunit;
 
 namespace KDPgDriver.Tests.FunctionalTests
@@ -15,14 +16,33 @@ namespace KDPgDriver.Tests.FunctionalTests
 
     private async Task<Driver> CreateDriver()
     {
-      var dr = new Driver("postgresql://postgres:test@localhost:9999/postgres", "public");
+      var connString = new NpgsqlConnectionStringBuilder {
+          Database = "postgres",
+          Username = "postgres",
+          Password = "test",
+          Host = "localhost",
+          Port = 9999,
+          ApplicationName = "test",
+          Pooling = false,
+          SearchPath = "kd",
+      };
+
+      using (var connection = new NpgsqlConnection(connString.ToString())) {
+        await connection.OpenAsync();
+        using (var t = connection.CreateCommand()) {
+          t.CommandText = @"CREATE SCHEMA IF NOT EXISTS ""kd"";";
+          await t.ExecuteNonQueryAsync();
+        }
+      }
+
+      var dr = new Driver(connString);
       await dr.InitializeAsync();
 
       await dr.QueryRawAsync(@"
 CREATE SCHEMA IF NOT EXISTS ""Schema1"";
 
 DROP TABLE IF EXISTS model;
-DROP TABLE IF EXISTS model2;
+DROP TABLE IF EXISTS ""public"".model2;
 DROP TYPE IF EXISTS enum;
 DROP TYPE IF EXISTS ""Schema1"".enum2;
 
@@ -48,7 +68,7 @@ CREATE TABLE model (
   val_f64 double precision
 );
 
-CREATE TABLE model2 (
+CREATE TABLE ""public"".model2 (
   id SERIAL PRIMARY KEY,
   name1 text,
   model_id int
@@ -58,10 +78,10 @@ INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") V
 INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test2', '{a,b}', 'B', '{B}', 2, 'bin22'); -- id: 2
 INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test3', '{a}', 'C', '{B,C}', 3, 'bin333'); -- id: 3
 
-INSERT INTO model2(name1, model_id) VALUES('subtest1', 1); -- id: 1
-INSERT INTO model2(name1, model_id) VALUES('subtest2', 1); -- id: 2
-INSERT INTO model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
-INSERT INTO model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
+INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest1', 1); -- id: 1
+INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest2', 1); -- id: 2
+INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
+INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
 
 ");
 

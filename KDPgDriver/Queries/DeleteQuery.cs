@@ -16,13 +16,11 @@ namespace KDPgDriver.Queries
       _whereBuilder = whereBuilder;
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      string schema = Table.Schema ?? defaultSchema;
-
       RawQuery rq = new RawQuery();
       rq.Append("DELETE FROM ")
-        .AppendTableName(Table.Name, schema);
+        .AppendTableName(Table.Name, Table.Schema);
 
       var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {

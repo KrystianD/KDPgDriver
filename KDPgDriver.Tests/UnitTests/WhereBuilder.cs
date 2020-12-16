@@ -16,7 +16,7 @@ namespace KDPgDriver.Tests.UnitTests
       var q = Builders<MyModel>.Select(x => x.Bool)
                                .Where(x => x.Bool);
 
-      Utils.AssertRawQuery(q, @"SELECT bool FROM ""public"".model WHERE bool");
+      Utils.AssertRawQuery(q, @"SELECT bool FROM model WHERE bool");
     }
 
     [Fact]
@@ -29,7 +29,7 @@ namespace KDPgDriver.Tests.UnitTests
                                             WhereBuilder<MyModel>.FromExpression(x => x.Id == 1),
                                             WhereBuilder<MyModel>.Eq(x => x.Name, "test")));
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".model WHERE NOT(((""id"") = (1)) AND ((""name"") = ('test')))");
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM model WHERE NOT(((""id"") = (1)) AND ((""name"") = ('test')))");
     }
 
     [Fact]
@@ -42,7 +42,7 @@ namespace KDPgDriver.Tests.UnitTests
           WhereBuilder<MyModel>.FromExpression(x => x.Id == 1),
           WhereBuilder<MyModel>.Eq(x => x.Name, "test"));
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".model WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM model WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
     }
 
     [Fact]
@@ -55,7 +55,7 @@ namespace KDPgDriver.Tests.UnitTests
           WhereBuilder<MyModel>.Eq(x => x.Id, 1),
           WhereBuilder<MyModel>.Eq(x => x.Name, "test"));
 
-      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM ""public"".model WHERE ((""id"") = (1)) OR ((""name"") = ('test'))");
+      Utils.AssertRawQuery(q, b, @"SELECT ""id"" FROM model WHERE ((""id"") = (1)) OR ((""name"") = ('test'))");
     }
 
     [Fact]
@@ -65,7 +65,7 @@ namespace KDPgDriver.Tests.UnitTests
                                .Where(x => x.Id == 1)
                                .Where(x => x.Name == "test");
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM ""public"".model WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
     }
   }
 }

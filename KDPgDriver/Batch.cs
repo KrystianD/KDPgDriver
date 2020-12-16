@@ -73,14 +73,14 @@ namespace KDPgDriver
 
     public void ScheduleQuery(IQuery query)
     {
-      _combinedRawQuery.Append(query.GetRawQuery(_driver.Schema));
+      _combinedRawQuery.Append(query.GetRawQuery());
       _combinedRawQuery.Append(";\n");
       IsEmpty = false;
     }
 
     public Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
+      _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<SelectQueryResult<TOut>>();
@@ -98,7 +98,7 @@ namespace KDPgDriver
 
     public Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
+      _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<InsertQueryResult>();
@@ -122,7 +122,7 @@ namespace KDPgDriver
 
     public Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
+      _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<UpdateQueryResult>();
@@ -138,7 +138,7 @@ namespace KDPgDriver
 
     public Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery(_driver.Schema));
+      _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<DeleteQueryResult>();

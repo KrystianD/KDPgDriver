@@ -48,7 +48,7 @@ namespace KDPgDriver.Tests
     public JArray JsonArray2 { get; set; }
   }
 
-  [KDPgTable("model", schema: "public")]
+  [KDPgTable("model")]
   public class MyModel
   {
     [KDPgColumn("id", KDPgColumnFlagsEnum.PrimaryKey | KDPgColumnFlagsEnum.AutoIncrement)]

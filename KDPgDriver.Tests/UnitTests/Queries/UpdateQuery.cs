@@ -19,7 +19,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.Name, "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET ""name"" = 'A'");
+      Utils.AssertRawQuery(q, @"UPDATE model SET ""name"" = 'A'");
     }
 
     [Fact]
@@ -28,7 +28,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .UnsetField(x => x.Name);
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET ""name"" = NULL");
+      Utils.AssertRawQuery(q, @"UPDATE model SET ""name"" = NULL");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.Name, x => x.Name + "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET ""name"" = (""name"") || ('A')");
+      Utils.AssertRawQuery(q, @"UPDATE model SET ""name"" = (""name"") || ('A')");
     }
 
     [Fact]
@@ -48,7 +48,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.DateTime, date);
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET datetime = @1::timestamp",
+      Utils.AssertRawQuery(q, @"UPDATE model SET datetime = @1::timestamp",
                            new Param(date, NpgsqlDbType.Timestamp));
     }
 
@@ -58,7 +58,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .AddToList(x => x.ListString, "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET list_string = array_cat(list_string, array['A'])");
+      Utils.AssertRawQuery(q, @"UPDATE model SET list_string = array_cat(list_string, array['A'])");
     }
 
     [Fact]
@@ -67,7 +67,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .AddToList(x => x.ListString, "A", UpdateAddToListFlags.Distinct);
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET list_string = kdpg_array_distinct(array_cat(list_string, array['A']))");
+      Utils.AssertRawQuery(q, @"UPDATE model SET list_string = kdpg_array_distinct(array_cat(list_string, array['A']))");
     }
 
     [Fact]
@@ -76,7 +76,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .AddToList(x => x.JsonArray1, "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET json_array1 = kdpg_jsonb_add(json_array1, array[], to_jsonb(@1::jsonb))",
+      Utils.AssertRawQuery(q, @"UPDATE model SET json_array1 = kdpg_jsonb_add(json_array1, array[], to_jsonb(@1::jsonb))",
                            new Param("\"A\"", NpgsqlDbType.Jsonb));
     }
 
@@ -86,7 +86,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Update()
                                .RemoveAllFromList(x => x.ListString, "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET list_string = array_remove(list_string, 'A')");
+      Utils.AssertRawQuery(q, @"UPDATE model SET list_string = array_remove(list_string, 'A')");
     }
 
     [Fact]
@@ -98,7 +98,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .AddToList(x => x.ListString2, "C");
 
       Utils.AssertRawQuery(q, @"
-UPDATE ""public"".model
+UPDATE model
 SET list_string = array_remove(array_cat(list_string, array['A']), 'B'),
     list_string2 = array_cat(list_string2, array['C'])");
     }
@@ -112,7 +112,7 @@ SET list_string = array_remove(array_cat(list_string, array['A']), 'B'),
                                .RemoveAllFromList(x => x.ListString, "B");
 
       Utils.AssertRawQuery(q, @"
-UPDATE ""public"".model
+UPDATE model
 SET list_string = array_remove(array_cat(@1::text[], array['A']), 'B')",
                            new Param(new List<string>() { "a1", "a2" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
@@ -123,7 +123,7 @@ SET list_string = array_remove(array_cat(@1::text[], array['A']), 'B')",
       var q = Builders<MyModel>.Update()
                                .SetField(x => x.JsonModel.JsonObject2["a"][0]["b"], "A");
 
-      Utils.AssertRawQuery(q, @"UPDATE ""public"".model SET json_model = jsonb_set(json_model, array['json_object2','a',0,'b'], to_jsonb(@1::jsonb))",
+      Utils.AssertRawQuery(q, @"UPDATE model SET json_model = jsonb_set(json_model, array['json_object2','a',0,'b'], to_jsonb(@1::jsonb))",
                            new Param("\"A\"", NpgsqlDbType.Jsonb));
     }
   }

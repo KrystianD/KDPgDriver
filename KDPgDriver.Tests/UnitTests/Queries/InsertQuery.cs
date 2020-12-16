@@ -28,7 +28,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.ValDouble)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"",val_f32,val_f64) VALUES (4,@1::real,@2::double precision) RETURNING ""id"";",
+      Utils.AssertRawQuery(q, @"INSERT INTO model(""id"",val_f32,val_f64) VALUES (4,@1::real,@2::double precision) RETURNING ""id"";",
                            new Param(1.23f, NpgsqlDbType.Real),
                            new Param(1.2345, NpgsqlDbType.Double));
     }
@@ -52,7 +52,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.Name)
                                .AddMany(objs);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"",""name"") VALUES (1,'A'),(2,'B') RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO model(""id"",""name"") VALUES (1,'A'),(2,'B') RETURNING ""id"";");
     }
 
     [Fact]
@@ -81,7 +81,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.ListString)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(list_enum,list_string) VALUES (@1::""enum""[],@2::text[]) RETURNING ""id"";",
+      Utils.AssertRawQuery(q, @"INSERT INTO model(list_enum,list_string) VALUES (@1::""enum""[],@2::text[]) RETURNING ""id"";",
                            new Param(new[] { "A", "C" }, NpgsqlDbType.Array | NpgsqlDbType.Text),
                            new Param(new[] { "A", "B" }, NpgsqlDbType.Array | NpgsqlDbType.Text));
     }
@@ -97,7 +97,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.Enum2)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(enum2) VALUES ('A') RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO model(enum2) VALUES ('A') RETURNING ""id"";");
     }
 
     [Fact]
@@ -113,7 +113,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .UseField(x => x.DateTime)
                                .AddObject(obj);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(datetime) VALUES (@1::timestamp) RETURNING ""id"";",
+      Utils.AssertRawQuery(q, @"INSERT INTO model(datetime) VALUES (@1::timestamp) RETURNING ""id"";",
                            new Param(date, NpgsqlDbType.Timestamp));
     }
 
@@ -129,7 +129,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                .AddObject(obj)
                                .OnConflictDoNothing();
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT DO NOTHING RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO model(""id"") VALUES (4) ON CONFLICT DO NOTHING RETURNING ""id"";");
     }
 
     [Fact]
@@ -146,7 +146,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                                    x => x.SetField(y => y.Name, "a")
                                                          .UnsetField(y => y.Bool));
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""id"") VALUES (4) ON CONFLICT (""enum"", ""id"") DO UPDATE SET ""name"" = 'a', bool = NULL RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO model(""id"") VALUES (4) ON CONFLICT (""enum"", ""id"") DO UPDATE SET ""name"" = 'a', bool = NULL RETURNING ""id"";");
     }
 
     [Fact]
@@ -159,7 +159,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var q = Builders<MyModel>.Insert(obj)
                                .UseField(x => x.Name);
 
-      Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model(""name"") VALUES ('A') RETURNING ""id"";");
+      Utils.AssertRawQuery(q, @"INSERT INTO model(""name"") VALUES ('A') RETURNING ""id"";");
     }
 
     [Fact]
@@ -174,7 +174,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                 .UsePreviousInsertId<MyModel>(x => x.ModelId, x => x.Id);
 
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1,model_id) 
-                                              VALUES ('A',currval(pg_get_serial_sequence('""public"".model','id')))
+                                              VALUES ('A',currval(pg_get_serial_sequence('model','id')))
                                               RETURNING ""id"";");
     }
 
@@ -209,7 +209,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                 .UseField(x => x.Name1, subq);
 
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(name1) 
-                                              VALUES ((SELECT ""name"" FROM ""public"".model WHERE (""id"") = (1)))
+                                              VALUES ((SELECT ""name"" FROM model WHERE (""id"") = (1)))
                                               RETURNING ""id"";");
     }
 
@@ -227,7 +227,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
                                 .UseField(x => x.ModelId.Value, subq);
 
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(model_id) 
-                                              VALUES ((SELECT ""id"" FROM ""public"".model WHERE (""name"") = ('subtest4')))
+                                              VALUES ((SELECT ""id"" FROM model WHERE (""name"") = ('subtest4')))
                                               RETURNING ""id"";");
     }
   }

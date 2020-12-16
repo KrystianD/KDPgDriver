@@ -107,10 +107,8 @@ namespace KDPgDriver.Queries
       return this;
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      bool first;
-
       if (IsEmpty)
         return RawQuery.Create("SELECT 0");
 
@@ -120,7 +118,7 @@ namespace KDPgDriver.Queries
 
       rq.Append("INSERT INTO ");
 
-      rq.AppendTableName(Table.Name, Table.Schema ?? defaultSchema);
+      rq.AppendTableName(Table.Name, Table.Schema);
 
       rq.Append("(");
       rq.AppendColumnNames(columns.Select(x => x.columnDescriptor.Name));
@@ -134,7 +132,7 @@ namespace KDPgDriver.Queries
 
       rq.Append(" VALUES ");
 
-      first = true;
+      var first = true;
       foreach (var obj in _objects) {
         if (!first)
           rq.Append(",");
@@ -152,7 +150,7 @@ namespace KDPgDriver.Queries
             rq.Append(npgValue);
           }
           else {
-            rq.AppendSurround(column.subquery.GetRawQuery(defaultSchema));
+            rq.AppendSurround(column.subquery.GetRawQuery());
           }
         }
 
@@ -160,7 +158,7 @@ namespace KDPgDriver.Queries
           if (columns.Count > 0)
             rq.Append(",");
 
-          rq.Append(ExpressionBuilders.CurrSeqValueOfTable(_idRefColumn, defaultSchema).RawQuery);
+          rq.Append(ExpressionBuilders.CurrSeqValueOfTable(_idRefColumn).RawQuery);
         }
 
         rq.Append(")");

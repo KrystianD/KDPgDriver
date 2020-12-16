@@ -103,9 +103,9 @@ namespace KDPgDriver.Fluent
       _executor.ScheduleQuery(GetInsertQuery());
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      return GetInsertQuery().GetRawQuery(defaultSchema);
+      return GetInsertQuery().GetRawQuery();
     }
   }
 }

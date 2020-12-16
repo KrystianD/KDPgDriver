@@ -18,13 +18,11 @@ namespace KDPgDriver.Queries
       _whereBuilder = whereBuilder;
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      string schema = Table.Schema ?? defaultSchema;
-
       RawQuery rq = new RawQuery();
       rq.Append("UPDATE ")
-        .AppendTableName(Table.Name, schema)
+        .AppendTableName(Table.Name, Table.Schema)
         .Append("\n");
 
       rq.Append("SET ");

@@ -51,9 +51,9 @@ namespace KDPgDriver.Fluent
       _executor.ScheduleQuery(GetDeleteQuery());
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      return GetDeleteQuery().GetRawQuery(defaultSchema);
+      return GetDeleteQuery().GetRawQuery();
     }
   }
 }

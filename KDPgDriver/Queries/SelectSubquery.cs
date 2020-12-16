@@ -14,9 +14,9 @@ namespace KDPgDriver.Queries
       _selectQuery = selectQuery;
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      return _selectQuery.GetRawQuery(defaultSchema);
+      return _selectQuery.GetRawQuery();
     }
   }
 }

@@ -26,15 +26,9 @@ namespace KDPgDriver
   {
     private readonly string _connString;
 
-    // public string Dsn { get; }
-    public string Schema { get; }
-
     public Driver(string dsn, string schema, string appName = null, int minPoolSize = 1, int maxPoolSize = 10)
     {
-      // Dsn = dsn;
-      Schema = schema;
-
-      UrlUtils.ParseUri(dsn, out var scheme, out var user, out var pass, out var host, out int port, out string path);
+      UrlUtils.ParseUri(dsn, out _, out var user, out var pass, out var host, out int port, out string path);
       path = path.TrimStart('/');
 
       _connString = new NpgsqlConnectionStringBuilder {
@@ -47,7 +41,13 @@ namespace KDPgDriver
           Pooling = true,
           MinPoolSize = minPoolSize,
           MaxPoolSize = maxPoolSize,
+          SearchPath = schema,
       }.ToString();
+    }
+
+    public Driver(NpgsqlConnectionStringBuilder connectionStringBuilder)
+    {
+      _connString = connectionStringBuilder.ToString();
     }
 
     internal async Task<NpgsqlConnection> CreateConnection()
@@ -56,7 +56,6 @@ namespace KDPgDriver
       await connection.OpenAsync();
       return connection;
     }
-
 
     // ReSharper disable once UnusedMember.Global
     public async Task InitializeAsync()

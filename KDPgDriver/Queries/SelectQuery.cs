@@ -29,9 +29,9 @@ namespace KDPgDriver.Queries
       _limitBuilder = limitBuilder;
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      RawQuery rq = _fromBuilder.GetRawQuery(defaultSchema);
+      RawQuery rq = _fromBuilder.GetRawQuery();
 
       var whereRawQuery = _whereBuilder.GetRawQuery();
       if (!whereRawQuery.IsEmpty) {

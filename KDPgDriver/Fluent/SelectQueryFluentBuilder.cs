@@ -406,9 +406,9 @@ namespace KDPgDriver.Fluent
       return (await ToListAsync()).GroupByToDictionary(keySelector, elementSelector);
     }
 
-    public RawQuery GetRawQuery(string defaultSchema = null)
+    public RawQuery GetRawQuery()
     {
-      return GetSelectQuery().GetRawQuery(defaultSchema);
+      return GetSelectQuery().GetRawQuery();
     }
   }
 }

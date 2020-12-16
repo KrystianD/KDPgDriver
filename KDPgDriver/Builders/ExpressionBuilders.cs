@@ -395,15 +395,12 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, array.Type);
     }
 
-    public static TypedExpression CurrSeqValueOfTable(KdPgColumnDescriptor column, string defaultSchema)
+    public static TypedExpression CurrSeqValueOfTable(KdPgColumnDescriptor column)
     {
       RawQuery rq = new RawQuery();
       rq.Append("currval(pg_get_serial_sequence(");
 
-      string table = EscapeUtils.QuoteObjectName(column.Table.Name);
-      string schema = EscapeUtils.QuoteObjectName(defaultSchema ?? column.Table.Schema);
-
-      rq.Append(EscapeUtils.EscapePostgresValue($"{schema}.{table}"));
+      rq.Append(EscapeUtils.EscapePostgresValue(EscapeUtils.QuoteTable(column.Table.Name, column.Table.Schema)));
       rq.Append(",");
       rq.Append(EscapeUtils.EscapePostgresValue(column.Name));
       rq.Append("))");
