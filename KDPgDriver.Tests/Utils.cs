@@ -46,8 +46,16 @@ namespace KDPgDriver.Tests
       rq.SkipExplicitColumnTableNames();
       rq.Render(out query, out outParameters);
 
-      expectedQuery = Regex.Replace(expectedQuery, "[ \n]+", " ").Trim();
-      query = Regex.Replace(query, "[ \n]+", " ").Trim();
+      static string NormalizeQuery(string query)
+      {
+        query = Regex.Replace(query, "[ \n]+", " ").Trim();
+        query = query.Replace("( SELECT", "(SELECT");
+        query = query.Replace(") )", "))");
+        return query;
+      }
+
+      expectedQuery = NormalizeQuery(expectedQuery);
+      query = NormalizeQuery(query);
 
       Assert.Equal(expectedQuery, query);
       CompareParameters(outParameters, parameters);
