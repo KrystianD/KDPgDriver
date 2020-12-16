@@ -6,6 +6,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using KDPgDriver.Builders;
+using KDPgDriver.Queries;
 
 namespace KDPgDriver.Utils
 {
@@ -198,13 +199,19 @@ namespace KDPgDriver.Utils
             // Extension methods
             else if (call.Method.Name == "PgIn") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              var arg1 = GetConstant(call.Arguments[1]);
-              return ExpressionBuilders.In(extensionObject, (IEnumerable)arg1);
+              switch (GetConstant(call.Arguments[1])) {
+                case ISelectSubquery subquery: return ExpressionBuilders.In(extensionObject, subquery.GetTypedExpression());
+                case IEnumerable enumerable: return ExpressionBuilders.In(extensionObject, enumerable);
+                default: throw new ArgumentException("Invalid value passed to PgIn method");
+              }
             }
             else if (call.Method.Name == "PgNotIn") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              var arg1 = GetConstant(call.Arguments[1]);
-              return ExpressionBuilders.NotIn(extensionObject, (IEnumerable)arg1);
+              switch (GetConstant(call.Arguments[1])) {
+                case ISelectSubquery subquery: return ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression());
+                case IEnumerable enumerable: return ExpressionBuilders.NotIn(extensionObject, enumerable);
+                default: throw new ArgumentException("Invalid value passed to PgIn method");
+              }
             }
             else if (call.Method.Name == "PgLike") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);

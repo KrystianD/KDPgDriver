@@ -93,7 +93,7 @@ BEGIN
 
 	IF only_first THEN
 		FOR item IN (SELECT value FROM jsonb_array_elements(tmp_data)) LOOP
-    		IF item = value_to_remove THEN
+    	IF item = value_to_remove THEN
 				tmp_data := tmp_data - index;
         RETURN jsonb_set(data, path, tmp_data);
 			END IF;

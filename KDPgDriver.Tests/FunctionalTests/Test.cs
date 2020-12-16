@@ -75,7 +75,7 @@ CREATE TABLE ""public"".model2 (
 );
 
 INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test1', '{a,b,c}', 'A', '{A}', 1, 'bin1'); -- id: 1
-INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test2', '{a,b}', 'B', '{B}', 2, 'bin22'); -- id: 2
+INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test2', '{a,b}', 'B', '{B}', 2, 'bin22');  -- id: 2
 INSERT INTO model(name, list_string, enum, list_enum, private_int, ""binary"") VALUES('test3', '{a}', 'C', '{B,C}', 3, 'bin333'); -- id: 3
 
 INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest1', 1); -- id: 1

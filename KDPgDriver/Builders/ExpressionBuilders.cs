@@ -71,10 +71,20 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
 
-    public static TypedExpression NotIn(TypedExpression left, IEnumerable array)
+    public static TypedExpression In(TypedExpression left, TypedExpression exp)
     {
-      return Not(In(left, array));
+      RawQuery rq = new RawQuery();
+
+      rq.AppendSurround(left.RawQuery)
+        .Append(" IN (")
+        .Append(exp.RawQuery)
+        .Append(")");
+
+      return new TypedExpression(rq, KDPgValueTypeInstances.Boolean);
     }
+
+    public static TypedExpression NotIn(TypedExpression left, IEnumerable array) => Not(In(left, array));
+    public static TypedExpression NotIn(TypedExpression left, TypedExpression exp) => Not(In(left, exp));
 
     public static TypedExpression And(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("AND", expressions);
     public static TypedExpression Or(IEnumerable<TypedExpression> expressions) => JoinLogicExpressions("OR", expressions);

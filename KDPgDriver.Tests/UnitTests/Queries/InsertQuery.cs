@@ -200,7 +200,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     {
       var subq = Builders<MyModel>.Select(x => x.Name)
                                   .Where(x => x.Id == 1)
-                                  .AsScalarSubquery();
+                                  .AsSubquery();
 
 
       var obj = new MyModel2 { };
@@ -218,7 +218,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     {
       var subq = Builders<MyModel>.Select(x => x.Id)
                                   .Where(x => x.Name == "subtest4")
-                                  .AsScalarSubquery();
+                                  .AsSubquery();
 
 
       var obj = new MyModel2 { };

@@ -12,7 +12,7 @@ namespace KDPgDriver.Tests.FunctionalTests
 
       var subq = Builders<MyModel>.Select(x => x.Name)
                                   .Where(x => x.Id == 1)
-                                  .AsScalarSubquery();
+                                  .AsSubquery();
 
 
       var obj = new MyModel2 { };
@@ -39,7 +39,7 @@ namespace KDPgDriver.Tests.FunctionalTests
       var dr = await CreateDriver();
 
       var subq = Builders<MyModel>.Select(x => x.Name)
-                                  .AsScalarSubquery();
+                                  .AsSubquery();
 
 
       var obj = new MyModel2 { };

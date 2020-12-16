@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using KDPgDriver.Queries;
 
 namespace KDPgDriver.Utils
 {
@@ -15,12 +16,22 @@ namespace KDPgDriver.Utils
       throw new Exception("do not use directly");
     }
 
+    public static bool PgIn<T>(this T source, SelectSubquery<T> subquery)
+    {
+      throw new Exception("do not use directly");
+    }
+
     public static bool PgNotIn<T>(this T source, params T[] values)
     {
       throw new Exception("do not use directly");
     }
 
     public static bool PgNotIn<T>(this T source, IEnumerable<T> values)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static bool PgNotIn<T>(this T source, SelectSubquery<T> subquery)
     {
       throw new Exception("do not use directly");
     }
