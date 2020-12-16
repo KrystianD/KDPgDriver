@@ -35,7 +35,12 @@ namespace KDPgDriver
     public abstract string PostgresTypeName { get; }
 
     public virtual Type PostgresPutType => CSharpType;
-    public virtual string PostgresFetchType => PostgresTypeName; // enums are fetched as text
+    public virtual string PostgresFetchType => PostgresTypeName;
+
+    public override string ToString()
+    {
+      return PostgresTypeName;
+    }
   }
 
   public static class KDPgValueTypeInstances
