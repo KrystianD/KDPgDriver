@@ -12,28 +12,17 @@ namespace KDPgDriver
 {
   public class Batch : IQueryExecutor
   {
-    private interface IOperation
-    {
-      Task Process(NpgsqlDataReader reader);
-    }
-
-    private class Operation<T> : IOperation
-    {
-      public Func<NpgsqlDataReader, Task> ResultProcessorFunc;
-      public readonly TaskCompletionSource<T> TaskCompletionSource = new TaskCompletionSource<T>();
-
-      public Task Process(NpgsqlDataReader reader) => ResultProcessorFunc(reader);
-    }
+    private delegate Task ResultProcessorHandler(NpgsqlDataReader reader);
 
     private readonly RawQuery _combinedRawQuery = new RawQuery();
-    private readonly List<IOperation> _operations = new List<IOperation>();
-    private readonly Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> _executor;
+    private readonly List<ResultProcessorHandler> _resultProcessors = new List<ResultProcessorHandler>();
+    private readonly Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> _connectionCreator;
 
     public bool IsEmpty { get; private set; } = true;
 
-    private Batch(Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> executor)
+    private Batch(Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> connectionCreator)
     {
-      _executor = executor;
+      _connectionCreator = connectionCreator;
     }
 
     public void ScheduleQuery(IQuery query)
@@ -47,27 +36,29 @@ namespace KDPgDriver
     {
       _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
+      IsEmpty = false;
 
-      var op = new Operation<SelectQueryResult<TOut>>();
-      op.ResultProcessorFunc = async reader => {
+      var tcs = new TaskCompletionSource<SelectQueryResult<TOut>>();
+
+      _resultProcessors.Add(async reader => {
         var res = new SelectQueryResult<TOut>(builder);
         await res.ProcessResultSet(reader);
 
-        op.TaskCompletionSource.SetResult(res);
-      };
-      _operations.Add(op);
-      IsEmpty = false;
+        tcs.SetResult(res);
+      });
 
-      return op.TaskCompletionSource.Task;
+      return tcs.Task;
     }
 
     public Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
+      IsEmpty = false;
 
-      var op = new Operation<InsertQueryResult>();
-      op.ResultProcessorFunc = async reader => {
+      var tcs = new TaskCompletionSource<InsertQueryResult>();
+
+      _resultProcessors.Add(async reader => {
         InsertQueryResult res;
         if (await reader.ReadAsync()) {
           var lastInsertId = reader.GetInt32(0);
@@ -77,66 +68,64 @@ namespace KDPgDriver
           res = InsertQueryResult.CreateRowNotInserted();
         }
 
-        op.TaskCompletionSource.SetResult(res);
-      };
-      _operations.Add(op);
-      IsEmpty = false;
+        tcs.SetResult(res);
+      });
 
-      return op.TaskCompletionSource.Task;
+      return tcs.Task;
     }
 
     public Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
-
-      var op = new Operation<UpdateQueryResult>();
-      op.ResultProcessorFunc = reader => {
-        var res = new UpdateQueryResult();
-        op.TaskCompletionSource.SetResult(res);
-        return Task.CompletedTask;
-      };
-      _operations.Add(op);
       IsEmpty = false;
 
-      return op.TaskCompletionSource.Task;
+      var tcs = new TaskCompletionSource<UpdateQueryResult>();
+
+      _resultProcessors.Add(reader => {
+        var res = new UpdateQueryResult();
+        tcs.SetResult(res);
+        return Task.CompletedTask;
+      });
+
+      return tcs.Task;
     }
 
     public Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
     {
       _combinedRawQuery.Append(builder.GetRawQuery());
       _combinedRawQuery.Append(";\n");
-
-      var op = new Operation<DeleteQueryResult>();
-      op.ResultProcessorFunc = reader => {
-        var res = new DeleteQueryResult();
-        op.TaskCompletionSource.SetResult(res);
-        return Task.CompletedTask;
-      };
-      _operations.Add(op);
       IsEmpty = false;
 
-      return op.TaskCompletionSource.Task;
+      var tcs = new TaskCompletionSource<DeleteQueryResult>();
+
+      _resultProcessors.Add(reader => {
+        var res = new DeleteQueryResult();
+        tcs.SetResult(res);
+        return Task.CompletedTask;
+      });
+
+      return tcs.Task;
     }
 
     public async Task Execute()
     {
       string query;
       ParametersContainer parameters;
-      
+
       _combinedRawQuery.Render(out query, out parameters);
 
       Console.WriteLine(query);
 
-      await _executor(async (connection, transaction) => {
+      await _connectionCreator(async (connection, transaction) => {
         using var cmd = new NpgsqlCommand(query, connection, transaction);
 
         parameters.AssignToCommand(cmd);
 
         using var reader = await cmd.ExecuteReaderAsync();
 
-        foreach (var operation in _operations) {
-          await operation.Process((NpgsqlDataReader)reader);
+        foreach (var operation in _resultProcessors) {
+          await operation((NpgsqlDataReader)reader);
           await reader.NextResultAsync();
         }
       });
