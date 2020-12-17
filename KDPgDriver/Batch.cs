@@ -12,23 +12,9 @@ namespace KDPgDriver
 {
   public class Batch : IQueryExecutor
   {
-    internal enum BatchType
-    {
-      Simple,
-      InTransaction,
-      DedicatedTransaction,
-    }
-
-    private readonly BatchType _type;
-    private Driver _driver;
-    private Transaction _transaction;
-    private KDPgIsolationLevel _isolationLevel;
-
-    public bool IsEmpty { get; private set; } = true;
-
     private interface IOperation
     {
-      Task Process(NpgsqlDataReader r);
+      Task Process(NpgsqlDataReader reader);
     }
 
     private class Operation<T> : IOperation
@@ -36,39 +22,19 @@ namespace KDPgDriver
       public Func<NpgsqlDataReader, Task> ResultProcessorFunc;
       public readonly TaskCompletionSource<T> TaskCompletionSource = new TaskCompletionSource<T>();
 
-      public Task Process(NpgsqlDataReader r) => ResultProcessorFunc(r);
-    }
-
-    internal Batch(BatchType type)
-    {
-      _type = type;
-    }
-
-    public static Batch CreateSimple(Driver driver)
-    {
-      var b = new Batch(BatchType.Simple);
-      b._driver = driver;
-      return b;
-    }
-
-    public static Batch CreateUsingTransaction(Transaction transaction)
-    {
-      var b = new Batch(BatchType.InTransaction);
-      b._driver = transaction.Driver;
-      b._transaction = transaction;
-      return b;
-    }
-
-    public static Batch CreateDedicatedTransaction(Driver driver, KDPgIsolationLevel isolationLevel)
-    {
-      var b = new Batch(BatchType.DedicatedTransaction);
-      b._driver = driver;
-      b._isolationLevel = isolationLevel;
-      return b;
+      public Task Process(NpgsqlDataReader reader) => ResultProcessorFunc(reader);
     }
 
     private readonly RawQuery _combinedRawQuery = new RawQuery();
     private readonly List<IOperation> _operations = new List<IOperation>();
+    private readonly Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> _executor;
+
+    public bool IsEmpty { get; private set; } = true;
+
+    private Batch(Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> executor)
+    {
+      _executor = executor;
+    }
 
     public void ScheduleQuery(IQuery query)
     {
@@ -125,9 +91,10 @@ namespace KDPgDriver
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<UpdateQueryResult>();
-      op.ResultProcessorFunc = async reader => {
+      op.ResultProcessorFunc = reader => {
         var res = new UpdateQueryResult();
         op.TaskCompletionSource.SetResult(res);
+        return Task.CompletedTask;
       };
       _operations.Add(op);
       IsEmpty = false;
@@ -141,9 +108,10 @@ namespace KDPgDriver
       _combinedRawQuery.Append(";\n");
 
       var op = new Operation<DeleteQueryResult>();
-      op.ResultProcessorFunc = async reader => {
+      op.ResultProcessorFunc = reader => {
         var res = new DeleteQueryResult();
         op.TaskCompletionSource.SetResult(res);
+        return Task.CompletedTask;
       };
       _operations.Add(op);
       IsEmpty = false;
@@ -155,42 +123,23 @@ namespace KDPgDriver
     {
       string query;
       ParametersContainer parameters;
+      
       _combinedRawQuery.Render(out query, out parameters);
 
       Console.WriteLine(query);
 
-      async Task DoOperation(NpgsqlConnection conn, NpgsqlTransaction tran)
-      {
-        using (var cmd = new NpgsqlCommand(query, conn, tran)) {
-          parameters.AssignToCommand(cmd);
+      await _executor(async (connection, transaction) => {
+        using var cmd = new NpgsqlCommand(query, connection, transaction);
 
-          using (var reader = await cmd.ExecuteReaderAsync()) {
-            foreach (var operation in _operations) {
-              await operation.Process((NpgsqlDataReader)reader);
-              await reader.NextResultAsync();
-            }
-          }
+        parameters.AssignToCommand(cmd);
+
+        using var reader = await cmd.ExecuteReaderAsync();
+
+        foreach (var operation in _operations) {
+          await operation.Process((NpgsqlDataReader)reader);
+          await reader.NextResultAsync();
         }
-      }
-
-      switch (_type) {
-        case BatchType.Simple:
-          using (var connection = await _driver.CreateConnection())
-            await DoOperation(connection, null);
-          break;
-        case BatchType.InTransaction:
-          await DoOperation(_transaction.NpgsqlConnection, _transaction.NpgsqlTransaction);
-          break;
-        case BatchType.DedicatedTransaction:
-          using (var transaction = await _driver.CreateTransaction(_isolationLevel)) {
-            await DoOperation(transaction.NpgsqlConnection, transaction.NpgsqlTransaction);
-            await transaction.CommitAsync();
-          }
-
-          break;
-        default:
-          throw new ArgumentOutOfRangeException();
-      }
+      });
     }
 
     // Chains
@@ -233,5 +182,26 @@ namespace KDPgDriver
     {
       return new SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4>(this, joinCondition1, joinCondition2, joinCondition3);
     }
+
+    // Factory
+    public static Batch CreateSimple(Driver driver) =>
+        new Batch(async callback => {
+          using var connection = await driver.CreateConnection();
+
+          await callback(connection, null);
+        });
+
+    public static Batch CreateUsingTransaction(Transaction transaction) =>
+        new Batch(async callback => {
+          await callback(transaction.NpgsqlConnection, transaction.NpgsqlTransaction);
+        });
+
+    public static Batch CreateDedicatedTransaction(Driver driver, KDPgIsolationLevel isolationLevel) =>
+        new Batch(async callback => {
+          using var transaction = await driver.CreateTransaction(isolationLevel);
+
+          await callback(transaction.NpgsqlConnection, transaction.NpgsqlTransaction);
+          await transaction.CommitAsync();
+        });
   }
 }
