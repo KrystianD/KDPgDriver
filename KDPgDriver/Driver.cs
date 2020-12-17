@@ -129,7 +129,7 @@ $f$ LANGUAGE SQL IMMUTABLE;
 
     public override void ScheduleQuery(IQuery query)
     {
-      throw new Exception("Schedule works only for batch query");
+      throw new InvalidOperationException("Schedule works only for batch query executors");
     }
 
     public override async Task<InsertQueryResult> QueryAsync(IInsertQuery query)

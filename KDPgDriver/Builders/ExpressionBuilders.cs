@@ -242,7 +242,7 @@ namespace KDPgDriver.Builders
         return Like(value, value2);
       }
       else {
-        throw new Exception($"Contains cannot be used on non-list");
+        throw new InvalidOperationException("Contains cannot be used on non-list");
       }
     }
 
