@@ -14,7 +14,7 @@ namespace KDPgDriver.Queries
   {
     None = 0,
     DoNothing = 1,
-    DoUpdate
+    DoUpdate = 2,
   }
 
   public class InsertQuery<TModel> : IInsertQuery
@@ -211,7 +211,7 @@ namespace KDPgDriver.Queries
       rq.Append(";");
 
       if (_outputVariable != null) {
-        rq.Append($" SELECT ");
+        rq.Append(" SELECT ");
         rq.Append(ExpressionBuilders.SetConfigText(_outputVariable, ExpressionBuilders.LastVal(), true).RawQuery);
       }
 

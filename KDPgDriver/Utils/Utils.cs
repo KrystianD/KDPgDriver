@@ -23,12 +23,12 @@ namespace KDPgDriver.Utils
 
     internal static IsolationLevel ToIsolationLevel(KDPgIsolationLevel level)
     {
-      switch (level) {
-        case KDPgIsolationLevel.ReadCommitted: return IsolationLevel.ReadCommitted;
-        case KDPgIsolationLevel.RepeatableRead: return IsolationLevel.RepeatableRead;
-        case KDPgIsolationLevel.Serializable: return IsolationLevel.Serializable;
-        default: throw new ArgumentOutOfRangeException(nameof(level), level, null);
-      }
+      return level switch {
+          KDPgIsolationLevel.ReadCommitted => IsolationLevel.ReadCommitted,
+          KDPgIsolationLevel.RepeatableRead => IsolationLevel.RepeatableRead,
+          KDPgIsolationLevel.Serializable => IsolationLevel.Serializable,
+          _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
+      };
     }
   }
 }

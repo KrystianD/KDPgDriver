@@ -1,6 +1,6 @@
 ﻿using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Builders.ResultProcessors
 {
   public class SingleValueResultProcessor : IResultProcessor
   {

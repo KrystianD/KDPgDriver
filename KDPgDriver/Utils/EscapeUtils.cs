@@ -21,18 +21,13 @@ namespace KDPgDriver.Utils
 
     public static string EscapePostgresValue(object value)
     {
-      switch (value) {
-        case string s:
-          return "'" + s.Replace("'", "''") + "'";
-        case short v:
-          return v.ToString();
-        case int v:
-          return v.ToString();
-        case long v:
-          return v.ToString();
-        default:
-          throw new Exception($"unable to escape value of type: {value.GetType()}");
-      }
+      return value switch {
+          string s => "'" + s.Replace("'", "''") + "'",
+          short v => v.ToString(),
+          int v => v.ToString(),
+          long v => v.ToString(),
+          _ => throw new Exception($"unable to escape value of type: {value.GetType()}"),
+      };
     }
 
     // Constants

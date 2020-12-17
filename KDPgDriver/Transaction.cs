@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
-using KDPgDriver.Fluent;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
 using Npgsql;

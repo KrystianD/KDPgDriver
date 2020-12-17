@@ -8,7 +8,9 @@ namespace KDPgDriver.Queries
     IResultProcessor GetResultProcessor();
   }
 
+  // ReSharper disable UnusedTypeParameter
   public class SelectQuery<TModel, TOut> : ISelectQuery
+  // ReSharper restore UnusedTypeParameter
   {
     private readonly IWhereBuilder _whereBuilder;
 

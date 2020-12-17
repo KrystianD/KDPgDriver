@@ -256,7 +256,7 @@ namespace KDPgDriver.Utils
     }
 
 
-    private string ResolvePlaceholder(RenderingContext ctx, RawQuery.TableNamePlaceholder placeholder)
+    private string ResolvePlaceholder(RenderingContext ctx, TableNamePlaceholder placeholder)
     {
       var alias = ctx.AliasesStack.Select(x => x.GetValueOrDefault(placeholder.Name)).FirstOrDefault(x => x != null) ?? placeholder.Name;
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using KDLib;
+using KDPgDriver.Builders.ResultProcessors;
 using KDPgDriver.Fluent;
 using KDPgDriver.Utils;
 
@@ -32,7 +33,7 @@ namespace KDPgDriver.Builders
 
     private readonly List<ResultColumnDef> _columns = new List<ResultColumnDef>();
     private readonly List<RawQuery.TableNamePlaceholder> _tablePlaceholders = new List<RawQuery.TableNamePlaceholder>();
-    private bool distinct = false;
+    private bool _distinct;
 
     private List<TypedExpression> LeftJoinsExpressions { get; set; }
     private IResultProcessor ResultProcessor { get; set; }
@@ -245,7 +246,7 @@ namespace KDPgDriver.Builders
 
     public void Distinct()
     {
-      distinct = true;
+      _distinct = true;
     }
 
     public RawQuery GetRawQuery(string defaultSchema)
@@ -253,7 +254,7 @@ namespace KDPgDriver.Builders
       RawQuery rq = new RawQuery();
       rq.Append("SELECT ");
 
-      if (distinct)
+      if (_distinct)
         rq.Append("DISTINCT ");
 
       bool firstColumn = true;

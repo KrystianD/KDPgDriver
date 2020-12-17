@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Builders.ResultProcessors
 {
   public class CombinedModelResultProcessor<TModel> : IResultProcessor
   {

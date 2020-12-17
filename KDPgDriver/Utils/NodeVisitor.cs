@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
 
@@ -42,13 +43,10 @@ namespace KDPgDriver.Utils
             return (PropertyInfo)me.Member;
 
           case UnaryExpression un:
-            switch (un.NodeType) {
-              case ExpressionType.Convert:
-                return (PropertyInfo)((MemberExpression)un.Operand).Member;
-
-              default:
-                throw new Exception($"unknown operator: {un.NodeType}");
-            }
+            return un.NodeType switch {
+                ExpressionType.Convert => (PropertyInfo)((MemberExpression)un.Operand).Member,
+                _ => throw new InvalidOperationException($"unknown operator: {un.NodeType}"),
+            };
 
           default:
             throw new Exception($"invalid node: {exp.NodeType}");
@@ -137,21 +135,21 @@ namespace KDPgDriver.Utils
             TypedExpression left = VisitInternal(be.Left);
             TypedExpression right = VisitInternal(be.Right);
 
-            switch (be.NodeType) {
-              case ExpressionType.Equal: return ExpressionBuilders.Eq(left, right);
-              case ExpressionType.NotEqual: return ExpressionBuilders.NotEq(left, right);
-              case ExpressionType.Add: return ExpressionBuilders.Add(left, right);
-              case ExpressionType.Subtract: return ExpressionBuilders.Subtract(left, right);
-              case ExpressionType.Multiply: return ExpressionBuilders.Multiply(left, right);
-              case ExpressionType.Divide: return ExpressionBuilders.Divide(left, right);
-              case ExpressionType.AndAlso: return ExpressionBuilders.And(new[] { left, right });
-              case ExpressionType.OrElse: return ExpressionBuilders.Or(new[] { left, right });
-              case ExpressionType.LessThan: return ExpressionBuilders.LessThan(left, right);
-              case ExpressionType.LessThanOrEqual: return ExpressionBuilders.LessThanEqual(left, right);
-              case ExpressionType.GreaterThan: return ExpressionBuilders.GreaterThan(left, right);
-              case ExpressionType.GreaterThanOrEqual: return ExpressionBuilders.GreaterThanEqual(left, right);
-              default: throw new Exception($"unknown operator: {be.NodeType}");
-            }
+            return be.NodeType switch {
+                ExpressionType.Equal => ExpressionBuilders.Eq(left, right),
+                ExpressionType.NotEqual => ExpressionBuilders.NotEq(left, right),
+                ExpressionType.Add => ExpressionBuilders.Add(left, right),
+                ExpressionType.Subtract => ExpressionBuilders.Subtract(left, right),
+                ExpressionType.Multiply => ExpressionBuilders.Multiply(left, right),
+                ExpressionType.Divide => ExpressionBuilders.Divide(left, right),
+                ExpressionType.AndAlso => ExpressionBuilders.And(new[] { left, right }),
+                ExpressionType.OrElse => ExpressionBuilders.Or(new[] { left, right }),
+                ExpressionType.LessThan => ExpressionBuilders.LessThan(left, right),
+                ExpressionType.LessThanOrEqual => ExpressionBuilders.LessThanEqual(left, right),
+                ExpressionType.GreaterThan => ExpressionBuilders.GreaterThan(left, right),
+                ExpressionType.GreaterThanOrEqual => ExpressionBuilders.GreaterThanEqual(left, right),
+                _ => throw new Exception($"unknown operator: {be.NodeType}")
+            };
 
           case MethodCallExpression call:
             // Native methods
@@ -199,19 +197,19 @@ namespace KDPgDriver.Utils
             // Extension methods
             else if (call.Method.Name == "PgIn") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              switch (GetConstant(call.Arguments[1])) {
-                case ISelectSubquery subquery: return ExpressionBuilders.In(extensionObject, subquery.GetTypedExpression());
-                case IEnumerable enumerable: return ExpressionBuilders.In(extensionObject, enumerable);
-                default: throw new ArgumentException("Invalid value passed to PgIn method");
-              }
+              return GetConstant(call.Arguments[1]) switch {
+                  ISelectSubquery subquery => ExpressionBuilders.In(extensionObject, subquery.GetTypedExpression()),
+                  IEnumerable enumerable => ExpressionBuilders.In(extensionObject, enumerable),
+                  _ => throw new ArgumentException("Invalid value passed to PgIn method")
+              };
             }
             else if (call.Method.Name == "PgNotIn") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              switch (GetConstant(call.Arguments[1])) {
-                case ISelectSubquery subquery: return ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression());
-                case IEnumerable enumerable: return ExpressionBuilders.NotIn(extensionObject, enumerable);
-                default: throw new ArgumentException("Invalid value passed to PgIn method");
-              }
+              return GetConstant(call.Arguments[1]) switch {
+                  ISelectSubquery subquery => ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression()),
+                  IEnumerable enumerable => ExpressionBuilders.NotIn(extensionObject, enumerable),
+                  _ => throw new ArgumentException("Invalid value passed to PgIn method")
+              };
             }
             else if (call.Method.Name == "PgLike") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
@@ -265,12 +263,12 @@ namespace KDPgDriver.Utils
                 var methodArgs = internalMethod.GetParameters();
                 var methodArgsCount = methodArgs.Length;
 
-                var args = call.Arguments.Zip(methodArgs, (Value, Parameter) => (Value, Parameter))
+                var args = call.Arguments.Zip(methodArgs)
                                .Select(x => {
-                                 if (x.Parameter.ParameterType == typeof(TypedExpression))
-                                   return VisitInternal(x.Value);
-                                 else
-                                   return GetConstant(x.Value);
+                                 var (value, parameter) = x;
+                                 return parameter.ParameterType == typeof(TypedExpression)
+                                     ? VisitInternal(value)
+                                     : GetConstant(value);
                                })
                                .Concat(Enumerable.Repeat(Type.Missing, Math.Max(0, methodArgsCount - passedArgsCount)))
                                .ToArray();
@@ -463,13 +461,10 @@ namespace KDPgDriver.Utils
         case ConstantExpression me:
           return me.Value;
         case UnaryExpression un:
-          switch (un.NodeType) {
-            case ExpressionType.Convert:
-              return ((ConstantExpression)un.Operand).Value;
-
-            default:
-              throw new Exception($"unknown operator: {un.NodeType}");
-          }
+          return un.NodeType switch {
+              ExpressionType.Convert => ((ConstantExpression)un.Operand).Value,
+              _ => throw new Exception($"unknown operator: {un.NodeType}")
+          };
         default:
           throw new Exception($"invalid node: {(e == null ? "(null)" : e.NodeType.ToString())}");
       }

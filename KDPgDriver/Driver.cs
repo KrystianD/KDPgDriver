@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Threading.Tasks;
 using KDLib;
-using KDPgDriver.Fluent;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
 using Npgsql;
@@ -55,9 +52,10 @@ namespace KDPgDriver
     // ReSharper disable once UnusedMember.Global
     public async Task InitializeAsync()
     {
-      using (var connection = await CreateConnection()) {
-        // ReSharper disable StringLiteralTypo
-        const string PgInitCode = @"
+      using var connection = await CreateConnection();
+      
+      // ReSharper disable StringLiteralTypo
+      const string PgInitCode = @"
 CREATE OR REPLACE FUNCTION kdpg_escape_regexp(text) RETURNS text AS
 $func$
 SELECT regexp_replace($1, '([!$()*+.:<=>?[\\\]^{|}-])', '\\\1', 'g')
@@ -107,13 +105,12 @@ CREATE OR REPLACE FUNCTION kdpg_array_distinct(anyarray) RETURNS anyarray AS $f$
   SELECT array_agg(DISTINCT x) FROM unnest($1) t(x);
 $f$ LANGUAGE SQL IMMUTABLE;
 ";
-        // ReSharper restore StringLiteralTypo
+      // ReSharper restore StringLiteralTypo
 
-        using (var t = connection.CreateCommand()) {
-          t.CommandText = PgInitCode;
-          await t.ExecuteNonQueryAsync();
-        }
-      }
+      using var command = connection.CreateCommand();
+      
+      command.CommandText = PgInitCode;
+      await command.ExecuteNonQueryAsync();
     }
 
     public async Task<Transaction> CreateTransaction(KDPgIsolationLevel isolationLevel = KDPgIsolationLevel.ReadCommitted)
@@ -166,12 +163,11 @@ $f$ LANGUAGE SQL IMMUTABLE;
 
     public async Task QueryRawAsync(string query)
     {
-      using (var connection = await CreateConnection()) {
-        using (var t = connection.CreateCommand()) {
-          t.CommandText = query;
-          await t.ExecuteNonQueryAsync();
-        }
-      }
+      using var connection = await CreateConnection();
+      using var command = connection.CreateCommand();
+
+      command.CommandText = query;
+      await command.ExecuteNonQueryAsync();
     }
   }
 }

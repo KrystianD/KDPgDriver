@@ -2,15 +2,14 @@
 using System.Collections.Generic;
 using KDPgDriver.Utils;
 
-namespace KDPgDriver.Builders
+namespace KDPgDriver.Builders.ResultProcessors
 {
   public class AnonymousTypeResultProcessor<TModel> : IResultProcessor
   {
     public class Entry
     {
-      public KdPgTableDescriptor MemberTable;
-
-      public KDPgValueType MemberType;
+      public KdPgTableDescriptor MemberPgTable;
+      public KDPgValueType MemberPgType;
     }
 
     private readonly List<Entry> Entries = new List<Entry>();
@@ -28,8 +27,8 @@ namespace KDPgDriver.Builders
       for (var i = 0; i < Entries.Count; i++) {
         var entry = Entries[i];
 
-        if (entry.MemberTable != null) {
-          var table = entry.MemberTable;
+        if (entry.MemberPgTable != null) {
+          var table = entry.MemberPgTable;
 
           var isNull = (bool)PgTypesConverter.ConvertFromRawSqlValue(KDPgValueTypeInstances.Boolean, values[columnIdx++]);
           if (isNull) {
@@ -48,8 +47,8 @@ namespace KDPgDriver.Builders
             constructorParams[i] = modelObj;
           }
         }
-        else if (entry.MemberType != null) {
-          constructorParams[i] = PgTypesConverter.ConvertFromRawSqlValue(entry.MemberType, values[columnIdx++]);
+        else if (entry.MemberPgType != null) {
+          constructorParams[i] = PgTypesConverter.ConvertFromRawSqlValue(entry.MemberPgType, values[columnIdx++]);
         }
         else
           throw new Exception();
@@ -63,7 +62,7 @@ namespace KDPgDriver.Builders
       fieldsCount += 1 + table.Columns.Count;
 
       Entries.Add(new Entry {
-          MemberTable = table,
+          MemberPgTable = table,
       });
     }
 
@@ -72,7 +71,7 @@ namespace KDPgDriver.Builders
       fieldsCount += 1;
 
       Entries.Add(new Entry {
-          MemberType = memberType,
+          MemberPgType = memberType,
       });
     }
   }
