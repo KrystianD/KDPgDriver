@@ -10,14 +10,14 @@ namespace KDPgDriver.Fluent
 {
   public class UpdateQueryFluentBuilder1<TModel> : IQuery
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
 
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly UpdateStatementsBuilder<TModel> _updateStatementsBuilder = new UpdateStatementsBuilder<TModel>();
 
     public UpdateQueryFluentBuilder1() { }
 
-    public UpdateQueryFluentBuilder1(IQueryExecutor executor)
+    public UpdateQueryFluentBuilder1(QueryExecutor executor)
     {
       _executor = executor;
     }

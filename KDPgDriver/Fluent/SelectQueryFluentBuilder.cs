@@ -26,11 +26,11 @@ namespace KDPgDriver.Fluent
 
   public class SelectQueryFluentBuilder1Prep<TModel>
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
 
     public SelectQueryFluentBuilder1Prep() { }
 
-    public SelectQueryFluentBuilder1Prep(IQueryExecutor executor)
+    public SelectQueryFluentBuilder1Prep(QueryExecutor executor)
     {
       _executor = executor;
     }
@@ -63,13 +63,13 @@ namespace KDPgDriver.Fluent
 
   public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> : BaseSelectMultipleQueryFluentBuilderPrep
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
 
     private readonly RawQuery.TableNamePlaceholder _p1 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel1>(), null);
     private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel2>(), null);
 
-    public SelectMultipleQueryFluentBuilderPrep2(IQueryExecutor executor,
+    public SelectMultipleQueryFluentBuilderPrep2(QueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition)
     {
       var options = new NodeVisitor.EvaluationOptions();
@@ -98,7 +98,7 @@ namespace KDPgDriver.Fluent
 
   public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> : BaseSelectMultipleQueryFluentBuilderPrep
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
     private readonly TypedExpression _joinCondition2;
 
@@ -106,7 +106,7 @@ namespace KDPgDriver.Fluent
     private readonly RawQuery.TableNamePlaceholder _p2 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel2>(), null);
     private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel3>(), null);
 
-    public SelectMultipleQueryFluentBuilderPrep3(IQueryExecutor executor,
+    public SelectMultipleQueryFluentBuilderPrep3(QueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition1,
                                                  Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2)
     {
@@ -145,7 +145,7 @@ namespace KDPgDriver.Fluent
 
   public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> : BaseSelectMultipleQueryFluentBuilderPrep
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
     private readonly TypedExpression _joinCondition2;
     private readonly TypedExpression _joinCondition3;
@@ -155,7 +155,7 @@ namespace KDPgDriver.Fluent
     private readonly RawQuery.TableNamePlaceholder _p3 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel3>(), null);
     private readonly RawQuery.TableNamePlaceholder _p4 = new RawQuery.TableNamePlaceholder(ModelsRegistry.GetTable<TModel4>(), null);
 
-    public SelectMultipleQueryFluentBuilderPrep4(IQueryExecutor executor,
+    public SelectMultipleQueryFluentBuilderPrep4(QueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition1,
                                                  Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2,
                                                  Expression<Func<TModel1, TModel2, TModel3, TModel4, bool>> joinCondition3)
@@ -258,10 +258,10 @@ namespace KDPgDriver.Fluent
   public class SelectMultipleQueryFluentBuilderMapper<TCombinedModel>
   {
     private readonly TablesList _tablesList;
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
 
 
-    public SelectMultipleQueryFluentBuilderMapper(IQueryExecutor executor, TablesList tablesList)
+    public SelectMultipleQueryFluentBuilderMapper(QueryExecutor executor, TablesList tablesList)
     {
       _executor = executor;
       _tablesList = tablesList;
@@ -280,13 +280,13 @@ namespace KDPgDriver.Fluent
 
   public class SelectQueryFluentBuilder<TModel, TNewModel> : IQuery
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
     private readonly SelectFromBuilder _selectFromBuilder;
     private readonly OrderBuilder<TModel> _orderBuilder = new OrderBuilder<TModel>();
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
 
-    public SelectQueryFluentBuilder(SelectFromBuilder selectFromBuilder, IQueryExecutor executor = null)
+    public SelectQueryFluentBuilder(SelectFromBuilder selectFromBuilder, QueryExecutor executor = null)
     {
       _executor = executor;
       _selectFromBuilder = selectFromBuilder;

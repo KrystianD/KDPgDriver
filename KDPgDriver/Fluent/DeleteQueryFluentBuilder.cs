@@ -9,13 +9,13 @@ namespace KDPgDriver.Fluent
 {
   public class DeleteQueryFluentBuilder1<TModel> : IQuery
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
 
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
 
     public DeleteQueryFluentBuilder1() { }
 
-    public DeleteQueryFluentBuilder1(IQueryExecutor executor)
+    public DeleteQueryFluentBuilder1(QueryExecutor executor)
     {
       _executor = executor;
     }

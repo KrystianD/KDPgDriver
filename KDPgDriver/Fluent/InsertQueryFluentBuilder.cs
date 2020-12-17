@@ -12,13 +12,13 @@ namespace KDPgDriver.Fluent
 {
   public class InsertQueryFluentBuilder1<TModel> : IQuery
   {
-    private readonly IQueryExecutor _executor;
+    private readonly QueryExecutor _executor;
 
     private readonly InsertQuery<TModel> _insertQuery = new InsertQuery<TModel>();
 
     public InsertQueryFluentBuilder1() { }
 
-    public InsertQueryFluentBuilder1(IQueryExecutor executor)
+    public InsertQueryFluentBuilder1(QueryExecutor executor)
     {
       _executor = executor;
     }
