@@ -188,14 +188,11 @@ namespace KDPgDriver.Builders
       switch (prBody.Body) {
         case NewExpression newExpression:
         {
-          IEnumerable<PropertyInfo> members = newExpression.Members.Cast<PropertyInfo>();
-          IEnumerable<Expression> args = newExpression.Arguments;
-
           var resultProcessor = new AnonymousTypeResultProcessor<TNewModel>();
           b.ResultProcessor = resultProcessor;
 
-          foreach (var (member, argExpression) in members.Zip(args)) {
-            exp = NodeVisitor.EvaluateToTypedExpression(argExpression);
+          foreach (var arg in newExpression.Arguments) {
+            exp = NodeVisitor.EvaluateToTypedExpression(arg);
             b.AddSelectPart(exp.RawQuery, exp.Type);
             resultProcessor.AddMemberEntry(exp.Type);
           }
