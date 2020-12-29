@@ -111,6 +111,9 @@ namespace KDPgDriver
       string query;
       ParametersContainer parameters;
 
+      if (IsEmpty)
+        return;
+
       _combinedRawQuery.Render(out query, out parameters);
 
       Console.WriteLine(query);
