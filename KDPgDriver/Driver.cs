@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
+using KDPgDriver.Utils;
 using Npgsql;
 
 namespace KDPgDriver
@@ -33,7 +34,7 @@ namespace KDPgDriver
           Pooling = true,
           MinPoolSize = minPoolSize,
           MaxPoolSize = maxPoolSize,
-          SearchPath = schema,
+          SearchPath = EscapeUtils.QuoteObjectName(schema),
       }.ToString();
     }
 
