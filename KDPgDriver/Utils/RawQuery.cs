@@ -2,9 +2,11 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 
 namespace KDPgDriver.Utils
 {
+  [PublicAPI]
   public class RawQuery
   {
     private class QueryPart

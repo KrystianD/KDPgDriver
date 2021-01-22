@@ -31,6 +31,7 @@ namespace KDPgDriver.Utils
     }
 
     // Constants
+    // ReSharper disable StringLiteralTypo
     private static readonly HashSet<string> ReservedKeywords = new HashSet<string>() {
         "a", "abort", "abs", "absent", "absolute", "access", "according", "action", "ada", "add", "admin", "after", "aggregate",
         "all", "allocate", "also", "alter", "always", "analyse", "analyze", "and", "any", "are", "array", "array_agg",
@@ -111,6 +112,7 @@ namespace KDPgDriver.Utils
         "xmlparse", "xmlpi", "xmlquery", "xmlroot", "xmlschema", "xmlserialize", "xmltable", "xmltext", "xmlvalidate", "year",
         "yes", "zone",
     };
+    // ReSharper restore StringLiteralTypo
 
     private static readonly HashSet<char> ValidObjectNameChars = "abcdefghijklmnoprstuwxvyz0123456789_".ToHashSet();
   }

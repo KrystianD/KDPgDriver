@@ -45,6 +45,7 @@ namespace KDPgDriver
 
   public static class KDPgValueTypeInstances
   {
+    // ReSharper disable HeapView.ObjectAllocation.Evident
     public static readonly KDPgValueTypeNull Null = new KDPgValueTypeNull();
     public static readonly KDPgValueTypeBoolean Boolean = new KDPgValueTypeBoolean();
     public static readonly KDPgValueTypeDate Date = new KDPgValueTypeDate();
@@ -59,6 +60,7 @@ namespace KDPgDriver
     public static readonly KDPgValueTypeUUID UUID = new KDPgValueTypeUUID();
     public static readonly KDPgValueTypeJson Json = new KDPgValueTypeJson();
     public static readonly KDPgValueTypeBinary Binary = new KDPgValueTypeBinary();
+    // ReSharper restore HeapView.ObjectAllocation.Evident
   }
 
   public class KDPgValueTypeNull : KDPgValueType

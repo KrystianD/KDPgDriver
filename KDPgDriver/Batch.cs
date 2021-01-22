@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
 using KDPgDriver.Utils;
@@ -16,6 +17,7 @@ namespace KDPgDriver
     private readonly List<ResultProcessorHandler> _resultProcessors = new List<ResultProcessorHandler>();
     private readonly Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> _connectionCreator;
 
+    [PublicAPI]
     public bool IsEmpty { get; private set; } = true;
 
     private Batch(Func<Func<NpgsqlConnection, NpgsqlTransaction, Task>, Task> connectionCreator)
@@ -126,13 +128,16 @@ namespace KDPgDriver
         using var reader = await cmd.ExecuteReaderAsync();
 
         foreach (var operation in _resultProcessors) {
-          await operation((NpgsqlDataReader)reader);
+          await operation(reader);
           await reader.NextResultAsync();
         }
       });
     }
 
     // Factory
+    // ReSharper disable HeapView.ClosureAllocation
+    // ReSharper disable HeapView.DelegateAllocation
+    // ReSharper disable HeapView.ObjectAllocation.Evident
     public static Batch CreateSimple(Driver driver) =>
         new Batch(async callback => {
           using var connection = await driver.CreateConnection();
@@ -152,5 +157,8 @@ namespace KDPgDriver
           await callback(transaction.NpgsqlConnection, transaction.NpgsqlTransaction);
           await transaction.CommitAsync();
         });
+    // ReSharper restore HeapView.ClosureAllocation
+    // ReSharper restore HeapView.DelegateAllocation
+    // ReSharper restore HeapView.ObjectAllocation.Evident
   }
 }

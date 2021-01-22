@@ -24,6 +24,7 @@ namespace KDPgDriver
       UrlUtils.ParseUri(dsn, out _, out var user, out var pass, out var host, out int port, out string path);
       path = path.TrimStart('/');
 
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       _connString = new NpgsqlConnectionStringBuilder {
           Database = path,
           Username = user,
@@ -45,6 +46,7 @@ namespace KDPgDriver
 
     internal async Task<NpgsqlConnection> CreateConnection()
     {
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       var connection = new NpgsqlConnection(_connString);
       await connection.OpenAsync();
       return connection;
@@ -118,6 +120,7 @@ $f$ LANGUAGE SQL IMMUTABLE;
     {
       var connection = await CreateConnection();
       var tr = connection.BeginTransaction(Utils.Utils.ToIsolationLevel(isolationLevel));
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new Transaction(this, connection, tr);
     }
 

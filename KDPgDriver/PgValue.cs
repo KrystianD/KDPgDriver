@@ -11,6 +11,7 @@
       Type = type;
     }
 
+    // ReSharper disable once HeapView.ObjectAllocation.Evident
     public static readonly PgValue Null = new PgValue(null, KDPgValueTypeInstances.Null);
   }
 }

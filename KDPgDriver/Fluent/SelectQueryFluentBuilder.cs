@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
@@ -24,6 +25,7 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  [PublicAPI]
   public class SelectQueryFluentBuilder1Prep<TModel>
   {
     private readonly QueryExecutor _executor;
@@ -59,8 +61,10 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  [PublicAPI]
   public class BaseSelectMultipleQueryFluentBuilderPrep { }
 
+  [PublicAPI]
   public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> : BaseSelectMultipleQueryFluentBuilderPrep
   {
     private readonly QueryExecutor _executor;
@@ -96,6 +100,7 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  [PublicAPI]
   public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> : BaseSelectMultipleQueryFluentBuilderPrep
   {
     private readonly QueryExecutor _executor;
@@ -143,6 +148,7 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  [PublicAPI]
   public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> : BaseSelectMultipleQueryFluentBuilderPrep
   {
     private readonly QueryExecutor _executor;
@@ -204,6 +210,7 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  [PublicAPI]
   public class SelectMultipleQueryFluentBuilderMapper<TCombinedModel>
   {
     private readonly TablesList _tablesList;
@@ -227,6 +234,7 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  [PublicAPI]
   public class SelectQueryFluentBuilder<TModel, TNewModel> : IQuery
   {
     private readonly QueryExecutor _executor;

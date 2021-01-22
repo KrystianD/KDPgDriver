@@ -1,4 +1,5 @@
 ﻿using System;
+using JetBrains.Annotations;
 using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
@@ -11,18 +12,21 @@ namespace KDPgDriver
     public static TypedExpression MD5(TypedExpression query)
     {
       var rq = RawQuery.Create("MD5(").Append(query.RawQuery).Append(")");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new TypedExpression(rq, KDPgValueTypeInstances.String);
     }
 
     public static TypedExpression Count(TypedExpression query)
     {
       var rq = RawQuery.Create("COUNT(").Append(query.RawQuery).Append(")");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new TypedExpression(rq, KDPgValueTypeInstances.Integer64);
     }
 
     public static TypedExpression Now()
     {
       var rq = RawQuery.Create("NOW()");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new TypedExpression(rq, KDPgValueTypeInstances.Time);
     }
 
@@ -57,6 +61,7 @@ namespace KDPgDriver
 
       rq.Append(")");
 
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new TypedExpression(rq, value1.Type);
     }
 
@@ -73,18 +78,19 @@ namespace KDPgDriver
     public static TypedExpression Date(TypedExpression query)
     {
       var rq = RawQuery.Create("DATE(").Append(query.RawQuery).Append(")");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new TypedExpression(rq, KDPgValueTypeInstances.Date);
     }
   }
 
   public static class Func
   {
-    public static string MD5(string value)
+    public static string MD5([UsedImplicitly] string value)
     {
       throw new Exception("do not use directly");
     }
 
-    public static long Count(object value)
+    public static long Count([UsedImplicitly] object value)
     {
       throw new Exception("do not use directly");
     }
@@ -94,47 +100,47 @@ namespace KDPgDriver
       throw new Exception("do not use directly");
     }
 
-    public static T Raw<T>(string text)
+    public static T Raw<T>([UsedImplicitly] string text)
     {
       throw new Exception("do not use directly");
     }
 
-    public static T Coalesce<T>(T value1)
+    public static T Coalesce<T>([UsedImplicitly] T value1)
     {
       throw new Exception("do not use directly");
     }
 
-    public static T Coalesce<T>(T value1, T value2)
+    public static T Coalesce<T>([UsedImplicitly] T value1, [UsedImplicitly] T value2)
     {
       throw new Exception("do not use directly");
     }
 
-    public static T Coalesce<T>(T value1, T value2, T value3)
+    public static T Coalesce<T>([UsedImplicitly] T value1, [UsedImplicitly] T value2, [UsedImplicitly] T value3)
     {
       throw new Exception("do not use directly");
     }
 
-    public static T Coalesce<T>(T value1, T value2, T value3, T value4)
+    public static T Coalesce<T>([UsedImplicitly] T value1, [UsedImplicitly] T value2, [UsedImplicitly] T value3, [UsedImplicitly] T value4)
     {
       throw new Exception("do not use directly");
     }
 
-    public static T Coalesce<T>(T value1, T value2, T value3, T value4, T value5)
+    public static T Coalesce<T>([UsedImplicitly] T value1, [UsedImplicitly] T value2, [UsedImplicitly] T value3, [UsedImplicitly] T value4, [UsedImplicitly] T value5)
     {
       throw new Exception("do not use directly");
     }
 
-    public static int GetVariableInt(string name)
+    public static int GetVariableInt([UsedImplicitly] string name)
     {
       throw new Exception("do not use directly");
     }
 
-    public static string GetVariableText(string name)
+    public static string GetVariableText([UsedImplicitly] string name)
     {
       throw new Exception("do not use directly");
     }
 
-    public static DateTime Date(DateTime date)
+    public static DateTime Date([UsedImplicitly] DateTime date)
     {
       throw new Exception("do not use directly");
     }
