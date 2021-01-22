@@ -181,7 +181,7 @@ namespace KDPgDriver
       throw new Exception("do not use directly");
     }
 
-    public static long Count([UsedImplicitly] object value)
+    public static long Count<T>([UsedImplicitly] T value)
     {
       throw new Exception("do not use directly");
     }

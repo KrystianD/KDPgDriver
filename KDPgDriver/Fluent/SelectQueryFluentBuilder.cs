@@ -269,13 +269,13 @@ namespace KDPgDriver.Fluent
       return this;
     }
 
-    public SelectQueryFluentBuilder<TModel, TNewModel> OrderBy(Expression<Func<TModel, object>> exp)
+    public SelectQueryFluentBuilder<TModel, TNewModel> OrderBy<T>(Expression<Func<TModel, T>> exp)
     {
       _orderBuilder.OrderBy(exp);
       return this;
     }
 
-    public SelectQueryFluentBuilder<TModel, TNewModel> OrderByDescending(Expression<Func<TModel, object>> exp)
+    public SelectQueryFluentBuilder<TModel, TNewModel> OrderByDescending<T>(Expression<Func<TModel, T>> exp)
     {
       _orderBuilder.OrderByDescending(exp);
       return this;

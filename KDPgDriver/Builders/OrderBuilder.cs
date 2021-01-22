@@ -13,7 +13,7 @@ namespace KDPgDriver.Builders
   {
     private RawQuery _rq = new RawQuery();
 
-    public OrderBuilder<TModel> OrderBy(Expression<Func<TModel, object>> exp)
+    public OrderBuilder<TModel> OrderBy<T>(Expression<Func<TModel, T>> exp)
     {
       var e = NodeVisitor.VisitFuncExpression(exp);
 
@@ -23,7 +23,7 @@ namespace KDPgDriver.Builders
       return this;
     }
 
-    public OrderBuilder<TModel> OrderByDescending(Expression<Func<TModel, object>> exp)
+    public OrderBuilder<TModel> OrderByDescending<T>(Expression<Func<TModel, T>> exp)
     {
       var e = NodeVisitor.VisitFuncExpression(exp);
 
