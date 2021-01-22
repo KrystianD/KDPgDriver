@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Serialization;
 using JetBrains.Annotations;
+using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Utils;
 
@@ -7,6 +10,73 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver
 {
+  [SuppressMessage("ReSharper", "StringLiteralTypo")]
+  public enum ExtractField
+  {
+    [EnumMember(Value = "century")]
+    Century,
+
+    [EnumMember(Value = "day")]
+    Day,
+
+    [EnumMember(Value = "decade")]
+    Decade,
+
+    [EnumMember(Value = "dow")]
+    Dow,
+
+    [EnumMember(Value = "doy")]
+    Doy,
+
+    [EnumMember(Value = "epoch")]
+    Epoch,
+
+    [EnumMember(Value = "hour")]
+    Hour,
+
+    [EnumMember(Value = "isodow")]
+    IsoDayOfWeek,
+
+    [EnumMember(Value = "isoyear")]
+    IsoYear,
+
+    [EnumMember(Value = "microseconds")]
+    Microseconds,
+
+    [EnumMember(Value = "millennium")]
+    Millennium,
+
+    [EnumMember(Value = "milliseconds")]
+    Milliseconds,
+
+    [EnumMember(Value = "minute")]
+    Minute,
+
+    [EnumMember(Value = "month")]
+    Month,
+
+    [EnumMember(Value = "quarter")]
+    Quarter,
+
+    [EnumMember(Value = "second")]
+    Second,
+
+    [EnumMember(Value = "timezone")]
+    Timezone,
+
+    [EnumMember(Value = "timezone_hour")]
+    TimezoneHour,
+
+    [EnumMember(Value = "timezone_minute")]
+    TimezoneMinute,
+
+    [EnumMember(Value = "week")]
+    Week,
+
+    [EnumMember(Value = "year")]
+    Year,
+  }
+
   internal static class FuncInternal
   {
     public static TypedExpression MD5(TypedExpression query)
@@ -81,6 +151,27 @@ namespace KDPgDriver
       // ReSharper disable once HeapView.ObjectAllocation.Evident
       return new TypedExpression(rq, KDPgValueTypeInstances.Date);
     }
+
+    public static TypedExpression Extract(ExtractField field, TypedExpression source)
+    {
+      var rq = RawQuery.Create("EXTRACT(").AppendStringValue(field.GetMemberValue()).Append(" FROM ").Append(source.RawQuery).Append(")");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
+      return new TypedExpression(rq, KDPgValueTypeInstances.Decimal);
+    }
+
+    public static TypedExpression DatePart(ExtractField field, TypedExpression source)
+    {
+      var rq = RawQuery.Create("date_part(").AppendStringValue(field.GetMemberValue()).Append(",").Append(source.RawQuery).Append(")");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
+      return new TypedExpression(rq, KDPgValueTypeInstances.Decimal);
+    }
+
+    public static TypedExpression Timezone(TypedExpression zone, TypedExpression timestamp)
+    {
+      var rq = RawQuery.Create("timezone(").Append(zone.RawQuery).Append(",").Append(timestamp.RawQuery).Append(")");
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
+      return new TypedExpression(rq, KDPgValueTypeInstances.DateTime);
+    }
   }
 
   public static class Func
@@ -141,6 +232,31 @@ namespace KDPgDriver
     }
 
     public static DateTime Date([UsedImplicitly] DateTime date)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static double Extract([UsedImplicitly] ExtractField field, [UsedImplicitly] DateTime source)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static double Extract([UsedImplicitly] ExtractField field, [UsedImplicitly] TimeSpan source)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static double DatePart([UsedImplicitly] ExtractField field, [UsedImplicitly] DateTime source)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static double DatePart([UsedImplicitly] ExtractField field, [UsedImplicitly] TimeSpan source)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static DateTime Timezone([UsedImplicitly] string zone, [UsedImplicitly] DateTime timestamp)
     {
       throw new Exception("do not use directly");
     }

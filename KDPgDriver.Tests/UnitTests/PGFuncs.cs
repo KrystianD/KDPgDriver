@@ -73,5 +73,51 @@ namespace KDPgDriver.Tests.UnitTests
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE (DATE(datetime)) = (DATE(@1::timestamp))",
                            new[] { new Param(dt, NpgsqlDbType.Timestamp), });
     }
+
+    [Fact]
+    public void FuncTimezone()
+    {
+      var dt = new DateTime(2000, 1, 2, 3, 4, 5);
+      var q = Builders<MyModel>.Select(x => x.Id).Where(x => Func.Timezone("UTC", x.DateTime) == dt);
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE (timezone('UTC',datetime)) = (@1::timestamp)",
+                           new[] { new Param(dt, NpgsqlDbType.Timestamp), });
+    }
+
+    [Fact]
+    public void FuncExtract()
+    {
+      // Extract
+      var q1 = Builders<MyModel>.Select(x => x.Id).Where(x => Func.Extract(ExtractField.Day, x.DateTime) == 2.0);
+      Utils.AssertRawQuery(q1, @"SELECT ""id"" FROM model WHERE (EXTRACT('day' FROM datetime)) = (@1::double precision)",
+                           new Param(2.0, NpgsqlDbType.Double));
+
+      var q2 = Builders<MyModel>.Select(x => x.Id).Where(x => (int)Func.Extract(ExtractField.Day, x.DateTime) == 2);
+      Utils.AssertRawQuery(q2, @"SELECT ""id"" FROM model WHERE ((EXTRACT('day' FROM datetime))::int) = (2)");
+      
+      // DatePart
+      var q3 = Builders<MyModel>.Select(x => x.Id).Where(x => Func.DatePart(ExtractField.Day, x.DateTime) == 2.0);
+      Utils.AssertRawQuery(q3, @"SELECT ""id"" FROM model WHERE (date_part('day',datetime)) = (@1::double precision)",
+                           new Param(2.0, NpgsqlDbType.Double));
+
+      var q4 = Builders<MyModel>.Select(x => x.Id).Where(x => (int)Func.DatePart(ExtractField.Day, x.DateTime) == 2);
+      Utils.AssertRawQuery(q4, @"SELECT ""id"" FROM model WHERE ((date_part('day',datetime))::int) = (2)");
+
+      // Direct
+      var q5 = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime.Day == 4);
+      Utils.AssertRawQuery(q5, @"SELECT ""id"" FROM model WHERE ((date_part('day',datetime))::int) = (4)");
+    }
+
+    [Fact]
+    public void FuncInterval()
+    {
+      var dt = new DateTime(2000, 1, 2, 3, 4, 5);
+      var ts = TimeSpan.FromHours(1.23);
+      var q = Builders<MyModel>.Select(x => x.Id).Where(x => x.DateTime + ts > dt);
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE ((datetime) + (@1::interval)) > (@2::timestamp)",
+                           new Param(ts, NpgsqlDbType.Interval),
+                           new Param(dt, NpgsqlDbType.Timestamp));
+    }
   }
 }

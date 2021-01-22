@@ -118,6 +118,8 @@ namespace KDPgDriver.Utils
       return this;
     }
 
+    public RawQuery AppendStringValue(string value) => Append(EscapeUtils.EscapePostgresValue(value));
+
     public RawQuery AppendFuncInvocation(string funcName, RawQuery rawQuery)
     {
       Append(funcName);
