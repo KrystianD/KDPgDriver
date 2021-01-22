@@ -45,6 +45,8 @@ namespace KDPgDriver.Builders
 
       if (left.Type == KDPgValueTypeInstances.String && right.Type == KDPgValueTypeInstances.String)
         rq.Append(" || ");
+      else if (left.Type == KDPgValueTypeInstances.DateTime && right.Type == KDPgValueTypeInstances.Interval)
+        rq.Append(" + ");
       else if (left.Type == right.Type)
         rq.Append(" + ");
       else

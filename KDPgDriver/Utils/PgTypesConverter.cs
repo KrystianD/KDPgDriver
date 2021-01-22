@@ -31,7 +31,7 @@ namespace KDPgDriver.Utils
       if (type == typeof(DateTime))
         return KDPgValueTypeInstances.DateTime;
       if (type == typeof(TimeSpan))
-        return KDPgValueTypeInstances.Time;
+        return KDPgValueTypeInstances.Interval;
       if (type == typeof(Guid))
         return KDPgValueTypeInstances.UUID;
       if (type == typeof(decimal))
@@ -79,9 +79,10 @@ namespace KDPgDriver.Utils
           case KDPgValueTypeKind.Binary: return KDPgValueTypeInstances.Binary;
           case KDPgValueTypeKind.Null: return KDPgValueTypeInstances.Null;
 
-          case KDPgValueTypeKind.DateTime: return KDPgValueTypeInstances.DateTime;
           case KDPgValueTypeKind.Date: return KDPgValueTypeInstances.Date;
           case KDPgValueTypeKind.Time: return KDPgValueTypeInstances.Time;
+          case KDPgValueTypeKind.DateTime: return KDPgValueTypeInstances.DateTime;
+          case KDPgValueTypeKind.Interval: return KDPgValueTypeInstances.Interval;
 
           case KDPgValueTypeKind.Enum:
             var entry = TypeRegistry.GetEnumEntryForType(propertyType);
@@ -116,9 +117,10 @@ namespace KDPgDriver.Utils
         case KDPgValueTypeReal _:
         case KDPgValueTypeDoublePrecision _:
         case KDPgValueTypeBoolean _:
-        case KDPgValueTypeDateTime _:
         case KDPgValueTypeDate _:
         case KDPgValueTypeTime _:
+        case KDPgValueTypeDateTime _:
+        case KDPgValueTypeInterval _:
         case KDPgValueTypeUUID _:
         case KDPgValueTypeDecimal _:
         case KDPgValueTypeBinary _:
@@ -168,8 +170,9 @@ namespace KDPgDriver.Utils
         case KDPgValueTypeReal _:
         case KDPgValueTypeDoublePrecision _:
         case KDPgValueTypeBoolean _:
-        case KDPgValueTypeDateTime _:
         case KDPgValueTypeTime _:
+        case KDPgValueTypeDateTime _:
+        case KDPgValueTypeInterval _:
         case KDPgValueTypeUUID _:
         case KDPgValueTypeDecimal _:
         case KDPgValueTypeBinary _:

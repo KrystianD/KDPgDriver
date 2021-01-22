@@ -14,6 +14,7 @@ namespace KDPgDriver
     Date,
     Time,
     DateTime,
+    Interval,
     Integer,
     Integer64,
     Float,
@@ -51,6 +52,7 @@ namespace KDPgDriver
     public static readonly KDPgValueTypeDate Date = new KDPgValueTypeDate();
     public static readonly KDPgValueTypeTime Time = new KDPgValueTypeTime();
     public static readonly KDPgValueTypeDateTime DateTime = new KDPgValueTypeDateTime();
+    public static readonly KDPgValueTypeInterval Interval = new KDPgValueTypeInterval();
     public static readonly KDPgValueTypeInteger Integer = new KDPgValueTypeInteger();
     public static readonly KDPgValueTypeInteger64 Integer64 = new KDPgValueTypeInteger64();
     public static readonly KDPgValueTypeReal Float = new KDPgValueTypeReal();
@@ -96,6 +98,13 @@ namespace KDPgDriver
     public override Type CSharpType => typeof(DateTime);
     public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Timestamp;
     public override string PostgresTypeName => "timestamp";
+  }
+
+  public class KDPgValueTypeInterval : KDPgValueType
+  {
+    public override Type CSharpType => typeof(TimeSpan);
+    public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Interval;
+    public override string PostgresTypeName => "interval";
   }
 
   public class KDPgValueTypeInteger : KDPgValueType
