@@ -124,7 +124,20 @@ namespace KDPgDriver.Utils
               case ExpressionType.Convert:
                 if (options.ExpandBooleans && un.Operand is MemberExpression && un.Operand.Type == typeof(bool)) // for cases like (x => x.BoolValue)
                   return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
-                return val;
+
+                if (un.Type == typeof(object)) // not important conversion (eg due to Func<Model,object> expression)
+                  return val;
+
+                var targetType = un.Type;
+                if (targetType.IsNullable())
+                  targetType = targetType.GetNullableInnerType();
+
+                var pgTargetType = PgTypesConverter.CreatePgValueTypeFromObjectType(targetType);
+                if (pgTargetType == val.Type)
+                  return val;
+
+                return ExpressionBuilders.Cast(val, pgTargetType);
+
               case ExpressionType.Not: return ExpressionBuilders.Not(val);
               case ExpressionType.ArrayLength: return ExpressionBuilders.ArrayLength(val);
               default:

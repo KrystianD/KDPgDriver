@@ -494,5 +494,14 @@ namespace KDPgDriver.Builders
 
       return new TypedExpression(rq, outType);
     }
+
+    public static TypedExpression Cast(TypedExpression value, Type type) => Cast(value, PgTypesConverter.CreatePgValueTypeFromObjectType(type));
+
+    public static TypedExpression Cast(TypedExpression value, KDPgValueType pgType)
+    {
+      RawQuery rq = new RawQuery();
+      rq.AppendWithCast(value.RawQuery, pgType);
+      return new TypedExpression(rq, pgType);
+    }
   }
 }

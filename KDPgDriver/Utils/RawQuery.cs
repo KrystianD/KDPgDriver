@@ -226,6 +226,11 @@ namespace KDPgDriver.Utils
       return this;
     }
 
+    public RawQuery AppendWithCast(RawQuery query, KDPgValueType pgType)
+    {
+      return AppendWithCast(query, pgType.PostgresTypeName);
+    }
+
     public RawQuery AppendWithCast(RawQuery query, string castType = null)
     {
       RawQuery q = new RawQuery();
