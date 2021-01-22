@@ -416,6 +416,13 @@ namespace KDPgDriver.Utils
                 rq = newRq.RawQuery;
                 pathValueType = newRq.Type;
               }
+              else if (member.DeclaringType == typeof(DateTime)) {
+                if (member.Name == "Day") {
+                  var newRq = ExpressionBuilders.Cast(FuncInternal.DatePart(ExtractField.Day, new TypedExpression(rq, pathValueType)), member.PropertyType);
+                  rq = newRq.RawQuery;
+                  pathValueType = newRq.Type;
+                }
+              }
               else {
                 throw new Exception($"Unsupported function: {member.Name}");
               }
