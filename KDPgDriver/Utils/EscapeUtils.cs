@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
 namespace KDPgDriver.Utils
@@ -19,16 +18,9 @@ namespace KDPgDriver.Utils
       return schema == null ? QuoteObjectName(tableName) : $"{QuoteObjectName(schema)}.{QuoteObjectName(tableName)}";
     }
 
-    public static string EscapePostgresValue(object value)
+    public static string EscapePostgresString(string str)
     {
-      return value switch {
-          string s => "'" + s.Replace("'", "''") + "'",
-          short v => v.ToString(),
-          int v => v.ToString(),
-          long v => v.ToString(),
-          DateTime v => EscapePostgresValue(v.ToString("yyyy-MM-dd HH:mm:ss.ffffff")),
-          _ => throw new Exception($"unable to escape value of type: {value.GetType()}"),
-      };
+      return $"'{str.Replace("'", "''")}'";
     }
 
     // Constants

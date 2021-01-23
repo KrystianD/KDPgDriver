@@ -119,7 +119,7 @@ namespace KDPgDriver.Utils
       return this;
     }
 
-    public RawQuery AppendStringValue(string value) => Append(EscapeUtils.EscapePostgresValue(value));
+    public RawQuery AppendStringValue(string value) => Append(EscapeUtils.EscapePostgresString(value));
 
     public RawQuery AppendFuncInvocation(string funcName, RawQuery rawQuery)
     {
@@ -351,7 +351,7 @@ namespace KDPgDriver.Utils
         }
 
         else if (part.ParamIdx != -1)
-          sb.Append(EscapeUtils.EscapePostgresValue(_parameters[part.ParamIdx].Value));
+          sb.Append(PgTypesConverter.ConvertToPgString(_parameters[part.ParamIdx]));
 
         else if (part.RawQuery != null)
           sb.Append(part.RawQuery.RenderSimple(ctx));

@@ -382,7 +382,7 @@ namespace KDPgDriver.Traverser
               var fieldType = ModelsRegistry.GetJsonPropertyType(member);
 
               rq.Append("->");
-              rq.Append(EscapeUtils.EscapePostgresValue(fieldName));
+              rq.Append(EscapeUtils.EscapePostgresString(fieldName));
               pi.JsonPath.Add(fieldName);
 
               pathValueType = fieldType;
@@ -416,7 +416,7 @@ namespace KDPgDriver.Traverser
 
           case string jsonObjectProperty:
             rq.Append("->");
-            rq.Append(EscapeUtils.EscapePostgresValue(jsonObjectProperty));
+            rq.Append(EscapeUtils.EscapePostgresString(jsonObjectProperty));
             pi.JsonPath.Add(jsonObjectProperty);
 
             pathValueType = KDPgValueTypeInstances.Json;

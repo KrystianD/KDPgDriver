@@ -1,5 +1,7 @@
 using System;
 using System.Collections;
+using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using KDLib;
 using KDPgDriver.Utils;
@@ -203,6 +205,22 @@ namespace KDPgDriver.Types
         default:
           throw new Exception($"ConvertToPgValue: Type {type} not implemented");
       }
+    }
+
+    public static string ConvertToPgString(object value)
+    {
+      return value switch {
+          string s => "'" + s.Replace("'", "''") + "'",
+          short v => v.ToString(),
+          int v => v.ToString(),
+          long v => v.ToString(),
+          float v => v.ToString(CultureInfo.InvariantCulture),
+          double v => v.ToString(CultureInfo.InvariantCulture),
+          DateTime v => EscapeUtils.EscapePostgresString(v.ToString("yyyy-MM-dd HH:mm:ss.ffffff")),
+          byte[] v => @$"E'\x{v.Select(x => x.ToString("x2")).JoinString()}'",
+          IEnumerable v => @$"ARRAY[{v.Cast<object>().Select(ConvertToPgString).JoinString(",")}]",
+          _ => throw new ArgumentException($"unable to escape value of type: {value.GetType()}"),
+      };
     }
   }
 }
