@@ -167,35 +167,16 @@ namespace KDPgDriver.Traverser
             };
 
           case MethodCallExpression call:
-            // Native methods
-            if (call.Method.Name == "Substring") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              TypedExpression start = VisitInternal(call.Arguments[0]);
-              TypedExpression length = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.Substring(callObject, start, length);
+            var methodEntry = MethodsDatabase.EntriesMap.GetValueOrDefault(Tuple.Create(call.Type, call.Method.Name));
+
+            if (methodEntry != null) {
+              return methodEntry.Process(call, VisitInternal);
             }
-            else if (call.Method.Name == "StartsWith") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
-              return ExpressionBuilders.StartsWith(callObject, arg1);
-            }
-            else if (call.Method.Name == "EndsWith") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
-              return ExpressionBuilders.EndsWith(callObject, arg1);
-            }
+            // List
             else if (call.Method.Name == "Contains") {
               TypedExpression callObject = VisitInternal(call.Object);
               TypedExpression arg1 = VisitInternal(call.Arguments[0]);
               return ExpressionBuilders.Contains(callObject, arg1);
-            }
-            else if (call.Method.Name == "ToLower") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              return ExpressionBuilders.ToLower(callObject);
-            }
-            else if (call.Method.Name == "ToUpper") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              return ExpressionBuilders.ToUpper(callObject);
             }
             // Native accessors
             else if (call.Method.Name == "get_Item") {
@@ -223,28 +204,8 @@ namespace KDPgDriver.Traverser
               return GetConstant(call.Arguments[1]) switch {
                   ISelectSubquery subquery => ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression()),
                   IEnumerable enumerable => ExpressionBuilders.NotIn(extensionObject, enumerable),
-                  _ => throw new ArgumentException("Invalid value passed to PgIn method")
+                  _ => throw new ArgumentException("Invalid value passed to PgNotIn method")
               };
-            }
-            else if (call.Method.Name == "PgLike") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.Like(extensionObject, arg1);
-            }
-            else if (call.Method.Name == "PgILike") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.ILike(extensionObject, arg1);
-            }
-            else if (call.Method.Name == "PgRawLike") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.RawLike(extensionObject, arg1);
-            }
-            else if (call.Method.Name == "PgRawILike") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.RawILike(extensionObject, arg1);
             }
             else if (call.Method.Name == "PgContainsAny") {
               TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
