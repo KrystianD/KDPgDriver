@@ -26,6 +26,7 @@ namespace KDPgDriver.Utils
           short v => v.ToString(),
           int v => v.ToString(),
           long v => v.ToString(),
+          DateTime v => EscapePostgresValue(v.ToString("yyyy-MM-dd HH:mm:ss.ffffff")),
           _ => throw new Exception($"unable to escape value of type: {value.GetType()}"),
       };
     }
