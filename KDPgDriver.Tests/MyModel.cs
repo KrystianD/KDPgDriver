@@ -73,6 +73,14 @@ namespace KDPgDriver.Tests
     [KDPgColumn("enum2")]
     public MyEnum2 Enum2 { get; set; }
 
+    [KDPgColumn("date")]
+    [KDPgColumnType(KDPgValueTypeKind.Date)]
+    public DateTime Date { get; set; }
+
+    [KDPgColumn("time")]
+    [KDPgColumnType(KDPgValueTypeKind.Time)]
+    public TimeSpan Time { get; set; }
+
     [KDPgColumn("datetime")]
     public DateTime DateTime { get; set; }
 

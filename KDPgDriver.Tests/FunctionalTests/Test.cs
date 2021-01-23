@@ -57,6 +57,8 @@ CREATE TABLE model (
   enum enum,
   enum2 ""Schema1"".enum2,
   list_enum enum[],
+  date date,
+  time time,
   datetime timestamp,
   json_object1 jsonb,
   json_model jsonb,
