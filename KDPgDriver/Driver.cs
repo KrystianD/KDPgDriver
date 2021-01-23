@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using KDLib;
 using KDPgDriver.Queries;
 using KDPgDriver.Results;
 using KDPgDriver.Utils;
 using Npgsql;
+
+[assembly: InternalsVisibleTo("KDPgDriverTest")]
+[assembly: InternalsVisibleTo("KDPgDriver.Tests")]
 
 namespace KDPgDriver
 {
