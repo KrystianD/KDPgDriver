@@ -196,7 +196,7 @@ namespace KDPgDriver.Traverser
           };
 
         case MethodCallExpression call:
-          var methodEntry = MethodsDatabase.EntriesMap.GetValueOrDefault(Tuple.Create(call.Type, call.Method.Name));
+          var methodEntry = Database.FindMethod(call);
 
           if (methodEntry != null) {
             return methodEntry.Process(call, VisitExpression);
@@ -396,7 +396,7 @@ namespace KDPgDriver.Traverser
                 pathValueType = newRq.Type;
               }
               else {
-                var t = PropertiesDatabase.EntriesMap.GetValueOrDefault(Tuple.Create(member.DeclaringType, member.Name));
+                var t = Database.FindProperty(member);
 
                 if (t != null) {
                   var newRq = new TypedExpression(rq, pathValueType);
