@@ -11,9 +11,12 @@ Uses Npgsql as PostgreSQL connector.
 
 **Features**
 
-* Support for SELECT, INSERT, DELETE and UPDATE queries,
+* Support for SELECT (including EXISTS), INSERT, DELETE and UPDATE queries,
 * Support for typed LEFT JOINs,
 * Support for json(b) fields (querying, extracting data from nested models),
+* Implemented some of Postgres functions in type-safe manner,
+* Support for using C# methods of string (StartsWith, Contains, etc) and DateTime properties (Day, Month, etc),
+* Extension methods for easy LIKE, IN and ANY usage,
 * Subqueries support:
   * in WHERE clause of SELECT, DELETE and UPDATE queries,
   * in INSERT query as field value,
