@@ -36,6 +36,12 @@ namespace KDPgDriver
       return new SelectQueryFluentBuilder1Prep<TModel>().SelectOnly(fieldsList);
     }
 
+    public static SelectQueryFluentBuilder<TModel, bool> Exists()
+    {
+      // ReSharper disable once HeapView.ObjectAllocation.Evident
+      return new SelectQueryFluentBuilder1Prep<TModel>().Exists();
+    }
+
     // ReSharper disable HeapView.ObjectAllocation.Evident
     public static InsertQueryFluentBuilder1<TModel> Insert() => new InsertQueryFluentBuilder1<TModel>(null);
     public static UpdateQueryFluentBuilder1<TModel> Update() => new UpdateQueryFluentBuilder1<TModel>(null);

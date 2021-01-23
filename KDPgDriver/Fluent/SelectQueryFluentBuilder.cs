@@ -41,17 +41,17 @@ namespace KDPgDriver.Fluent
 
     public SelectQueryFluentBuilder<TModel, TModel> Select()
     {
-      return new SelectQueryFluentBuilder<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), _executor);
+      return new SelectQueryFluentBuilder<TModel, TModel>(SelectFromBuilder.AllColumns<TModel>(), false, _executor);
     }
 
     public SelectQueryFluentBuilder<TModel, TNewModel> Select<TNewModel>(Expression<Func<TModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), _executor);
+      return new SelectQueryFluentBuilder<TModel, TNewModel>(SelectFromBuilder.FromExpression(pr), false, _executor);
     }
 
     public SelectQueryFluentBuilder<TModel, TModel> SelectOnly(FieldListBuilder<TModel> builder)
     {
-      return new SelectQueryFluentBuilder<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), _executor);
+      return new SelectQueryFluentBuilder<TModel, TModel>(SelectFromBuilder.FromFieldListBuilder(builder), false, _executor);
     }
 
     public SelectQueryFluentBuilder<TModel, TModel> SelectOnly(params Expression<Func<TModel, object>>[] fieldsList)
@@ -60,6 +60,11 @@ namespace KDPgDriver.Fluent
       foreach (var expression in fieldsList)
         builder.AddField(expression);
       return SelectOnly(builder);
+    }
+
+    public SelectQueryFluentBuilder<TModel, bool> Exists()
+    {
+      return new SelectQueryFluentBuilder<TModel, bool>(SelectFromBuilder.FromExpression<TModel, int>(x => 1), true, _executor);
     }
   }
 
@@ -215,7 +220,6 @@ namespace KDPgDriver.Fluent
     private readonly TablesList _tablesList;
     private readonly QueryExecutor _executor;
 
-
     public SelectMultipleQueryFluentBuilderMapper(QueryExecutor executor, TablesList tablesList)
     {
       _executor = executor;
@@ -224,12 +228,12 @@ namespace KDPgDriver.Fluent
 
     public SelectQueryFluentBuilder<TCombinedModel, TCombinedModel> Select()
     {
-      return new SelectQueryFluentBuilder<TCombinedModel, TCombinedModel>(SelectFromBuilder.AllColumnsFromCombined<TCombinedModel>(_tablesList), _executor);
+      return new SelectQueryFluentBuilder<TCombinedModel, TCombinedModel>(SelectFromBuilder.AllColumnsFromCombined<TCombinedModel>(_tablesList), false, _executor);
     }
 
     public SelectQueryFluentBuilder<TCombinedModel, TNewModel> Select<TNewModel>(Expression<Func<TCombinedModel, TNewModel>> pr)
     {
-      return new SelectQueryFluentBuilder<TCombinedModel, TNewModel>(SelectFromBuilder.FromCombinedExpression(_tablesList, pr), _executor);
+      return new SelectQueryFluentBuilder<TCombinedModel, TNewModel>(SelectFromBuilder.FromCombinedExpression(_tablesList, pr), false, _executor);
     }
   }
 
@@ -241,11 +245,13 @@ namespace KDPgDriver.Fluent
     private readonly OrderBuilder<TModel> _orderBuilder = new OrderBuilder<TModel>();
     private readonly WhereBuilder<TModel> _whereBuilder = WhereBuilder<TModel>.Empty;
     private readonly LimitBuilder _limitBuilder = new LimitBuilder();
+    private readonly bool _existsQuery;
 
-    public SelectQueryFluentBuilder(SelectFromBuilder selectFromBuilder, QueryExecutor executor = null)
+    public SelectQueryFluentBuilder(SelectFromBuilder selectFromBuilder, bool existsQuery, QueryExecutor executor = null)
     {
       _executor = executor;
       _selectFromBuilder = selectFromBuilder;
+      _existsQuery = existsQuery;
     }
 
     public WhereBuilder<TModel> CreateWhereBuilder() => WhereBuilder<TModel>.Empty;
@@ -294,7 +300,7 @@ namespace KDPgDriver.Fluent
 
     public SelectQuery<TModel, TNewModel> GetSelectQuery()
     {
-      return new SelectQuery<TModel, TNewModel>(_whereBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder);
+      return new SelectQuery<TModel, TNewModel>(_whereBuilder, _selectFromBuilder, _orderBuilder, _limitBuilder, _existsQuery);
     }
 
     public SelectSubquery<TNewModel> AsSubquery()

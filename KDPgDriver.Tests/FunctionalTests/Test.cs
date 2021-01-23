@@ -151,6 +151,25 @@ INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
     }
 
     [Fact]
+    public async Task Exists()
+    {
+      var dr = await CreateDriver();
+
+      var res = await dr.From<MyModel>()
+                        .Exists()
+                        .ToSingleAsync();
+
+      Assert.True(res);
+
+      res = await dr.From<MyModel>()
+                    .Exists()
+                    .Where(x => x.Name == "not-existing")
+                    .ToSingleAsync();
+
+      Assert.False(res);
+    }
+
+    [Fact]
     public async Task WhereEnumFetch()
     {
       var dr = await CreateDriver();

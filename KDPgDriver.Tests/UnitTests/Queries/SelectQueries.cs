@@ -84,6 +84,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"SELECT ""id"",""name"" FROM model");
     }
+    
+    // Exists
+    [Fact]
+    public void Exists()
+    {
+      var q = Builders<MyModel>.Exists();
+
+      Utils.AssertRawQuery(q, @"SELECT EXISTS(SELECT 1 FROM model)");
+    }
 
     // Enums
     [Fact]

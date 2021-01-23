@@ -18,17 +18,21 @@ namespace KDPgDriver.Queries
     private readonly IOrderBuilder _orderBuilder;
     private readonly LimitBuilder _limitBuilder;
 
+    private readonly bool _existsQuery;
+
     public IResultProcessor GetResultProcessor() => _fromBuilder.GetResultProcessor();
 
     public SelectQuery(IWhereBuilder whereBuilder,
                        ISelectFromBuilder fromBuilder,
                        IOrderBuilder orderBuilder,
-                       LimitBuilder limitBuilder)
+                       LimitBuilder limitBuilder,
+                       bool existsQuery)
     {
       _whereBuilder = whereBuilder;
       _fromBuilder = fromBuilder;
       _orderBuilder = orderBuilder;
       _limitBuilder = limitBuilder;
+      _existsQuery = existsQuery;
     }
 
     public RawQuery GetRawQuery()
@@ -54,6 +58,12 @@ namespace KDPgDriver.Queries
           rq.Append($" LIMIT {_limitBuilder.LimitValue}");
         if (_limitBuilder.OffsetValue.HasValue)
           rq.Append($" OFFSET {_limitBuilder.OffsetValue}");
+      }
+
+      if (_existsQuery) {
+        var existsRq = new RawQuery();
+        existsRq.AppendFuncInvocation("SELECT EXISTS", rq);
+        rq = existsRq;
       }
 
       return rq;
