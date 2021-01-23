@@ -78,7 +78,7 @@ namespace KDPgDriver.Fluent
     public SelectMultipleQueryFluentBuilderPrep2(QueryExecutor executor,
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition)
     {
-      var options = new NodeVisitor.EvaluationOptions();
+      var options = new EvaluationOptions();
       options.ParameterToTableAlias.Add(joinCondition.Parameters[0], _p1);
       options.ParameterToTableAlias.Add(joinCondition.Parameters[1], _p2);
 
@@ -117,13 +117,13 @@ namespace KDPgDriver.Fluent
                                                  Expression<Func<TModel1, TModel2, bool>> joinCondition1,
                                                  Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2)
     {
-      var options = new NodeVisitor.EvaluationOptions();
+      var options = new EvaluationOptions();
       options.ParameterToTableAlias.Add(joinCondition1.Parameters[0], _p1);
       options.ParameterToTableAlias.Add(joinCondition1.Parameters[1], _p2);
 
       _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition1, options);
 
-      options = new NodeVisitor.EvaluationOptions();
+      options = new EvaluationOptions();
       options.ParameterToTableAlias.Add(joinCondition2.Parameters[0], _p1);
       options.ParameterToTableAlias.Add(joinCondition2.Parameters[1], _p2);
       options.ParameterToTableAlias.Add(joinCondition2.Parameters[2], _p3);
@@ -168,20 +168,20 @@ namespace KDPgDriver.Fluent
                                                  Expression<Func<TModel1, TModel2, TModel3, bool>> joinCondition2,
                                                  Expression<Func<TModel1, TModel2, TModel3, TModel4, bool>> joinCondition3)
     {
-      var options = new NodeVisitor.EvaluationOptions();
+      var options = new EvaluationOptions();
       options.ParameterToTableAlias.Add(joinCondition1.Parameters[0], _p1);
       options.ParameterToTableAlias.Add(joinCondition1.Parameters[1], _p2);
 
       _joinCondition1 = NodeVisitor.VisitFuncExpression(joinCondition1, options);
 
-      options = new NodeVisitor.EvaluationOptions();
+      options = new EvaluationOptions();
       options.ParameterToTableAlias.Add(joinCondition2.Parameters[0], _p1);
       options.ParameterToTableAlias.Add(joinCondition2.Parameters[1], _p2);
       options.ParameterToTableAlias.Add(joinCondition2.Parameters[2], _p3);
 
       _joinCondition2 = NodeVisitor.VisitFuncExpression(joinCondition2, options);
 
-      options = new NodeVisitor.EvaluationOptions();
+      options = new EvaluationOptions();
       options.ParameterToTableAlias.Add(joinCondition3.Parameters[0], _p1);
       options.ParameterToTableAlias.Add(joinCondition3.Parameters[1], _p2);
       options.ParameterToTableAlias.Add(joinCondition3.Parameters[2], _p3);

@@ -13,6 +13,21 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Traverser
 {
+  internal class EvaluationOptions
+  {
+    public readonly Dictionary<ParameterExpression, RawQuery.TableNamePlaceholder> ParameterToTableAlias = new Dictionary<ParameterExpression, RawQuery.TableNamePlaceholder>();
+
+    public bool ExpandBooleans { get; set; } = false;
+  }
+
+  internal class PathInfo
+  {
+    public TypedExpression Expression;
+    public KdPgColumnDescriptor Column { get; set; }
+    public List<object> JsonPath { get; } = new List<object>();
+    public ParameterExpression ParameterExp;
+  }
+
   internal static class NodeVisitor
   {
     public static KdPgColumnDescriptor EvaluateFuncExpressionToColumn<TModel>(Expression<Func<TModel, object>> exp)
@@ -52,13 +67,6 @@ namespace KDPgDriver.Traverser
       return ModelsRegistry.GetColumn(EvaluateToPropertyInfo(exp));
     }
 
-    public class EvaluationOptions
-    {
-      public readonly Dictionary<ParameterExpression, RawQuery.TableNamePlaceholder> ParameterToTableAlias = new Dictionary<ParameterExpression, RawQuery.TableNamePlaceholder>();
-
-      public bool ExpandBooleans { get; set; } = false;
-    }
-
     public static TypedExpression VisitFuncExpression<TModel>(Expression<Func<TModel, object>> exp, EvaluationOptions options = null)
     {
       var names = exp.Parameters.Select(x => x.Name);
@@ -96,180 +104,193 @@ namespace KDPgDriver.Traverser
 
     public static TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null, EvaluationOptions options = null)
     {
-      options ??= new EvaluationOptions();
+      return new NodeVisitorInternal(options).EvaluateToTypedExpression(expression, inputParametersNames);
+    }
 
-      var evaluatedExpression = Evaluator.PartialEval(expression, inputParametersNames);
+    public static PathInfo VisitPath<TModel>(Expression<Func<TModel, object>> expression)
+    {
+      return new NodeVisitorInternal(null).VisitPath(expression);
+    }
 
-      TypedExpression VisitInternal(Expression exp)
-      {
-        switch (exp) {
-          case MemberExpression me:
-            var pi = VisitPath(options, me);
-            if (options.ExpandBooleans && me.Type == typeof(bool)) // for cases like (x => x.BoolValue)
-              return ExpressionBuilders.Eq(pi.Expression, TypedExpression.FromValue(true));
+    public static PathInfo VisitPath<TModel>(Expression<Func<TModel, object>> expression, EvaluationOptions options)
+    {
+      return new NodeVisitorInternal(options).VisitPath(expression);
+    }
 
-            return pi.Expression;
+    public static PathInfo VisitPath(Expression expression, EvaluationOptions options)
+    {
+      return new NodeVisitorInternal(options).VisitPath(expression);
+    }
+  }
 
-          case ConstantExpression me:
-            var pgValue = PgTypesConverter.ConvertObjectToPgValue(me.Value);
-            return new TypedExpression(RawQuery.Create(pgValue), pgValue.Type);
+  internal class NodeVisitorInternal
+  {
+    private readonly EvaluationOptions _options;
 
-          case UnaryExpression un:
-            var val = VisitInternal(un.Operand);
+    public NodeVisitorInternal(EvaluationOptions options)
+    {
+      _options = options ?? new EvaluationOptions();
+    }
 
-            switch (un.NodeType) {
-              case ExpressionType.Convert:
-                if (options.ExpandBooleans && un.Operand is MemberExpression && un.Operand.Type == typeof(bool)) // for cases like (x => x.BoolValue)
-                  return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
+    public TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null)
+    {
+      return VisitExpression(Evaluator.PartialEval(expression, inputParametersNames));
+    }
 
-                if (un.Type == typeof(object)) // not important conversion (eg due to Func<Model,object> expression)
-                  return val;
+    private TypedExpression VisitExpression(Expression exp)
+    {
+      switch (exp) {
+        case MemberExpression me:
+          var pi = VisitPath(me);
+          if (_options.ExpandBooleans && me.Type == typeof(bool)) // for cases like (x => x.BoolValue)
+            return ExpressionBuilders.Eq(pi.Expression, TypedExpression.FromValue(true));
 
-                var targetType = un.Type;
-                if (targetType.IsNullable())
-                  targetType = targetType.GetNullableInnerType();
+          return pi.Expression;
 
-                var pgTargetType = PgTypesConverter.CreatePgValueTypeFromObjectType(targetType);
-                if (pgTargetType == val.Type)
-                  return val;
+        case ConstantExpression me:
+          var pgValue = PgTypesConverter.ConvertObjectToPgValue(me.Value);
+          return new TypedExpression(RawQuery.Create(pgValue), pgValue.Type);
 
-                return ExpressionBuilders.Cast(val, pgTargetType);
+        case UnaryExpression un:
+          var val = VisitExpression(un.Operand);
 
-              case ExpressionType.Not: return ExpressionBuilders.Not(val);
-              case ExpressionType.ArrayLength: return ExpressionBuilders.ArrayLength(val);
-              default:
-                throw new Exception($"unknown operator: {un.NodeType}");
-            }
+          switch (un.NodeType) {
+            case ExpressionType.Convert:
+              if (_options.ExpandBooleans && un.Operand is MemberExpression && un.Operand.Type == typeof(bool)) // for cases like (x => x.BoolValue)
+                return ExpressionBuilders.Eq(val, TypedExpression.FromValue(true));
 
-          case BinaryExpression be:
-            TypedExpression left = VisitInternal(be.Left);
-            TypedExpression right = VisitInternal(be.Right);
+              if (un.Type == typeof(object)) // not important conversion (eg due to Func<Model,object> expression)
+                return val;
 
-            return be.NodeType switch {
-                ExpressionType.Equal => ExpressionBuilders.Eq(left, right),
-                ExpressionType.NotEqual => ExpressionBuilders.NotEq(left, right),
-                ExpressionType.Add => ExpressionBuilders.Add(left, right),
-                ExpressionType.Subtract => ExpressionBuilders.Subtract(left, right),
-                ExpressionType.Multiply => ExpressionBuilders.Multiply(left, right),
-                ExpressionType.Divide => ExpressionBuilders.Divide(left, right),
-                ExpressionType.AndAlso => ExpressionBuilders.And(new[] { left, right }),
-                ExpressionType.OrElse => ExpressionBuilders.Or(new[] { left, right }),
-                ExpressionType.LessThan => ExpressionBuilders.LessThan(left, right),
-                ExpressionType.LessThanOrEqual => ExpressionBuilders.LessThanEqual(left, right),
-                ExpressionType.GreaterThan => ExpressionBuilders.GreaterThan(left, right),
-                ExpressionType.GreaterThanOrEqual => ExpressionBuilders.GreaterThanEqual(left, right),
-                _ => throw new Exception($"unknown operator: {be.NodeType}")
+              var targetType = un.Type;
+              if (targetType.IsNullable()) targetType = targetType.GetNullableInnerType();
+
+              var pgTargetType = PgTypesConverter.CreatePgValueTypeFromObjectType(targetType);
+              if (pgTargetType == val.Type) return val;
+
+              return ExpressionBuilders.Cast(val, pgTargetType);
+
+            case ExpressionType.Not: return ExpressionBuilders.Not(val);
+            case ExpressionType.ArrayLength: return ExpressionBuilders.ArrayLength(val);
+            default: throw new Exception($"unknown operator: {un.NodeType}");
+          }
+
+        case BinaryExpression be:
+          TypedExpression left = VisitExpression(be.Left);
+          TypedExpression right = VisitExpression(be.Right);
+
+          return be.NodeType switch {
+              ExpressionType.Equal => ExpressionBuilders.Eq(left, right),
+              ExpressionType.NotEqual => ExpressionBuilders.NotEq(left, right),
+              ExpressionType.Add => ExpressionBuilders.Add(left, right),
+              ExpressionType.Subtract => ExpressionBuilders.Subtract(left, right),
+              ExpressionType.Multiply => ExpressionBuilders.Multiply(left, right),
+              ExpressionType.Divide => ExpressionBuilders.Divide(left, right),
+              ExpressionType.AndAlso => ExpressionBuilders.And(new[] { left, right }),
+              ExpressionType.OrElse => ExpressionBuilders.Or(new[] { left, right }),
+              ExpressionType.LessThan => ExpressionBuilders.LessThan(left, right),
+              ExpressionType.LessThanOrEqual => ExpressionBuilders.LessThanEqual(left, right),
+              ExpressionType.GreaterThan => ExpressionBuilders.GreaterThan(left, right),
+              ExpressionType.GreaterThanOrEqual => ExpressionBuilders.GreaterThanEqual(left, right),
+              _ => throw new Exception($"unknown operator: {be.NodeType}")
+          };
+
+        case MethodCallExpression call:
+          var methodEntry = MethodsDatabase.EntriesMap.GetValueOrDefault(Tuple.Create(call.Type, call.Method.Name));
+
+          if (methodEntry != null) {
+            return methodEntry.Process(call, VisitExpression);
+          }
+          // List
+          else if (call.Method.Name == "Contains") {
+            TypedExpression callObject = VisitExpression(call.Object);
+            TypedExpression arg1 = VisitExpression(call.Arguments[0]);
+            return ExpressionBuilders.Contains(callObject, arg1);
+          }
+          // Native accessors
+          else if (call.Method.Name == "get_Item") {
+            TypedExpression callObject = VisitExpression(call.Object);
+            TypedExpression arg1 = VisitExpression(call.Arguments[0]);
+
+            RawQuery rq = new RawQuery();
+            rq.AppendSurround(callObject.RawQuery);
+            rq.Append("->");
+            rq.Append(arg1.RawQuery);
+
+            return new TypedExpression(rq, KDPgValueTypeInstances.Json);
+          }
+          // Extension methods
+          else if (call.Method.Name == "PgIn") {
+            TypedExpression extensionObject = VisitExpression(call.Arguments[0]);
+            return GetConstant(call.Arguments[1]) switch {
+                ISelectSubquery subquery => ExpressionBuilders.In(extensionObject, subquery.GetTypedExpression()),
+                IEnumerable enumerable => ExpressionBuilders.In(extensionObject, enumerable),
+                _ => throw new ArgumentException("Invalid value passed to PgIn method")
             };
+          }
+          else if (call.Method.Name == "PgNotIn") {
+            TypedExpression extensionObject = VisitExpression(call.Arguments[0]);
+            return GetConstant(call.Arguments[1]) switch {
+                ISelectSubquery subquery => ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression()),
+                IEnumerable enumerable => ExpressionBuilders.NotIn(extensionObject, enumerable),
+                _ => throw new ArgumentException("Invalid value passed to PgNotIn method")
+            };
+          }
+          else if (call.Method.Name == "PgContainsAny") {
+            TypedExpression extensionObject = VisitExpression(call.Arguments[0]);
+            TypedExpression arg1 = VisitExpression(call.Arguments[1]);
+            return ExpressionBuilders.ContainsAny(extensionObject, arg1);
+          }
+          // PG funcs
+          else {
+            string methodName = call.Method.Name;
 
-          case MethodCallExpression call:
-            var methodEntry = MethodsDatabase.EntriesMap.GetValueOrDefault(Tuple.Create(call.Type, call.Method.Name));
+            // TODO: optimize
+            MethodInfo[] methods;
+            if (call.Method.DeclaringType == typeof(Func))
+              methods = typeof(FuncInternal).GetMethods();
+            else if (call.Method.DeclaringType == typeof(AggregateFunc))
+              methods = typeof(AggregateFuncInternal).GetMethods();
+            else
+              throw new Exception("Invalid function");
 
-            if (methodEntry != null) {
-              return methodEntry.Process(call, VisitInternal);
+            if (methodName == "Raw") {
+              var valueType = PgTypesConverter.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
+              var text = (string)((ConstantExpression)call.Arguments[0]).Value;
+              return new TypedExpression(RawQuery.Create(text), valueType);
             }
-            // List
-            else if (call.Method.Name == "Contains") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
-              return ExpressionBuilders.Contains(callObject, arg1);
-            }
-            // Native accessors
-            else if (call.Method.Name == "get_Item") {
-              TypedExpression callObject = VisitInternal(call.Object);
-              TypedExpression arg1 = VisitInternal(call.Arguments[0]);
-
-              RawQuery rq = new RawQuery();
-              rq.AppendSurround(callObject.RawQuery);
-              rq.Append("->");
-              rq.Append(arg1.RawQuery);
-
-              return new TypedExpression(rq, KDPgValueTypeInstances.Json);
-            }
-            // Extension methods
-            else if (call.Method.Name == "PgIn") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              return GetConstant(call.Arguments[1]) switch {
-                  ISelectSubquery subquery => ExpressionBuilders.In(extensionObject, subquery.GetTypedExpression()),
-                  IEnumerable enumerable => ExpressionBuilders.In(extensionObject, enumerable),
-                  _ => throw new ArgumentException("Invalid value passed to PgIn method")
-              };
-            }
-            else if (call.Method.Name == "PgNotIn") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              return GetConstant(call.Arguments[1]) switch {
-                  ISelectSubquery subquery => ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression()),
-                  IEnumerable enumerable => ExpressionBuilders.NotIn(extensionObject, enumerable),
-                  _ => throw new ArgumentException("Invalid value passed to PgNotIn method")
-              };
-            }
-            else if (call.Method.Name == "PgContainsAny") {
-              TypedExpression extensionObject = VisitInternal(call.Arguments[0]);
-              TypedExpression arg1 = VisitInternal(call.Arguments[1]);
-              return ExpressionBuilders.ContainsAny(extensionObject, arg1);
-            }
-            // PG funcs
             else {
-              string methodName = call.Method.Name;
+              var internalMethod = methods.SingleOrDefault(x => x.Name == methodName);
+              if (internalMethod == null) throw new Exception($"invalid method: {call.Method.Name}");
 
-              // TODO: optimize
-              MethodInfo[] methods;
-              if (call.Method.DeclaringType == typeof(Func))
-                methods = typeof(FuncInternal).GetMethods();
-              else if (call.Method.DeclaringType == typeof(AggregateFunc))
-                methods = typeof(AggregateFuncInternal).GetMethods();
-              else
-                throw new Exception("Invalid function");
+              var passedArgsCount = call.Arguments.Count;
+              var methodArgs = internalMethod.GetParameters();
+              var methodArgsCount = methodArgs.Length;
 
-              if (methodName == "Raw") {
-                var valueType = PgTypesConverter.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
-                var text = (string)((ConstantExpression)call.Arguments[0]).Value;
-                return new TypedExpression(RawQuery.Create(text), valueType);
-              }
-              else {
-                var internalMethod = methods.SingleOrDefault(x => x.Name == methodName);
-                if (internalMethod == null)
-                  throw new Exception($"invalid method: {call.Method.Name}");
+              var args = call.Arguments.Zip(methodArgs)
+                             .Select(x => {
+                               var (value, parameter) = x;
+                               return parameter.ParameterType == typeof(TypedExpression)
+                                   ? VisitExpression(value)
+                                   : GetConstant(value);
+                             })
+                             .Concat(Enumerable.Repeat(Type.Missing, Math.Max(0, methodArgsCount - passedArgsCount)))
+                             .ToArray();
 
-                var passedArgsCount = call.Arguments.Count;
-                var methodArgs = internalMethod.GetParameters();
-                var methodArgsCount = methodArgs.Length;
-
-                var args = call.Arguments.Zip(methodArgs)
-                               .Select(x => {
-                                 var (value, parameter) = x;
-                                 return parameter.ParameterType == typeof(TypedExpression)
-                                     ? VisitInternal(value)
-                                     : GetConstant(value);
-                               })
-                               .Concat(Enumerable.Repeat(Type.Missing, Math.Max(0, methodArgsCount - passedArgsCount)))
-                               .ToArray();
-
-                return (TypedExpression)internalMethod.Invoke(null, args);
-              }
+              return (TypedExpression)internalMethod.Invoke(null, args);
             }
+          }
 
-          default:
-            throw new Exception($"invalid node: {(exp == null ? "(null)" : exp.NodeType.ToString())}");
-        }
+        default: throw new Exception($"invalid node: {(exp == null ? "(null)" : exp.NodeType.ToString())}");
       }
-
-      return VisitInternal(evaluatedExpression);
     }
 
-    public class PathInfo
+    public PathInfo VisitPath<TModel>(Expression<Func<TModel, object>> exp)
     {
-      public TypedExpression Expression;
-      public KdPgColumnDescriptor Column { get; set; }
-      public List<object> JsonPath { get; } = new List<object>();
-      public ParameterExpression ParameterExp;
+      return VisitPath(exp.Body);
     }
 
-    public static PathInfo VisitPath<TModel>(EvaluationOptions options, Expression<Func<TModel, object>> exp)
-    {
-      return VisitPath(options, exp.Body);
-    }
-
-    public static PathInfo VisitPath(EvaluationOptions options, Expression exp)
+    public PathInfo VisitPath(Expression exp)
     {
       var pi = new PathInfo();
       KDPgValueType pathValueType = null;
@@ -345,13 +366,13 @@ namespace KDPgDriver.Traverser
               var column = ModelsRegistry.GetColumn(member);
               pi.Column = column;
 
-              if (options == null || options.ParameterToTableAlias.Count == 0) {
+              if (_options == null || _options.ParameterToTableAlias.Count == 0) {
                 var tableVarName = overrideTableName ?? column.Table.Name;
                 rq.AppendColumn(column, new RawQuery.TableNamePlaceholder(column.Table, tableVarName));
               }
               else {
                 // var tableVarName = overrideTableName ?? pi.ParameterName;
-                rq.AppendColumn(column, options.ParameterToTableAlias[pi.ParameterExp]);
+                rq.AppendColumn(column, _options.ParameterToTableAlias[pi.ParameterExp]);
               }
 
               pathValueType = column.Type;

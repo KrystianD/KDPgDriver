@@ -30,7 +30,7 @@ namespace KDPgDriver.Builders
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, TValue value)
     {
-      var pi = NodeVisitor.VisitPath(null, field);
+      var pi = NodeVisitor.VisitPath(field, null);
       var npgValue = PgTypesConverter.ConvertToPgValue(pi.Expression.Type, value);
 
       if (pi.JsonPath.Count > 0) {
@@ -45,7 +45,7 @@ namespace KDPgDriver.Builders
 
     public UpdateStatementsBuilder<TModel> SetField<TValue>(Expression<Func<TModel, TValue>> field, Expression<Func<TModel, TValue>> valueExpression)
     {
-      var pi = NodeVisitor.VisitPath(null, field);
+      var pi = NodeVisitor.VisitPath(field, null);
 
       var exp = NodeVisitor.VisitFuncExpression(valueExpression);
 
@@ -55,7 +55,7 @@ namespace KDPgDriver.Builders
 
     public UpdateStatementsBuilder<TModel> AddToList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value, UpdateAddToListFlags flags = UpdateAddToListFlags.None)
     {
-      var pi = NodeVisitor.VisitPath(null, field);
+      var pi = NodeVisitor.VisitPath(field, null);
 
       if (pi.Expression.Type is KDPgValueTypeArray) {
         if ((flags & UpdateAddToListFlags.Distinct) == UpdateAddToListFlags.None) {
@@ -79,7 +79,7 @@ namespace KDPgDriver.Builders
 
     public UpdateStatementsBuilder<TModel> RemoveAllFromList<TValue>(Expression<Func<TModel, IList<TValue>>> field, TValue value)
     {
-      var pi = NodeVisitor.VisitPath(null, field);
+      var pi = NodeVisitor.VisitPath(field, null);
 
       if (pi.Expression.Type is KDPgValueTypeArray)
         AddUpdate(pi.Column, src => ExpressionBuilders.ArrayRemoveItem(src, value));

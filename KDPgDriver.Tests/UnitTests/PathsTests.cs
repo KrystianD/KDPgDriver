@@ -12,7 +12,7 @@ namespace KDPgDriver.Tests.UnitTests
       MyInit.Init();
     }
 
-    private void AssertPath<TModel>(NodeVisitor.PathInfo pi, string columnName, string query, KDPgValueType type)
+    private void AssertPath<TModel>(PathInfo pi, string columnName, string query, KDPgValueType type)
     {
       Assert.Equal(type, pi.Expression.Type);
       Assert.Equal(query, pi.Expression.RawQuery.ToString());
@@ -22,7 +22,7 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void PathTest1()
     {
-      var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.Name);
+      var pi = NodeVisitor.VisitPath<MyModel>(x => x.Name);
 
       AssertPath<MyModel>(pi, "name", "\"name\"", KDPgValueTypeInstances.String);
     }
@@ -30,7 +30,7 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void PathTest2()
     {
-      var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonModel.Name);
+      var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonModel.Name);
 
       AssertPath<MyModel>(pi, "json_model", "(json_model->'name')::text", KDPgValueTypeInstances.String);
     }
@@ -38,7 +38,7 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void PathTest3()
     {
-      var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonModel.MySubsubmodel.Number);
+      var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonModel.MySubsubmodel.Number);
 
       AssertPath<MyModel>(pi, "json_model", "(json_model->'inner'->'number')::text::int", KDPgValueTypeInstances.Integer);
     }
@@ -46,7 +46,7 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void PathTest4()
     {
-      var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonObject1["a"][0]);
+      var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonObject1["a"][0]);
 
       AssertPath<MyModel>(pi, "json_object1", "json_object1->'a'->0", KDPgValueTypeInstances.Json);
     }
@@ -54,7 +54,7 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void PathTest5()
     {
-      var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonArray1[0]);
+      var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonArray1[0]);
 
       AssertPath<MyModel>(pi, "json_array1", "json_array1->0", KDPgValueTypeInstances.Json);
     }
@@ -62,7 +62,7 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void PathTest6()
     {
-      var pi = NodeVisitor.VisitPath<MyModel>(null, x => x.JsonModel.JsonObject2["a"]);
+      var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonModel.JsonObject2["a"]);
 
       AssertPath<MyModel>(pi, "json_model", "json_model->'json_object2'->'a'", KDPgValueTypeInstances.Json);
     }
