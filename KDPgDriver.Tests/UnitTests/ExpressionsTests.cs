@@ -27,18 +27,6 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
-    public void ExpressionBool()
-    {
-      var exp1 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool == false);
-
-      Utils.AssertExpression(exp1, @"(bool) = (FALSE)");
-
-      var exp2 = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Bool);
-
-      Utils.AssertExpression(exp2, @"bool");
-    }
-
-    [Fact]
     public void ExpressionEqNull()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Name == null);
@@ -356,28 +344,6 @@ namespace KDPgDriver.Tests.UnitTests
 
       var exp2 = NodeVisitor.VisitFuncExpression<MyModel>(x => Func.Coalesce(x.Name, "A", "B"));
       Utils.AssertExpression(exp2, @"COALESCE(""name"", 'A', 'B')");
-    }
-
-    // Data types
-    [Fact]
-    public void ExpressionDateTime()
-    {
-      var date = DateTime.Parse("2018-01-01 12:34");
-      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.DateTime == date);
-
-      Utils.AssertExpression(exp, @"(datetime) = (@1::timestamp)",
-                             new Param(date, NpgsqlDbType.Timestamp));
-    }
-
-    // Binary
-    [Fact]
-    public void ExpressionBinary()
-    {
-      var data = new byte[] { 1, 2, 3 };
-      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Binary == data);
-
-      Utils.AssertExpression(exp, @"(""binary"") = (@1::bytea)",
-                             new Param(data, NpgsqlDbType.Bytea));
     }
 
     // JSON
