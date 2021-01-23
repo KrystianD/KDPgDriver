@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using KDPgDriver.Queries;
 
-namespace KDPgDriver.Utils
+namespace KDPgDriver
 {
   public static class QueryExtensions
   {

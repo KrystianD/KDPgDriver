@@ -6,6 +6,8 @@ using System.Reflection;
 using KDLib;
 using KDPgDriver.Builders.ResultProcessors;
 using KDPgDriver.Fluent;
+using KDPgDriver.Traverser;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders

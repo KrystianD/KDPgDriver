@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq.Expressions;
+using KDPgDriver.Traverser;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders

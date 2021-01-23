@@ -4,6 +4,8 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 using KDPgDriver.Builders;
+using KDPgDriver.Traverser;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries

@@ -1,4 +1,6 @@
-﻿namespace KDPgDriver.Utils
+﻿using KDPgDriver.Types;
+
+namespace KDPgDriver.Utils
 {
   public class TypedExpression
   {

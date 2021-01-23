@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using KDPgDriver.Traverser;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders

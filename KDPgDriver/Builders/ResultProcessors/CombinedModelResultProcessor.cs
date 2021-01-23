@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders.ResultProcessors

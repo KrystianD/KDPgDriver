@@ -1,4 +1,5 @@
-﻿using KDPgDriver.Utils;
+﻿using KDPgDriver.Types;
+using KDPgDriver.Utils;
 
 namespace KDPgDriver.Queries
 {

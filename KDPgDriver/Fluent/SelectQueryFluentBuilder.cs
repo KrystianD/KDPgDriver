@@ -7,6 +7,8 @@ using JetBrains.Annotations;
 using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
+using KDPgDriver.Traverser;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 
 namespace KDPgDriver.Fluent

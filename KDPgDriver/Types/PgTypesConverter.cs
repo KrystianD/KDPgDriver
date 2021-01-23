@@ -2,10 +2,11 @@ using System;
 using System.Collections;
 using System.Reflection;
 using KDLib;
+using KDPgDriver.Utils;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace KDPgDriver.Utils
+namespace KDPgDriver.Types
 {
   public static class PgTypesConverter
   {
@@ -42,7 +43,7 @@ namespace KDPgDriver.Utils
       if (type == typeof(JToken) || type == typeof(JArray) || type == typeof(JObject) || type == typeof(JValue))
         return KDPgValueTypeInstances.Json;
 
-      if (Utils.CheckIfEnumerable(type, out itemType)) {
+      if (Utils.Utils.CheckIfEnumerable(type, out itemType)) {
         return new KDPgValueTypeArray(
             itemType: CreatePgValueTypeFromObjectType(itemType),
             nativeItemType: itemType);

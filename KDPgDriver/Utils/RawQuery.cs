@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using KDPgDriver.Types;
 
 namespace KDPgDriver.Utils
 {

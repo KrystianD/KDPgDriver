@@ -4,6 +4,7 @@ using System.Runtime.Serialization;
 using JetBrains.Annotations;
 using KDLib;
 using KDPgDriver.Builders;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 
 // ReSharper disable UnusedMember.Global

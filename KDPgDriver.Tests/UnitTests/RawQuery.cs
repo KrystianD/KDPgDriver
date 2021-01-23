@@ -1,5 +1,7 @@
 using System.Linq.Expressions;
 using KDPgDriver.Builders;
+using KDPgDriver.Traverser;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 using NpgsqlTypes;
 using Xunit;

@@ -1,4 +1,6 @@
-﻿using KDPgDriver.Utils;
+﻿using KDPgDriver.Traverser;
+using KDPgDriver.Types;
+using KDPgDriver.Utils;
 using Xunit;
 
 namespace KDPgDriver.Tests.UnitTests

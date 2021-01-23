@@ -8,8 +8,10 @@ using System.Reflection;
 using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
+using KDPgDriver.Types;
+using KDPgDriver.Utils;
 
-namespace KDPgDriver.Utils
+namespace KDPgDriver.Traverser
 {
   public static class NodeVisitor
   {

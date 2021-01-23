@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using KDPgDriver.Utils;
 using Newtonsoft.Json;
 
-namespace KDPgDriver.Utils
+namespace KDPgDriver.Types
 {
   public static class ModelsRegistry
   {

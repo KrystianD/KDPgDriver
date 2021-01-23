@@ -1,4 +1,5 @@
 ﻿using System;
+using KDPgDriver.Types;
 
 // ReSharper disable InconsistentNaming
 
