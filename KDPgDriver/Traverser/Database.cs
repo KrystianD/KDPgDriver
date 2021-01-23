@@ -50,6 +50,7 @@ namespace KDPgDriver.Traverser
         b.Property(x => x.Minute, exp => FuncInternal.DatePart(ExtractField.Minute, exp));
         b.Property(x => x.Second, exp => FuncInternal.DatePart(ExtractField.Second, exp));
         b.Property(x => x.Millisecond, exp => FuncInternal.DatePart(ExtractField.Milliseconds, exp));
+        b.Property(x => x.Date, FuncInternal.Date);
       });
 
       For<string>(b => {
