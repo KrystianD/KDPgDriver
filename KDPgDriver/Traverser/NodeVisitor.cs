@@ -245,14 +245,13 @@ namespace KDPgDriver.Traverser
           else {
             string methodName = call.Method.Name;
 
-            // TODO: optimize
-            MethodInfo[] methods;
+            Type funcType;
             if (call.Method.DeclaringType == typeof(Func))
-              methods = typeof(FuncInternal).GetMethods();
+              funcType = typeof(FuncInternal);
             else if (call.Method.DeclaringType == typeof(AggregateFunc))
-              methods = typeof(AggregateFuncInternal).GetMethods();
+              funcType = typeof(AggregateFuncInternal);
             else
-              throw new Exception("Invalid function");
+              throw new Exception($"Unsupported method call ({call.Method})");
 
             if (methodName == "Raw") {
               var valueType = PgTypesConverter.CreatePgValueTypeFromObjectType(call.Method.ReturnType);
@@ -260,7 +259,7 @@ namespace KDPgDriver.Traverser
               return new TypedExpression(RawQuery.Create(text), valueType);
             }
             else {
-              var internalMethod = methods.SingleOrDefault(x => x.Name == methodName);
+              var internalMethod = funcType.GetMethod(methodName);
               if (internalMethod == null) throw new Exception($"invalid method: {call.Method.Name}");
 
               var passedArgsCount = call.Arguments.Count;
