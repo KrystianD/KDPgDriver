@@ -204,57 +204,6 @@ namespace KDPgDriver.Fluent
     }
   }
 
-  // public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> : BaseSelectMultipleQueryFluentBuilderPrep
-  // {
-  //   private readonly IQueryExecutor _executor;
-  //
-  //   public SelectMultipleQueryFluentBuilderPrep4(IQueryExecutor executor)
-  //   {
-  //     _executor = executor;
-  //   }
-  //
-  //   public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TCombinedModel>> pr)
-  //   {
-  //     if (pr == null) throw new ArgumentNullException(nameof(pr));
-  //     TablesList tl = new TablesList();
-  //     tl.AddModel<TModel1>();
-  //     tl.AddModel<TModel2>();
-  //     tl.AddModel<TModel3>();
-  //     tl.AddModel<TModel4>();
-  //     // tl.leftJoins = leftJoins;
-  //     return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
-  //   }
-  // }
-  //
-  // public class SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5> : BaseSelectMultipleQueryFluentBuilderPrep
-  // {
-  //   private readonly IQueryExecutor _executor;
-  //
-  //   public SelectMultipleQueryFluentBuilderPrep5(IQueryExecutor executor)
-  //   {
-  //     _executor = executor;
-  //   }
-  //
-  //   // public new SelectMultipleQueryFluentBuilderPrep5<TModel1, TModel2, TModel3, TModel4, TModel5> ConfigureLeftJoin<T1, T2>(Expression<Func<T1, T2, bool>> joinCondition)
-  //   // {
-  //   //   base.ConfigureLeftJoin(joinCondition);
-  //   //   return this;
-  //   // }
-  //
-  //   public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TModel5, TCombinedModel>> pr)
-  //   {
-  //     if (pr == null) throw new ArgumentNullException(nameof(pr));
-  //     TablesList tl = new TablesList();
-  //     tl.AddModel<TModel1>();
-  //     tl.AddModel<TModel2>();
-  //     tl.AddModel<TModel3>();
-  //     tl.AddModel<TModel4>();
-  //     tl.AddModel<TModel5>();
-  //     // tl.leftJoins = leftJoins;
-  //     return new SelectMultipleQueryFluentBuilderMapper<TCombinedModel>(_executor, tl);
-  //   }
-  // }
-
   public class SelectMultipleQueryFluentBuilderMapper<TCombinedModel>
   {
     private readonly TablesList _tablesList;
