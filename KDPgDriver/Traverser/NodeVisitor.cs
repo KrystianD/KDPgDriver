@@ -13,14 +13,8 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Traverser
 {
-  public static class NodeVisitor
+  internal static class NodeVisitor
   {
-    internal class JsonPropertyPath
-    {
-      public KdPgColumnDescriptor Column { get; set; }
-      public List<string> JsonPath { get; } = new List<string>();
-    }
-
     public static KdPgColumnDescriptor EvaluateFuncExpressionToColumn<TModel>(Expression<Func<TModel, object>> exp)
     {
       return EvaluateExpressionToColumn(exp.Body);
@@ -102,8 +96,9 @@ namespace KDPgDriver.Traverser
 
     public static TypedExpression EvaluateToTypedExpression(Expression expression, HashSet<string> inputParametersNames = null, EvaluationOptions options = null)
     {
-      if (options == null)
-        options = new EvaluationOptions();
+      options ??= new EvaluationOptions();
+
+      var evaluatedExpression = Evaluator.PartialEval(expression, inputParametersNames);
 
       TypedExpression VisitInternal(Expression exp)
       {
@@ -258,7 +253,7 @@ namespace KDPgDriver.Traverser
         }
       }
 
-      return VisitInternal(Evaluator.PartialEval(expression, inputParametersNames));
+      return VisitInternal(evaluatedExpression);
     }
 
     public class PathInfo
