@@ -64,10 +64,7 @@ namespace KDPgDriver.Fluent
   }
 
   [PublicAPI]
-  public class BaseSelectMultipleQueryFluentBuilderPrep { }
-
-  [PublicAPI]
-  public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2> : BaseSelectMultipleQueryFluentBuilderPrep
+  public class SelectMultipleQueryFluentBuilderPrep2<TModel1, TModel2>
   {
     private readonly QueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
@@ -103,7 +100,7 @@ namespace KDPgDriver.Fluent
   }
 
   [PublicAPI]
-  public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3> : BaseSelectMultipleQueryFluentBuilderPrep
+  public class SelectMultipleQueryFluentBuilderPrep3<TModel1, TModel2, TModel3>
   {
     private readonly QueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
@@ -151,7 +148,7 @@ namespace KDPgDriver.Fluent
   }
 
   [PublicAPI]
-  public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4> : BaseSelectMultipleQueryFluentBuilderPrep
+  public class SelectMultipleQueryFluentBuilderPrep4<TModel1, TModel2, TModel3, TModel4>
   {
     private readonly QueryExecutor _executor;
     private readonly TypedExpression _joinCondition1;
