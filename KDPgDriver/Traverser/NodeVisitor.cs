@@ -225,7 +225,7 @@ namespace KDPgDriver.Traverser
             return GetConstant(call.Arguments[1]) switch {
                 ISelectSubquery subquery => ExpressionBuilders.In(extensionObject, subquery.GetTypedExpression()),
                 IEnumerable enumerable => ExpressionBuilders.In(extensionObject, enumerable),
-                _ => throw new ArgumentException("Invalid value passed to PgIn method")
+                _ => throw new ArgumentException("Invalid value passed to PgIn method"),
             };
           }
           else if (call.Method.Name == "PgNotIn") {
@@ -233,7 +233,7 @@ namespace KDPgDriver.Traverser
             return GetConstant(call.Arguments[1]) switch {
                 ISelectSubquery subquery => ExpressionBuilders.NotIn(extensionObject, subquery.GetTypedExpression()),
                 IEnumerable enumerable => ExpressionBuilders.NotIn(extensionObject, enumerable),
-                _ => throw new ArgumentException("Invalid value passed to PgNotIn method")
+                _ => throw new ArgumentException("Invalid value passed to PgNotIn method"),
             };
           }
           else if (call.Method.Name == "PgContainsAny") {
@@ -280,7 +280,8 @@ namespace KDPgDriver.Traverser
             }
           }
 
-        default: throw new Exception($"invalid node: {(exp == null ? "(null)" : exp.NodeType.ToString())}");
+        default:
+          throw new Exception($"Invalid node: {(exp?.NodeType.ToString() ?? "(null)")}");
       }
     }
 
@@ -456,19 +457,16 @@ namespace KDPgDriver.Traverser
       return pi;
     }
 
-    private static object GetConstant(Expression e)
+    private static object GetConstant(Expression exp)
     {
-      switch (e) {
-        case ConstantExpression me:
-          return me.Value;
-        case UnaryExpression un:
-          return un.NodeType switch {
-              ExpressionType.Convert => ((ConstantExpression)un.Operand).Value,
-              _ => throw new Exception($"unknown operator: {un.NodeType}")
-          };
-        default:
-          throw new Exception($"invalid node: {(e == null ? "(null)" : e.NodeType.ToString())}");
-      }
+      return exp switch {
+          ConstantExpression constExp => constExp.Value,
+          UnaryExpression unaryExp => unaryExp.NodeType switch {
+              ExpressionType.Convert => ((ConstantExpression)unaryExp.Operand).Value,
+              _ => throw new Exception($"Unknown operator: {unaryExp.NodeType}"),
+          },
+          _ => throw new Exception($"Invalid node: {(exp?.NodeType.ToString() ?? "(null)")}"),
+      };
     }
   }
 }

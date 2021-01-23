@@ -182,7 +182,7 @@ namespace KDPgDriver.Types
           return new PgValue(rawValue, type);
 
         case KDPgValueTypeEnum enumType:
-          object v = enumType.EnumEntry.EnumToNameFunc(rawValue);
+          string v = enumType.EnumEntry.EnumToNameFunc(rawValue);
           return new PgValue(v, type);
 
         case KDPgValueTypeDate _:
