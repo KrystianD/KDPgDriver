@@ -137,7 +137,7 @@ namespace KDPgDriver.Traverser
       return VisitExpression(Evaluator.PartialEval(expression, inputParametersNames));
     }
 
-    private TypedExpression VisitExpression(Expression exp)
+    private TypedExpression VisitExpression(Expression exp, KDPgValueType expectedType = null)
     {
       switch (exp) {
         case MemberExpression me:
@@ -149,6 +149,7 @@ namespace KDPgDriver.Traverser
 
         case ConstantExpression me:
           var pgValue = PgTypesConverter.ConvertObjectToPgValue(me.Value);
+          pgValue = AdjustType(pgValue, expectedType);
           return new TypedExpression(RawQuery.Create(pgValue), pgValue.Type);
 
         case UnaryExpression un:
@@ -177,7 +178,7 @@ namespace KDPgDriver.Traverser
 
         case BinaryExpression be:
           TypedExpression left = VisitExpression(be.Left);
-          TypedExpression right = VisitExpression(be.Right);
+          TypedExpression right = VisitExpression(be.Right, expectedType: left.Type);
 
           return be.NodeType switch {
               ExpressionType.Equal => ExpressionBuilders.Eq(left, right),
@@ -199,7 +200,7 @@ namespace KDPgDriver.Traverser
           var methodEntry = Database.FindMethod(call);
 
           if (methodEntry != null) {
-            return methodEntry.Process(call, VisitExpression);
+            return methodEntry.Process(call, x => VisitExpression(x));
           }
           // List
           else if (call.Method.Name == "Contains") {
@@ -467,6 +468,23 @@ namespace KDPgDriver.Traverser
           },
           _ => throw new Exception($"Invalid node: {(exp?.NodeType.ToString() ?? "(null)")}"),
       };
+    }
+
+    // Adjust type of PgValue instance for cases like comparing 'date' pg type type with C# DateTime instance or 'time' pg type with C# TimeSpan instance 
+    private static PgValue AdjustType(PgValue pgValue, KDPgValueType expectedType)
+    {
+      if (expectedType == null)
+        return pgValue;
+
+      // 'time' and C# TimeSpan 
+      if (expectedType == KDPgValueTypeInstances.Time && pgValue.Type == KDPgValueTypeInstances.Interval)
+        return PgTypesConverter.ConvertToPgValue(expectedType, pgValue.Value);
+
+      // 'date' and C# DateTime 
+      if (expectedType == KDPgValueTypeInstances.Date && pgValue.Type == KDPgValueTypeInstances.DateTime)
+        return PgTypesConverter.ConvertToPgValue(expectedType, pgValue.Value);
+
+      return pgValue;
     }
   }
 }
