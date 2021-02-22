@@ -12,6 +12,7 @@ namespace KDPgDriver.Types
     private static readonly HashSet<Type> TablesInitialized = new HashSet<Type>();
     private static readonly Dictionary<Type, KdPgTableDescriptor> TypeToTableDesc = new Dictionary<Type, KdPgTableDescriptor>();
     private static readonly Dictionary<PropertyInfo, KdPgColumnDescriptor> PropertyInfoToColumnDesc = new Dictionary<PropertyInfo, KdPgColumnDescriptor>();
+    private static readonly Dictionary<PropertyInfo, KDPgValueType> PropertyInfoToJSONValueType = new Dictionary<PropertyInfo, KDPgValueType>();
 
     public static bool IsJsonPropertyName(MemberInfo memberInfo)
     {
@@ -59,7 +60,12 @@ namespace KDPgDriver.Types
       if (type == typeof(decimal))
         return KDPgValueTypeInstances.Decimal;
 
-      return KDPgValueTypeInstances.Json;
+      lock (PropertyInfoToJSONValueType) {
+        if (PropertyInfoToJSONValueType.TryGetValue(memberInfo, out var pgType))
+          return pgType;
+
+        return PropertyInfoToJSONValueType[memberInfo] = new KDPgValueTypeJson(memberInfo.PropertyType);
+      }
     }
 
     public static bool IsColumn(MemberInfo memberType)

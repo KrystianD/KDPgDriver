@@ -73,13 +73,19 @@ namespace KDPgDriver.Tests.FunctionalTests
                             x.JsonModel.Name,
                             x.JsonModel.Number,
                             x.JsonModel.Decimal,
+                            x.JsonModel.MySubsubmodel,
+                            x.JsonModel.JsonObject2,
+                            x.JsonModel.JsonArray2,
                         })
                         .Where(x => x.Id == 1)
                         .ToSingleAsync();
-      
+
       Assert.Equal(model.Name, res.Name);
       Assert.Equal(model.Number, res.Number);
       Assert.Equal(model.Decimal, res.Decimal);
+      Assert.Equal(JsonConvert.SerializeObject(model.MySubsubmodel), JsonConvert.SerializeObject(res.MySubsubmodel));
+      Assert.Equal(model.JsonObject2, res.JsonObject2);
+      Assert.Equal(model.JsonArray2, res.JsonArray2);
     }
 
     [Fact]
