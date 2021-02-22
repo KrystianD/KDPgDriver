@@ -12,12 +12,14 @@ namespace KDPgDriver.Tests.UnitTests
       MyInit.Init();
     }
 
-    private void AssertPath<TModel>(PathInfo pi, string columnName, string query, KDPgValueType type)
+    // ReSharper disable ParameterOnlyUsedForPreconditionCheck.Local
+    private static void AssertPath<TModel>(PathInfo pi, string columnName, string query, KDPgValueType type)
     {
       Assert.Equal(type, pi.Expression.Type);
       Assert.Equal(query, pi.Expression.RawQuery.ToString());
       Assert.Equal(ModelsRegistry.GetTable<TModel>().Columns.Find(x => x.Name == columnName), pi.Column);
     }
+    // ReSharper restore ParameterOnlyUsedForPreconditionCheck.Local
 
     [Fact]
     public void PathTest1()
