@@ -388,9 +388,9 @@ namespace KDPgDriver.Tests.UnitTests
     [Fact]
     public void ExpressionJsonSubModelFunc()
     {
-      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.MySubsubmodel.Number == 2);
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.MySubsubmodel.Name.Substring(1, 2));
 
-      Utils.AssertExpression(exp, @"((json_model->'inner'->'number')::text::int) = (2)");
+      Utils.AssertExpression(exp, @"substring(((json_model->'inner'->'name')::text) from 1 for 2)");
     }
 
     // Functions
