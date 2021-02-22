@@ -53,6 +53,15 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     }
 
     [Fact]
+    public void UpdateSetFieldJson()
+    {
+      var q = Builders<MyModel>.Update()
+                               .SetField(x => x.JsonModel.Name, "A");
+
+      Utils.AssertRawQuery(q, @"UPDATE model SET json_model = jsonb_set(json_model, array['name'], to_jsonb('A'))");
+    }
+
+    [Fact]
     public void UpdateAddToList()
     {
       var q = Builders<MyModel>.Update()

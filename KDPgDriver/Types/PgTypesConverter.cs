@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
@@ -12,6 +13,12 @@ namespace KDPgDriver.Types
 {
   public static class PgTypesConverter
   {
+    private static JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings() {
+        Converters = new List<JsonConverter>() {
+            new DecimalJsonConverter(),
+        },
+    };
+
     public static KDPgValueType CreatePgValueTypeFromObjectType(Type type)
     {
       Type itemType;
@@ -144,7 +151,7 @@ namespace KDPgDriver.Types
           if (jsonType.BackingType == null)
             return JToken.Parse((string)rawSqlValue);
           else
-            return JToken.Parse((string)rawSqlValue).ToObject(jsonType.BackingType);
+            return JsonConvert.DeserializeObject((string)rawSqlValue, jsonType.BackingType, JsonSerializerSettings);
 
         default:
           throw new Exception($"ConvertFromNpgsql: Type {type} not implemented");
@@ -200,7 +207,7 @@ namespace KDPgDriver.Types
           if (jsonType.BackingType == null)
             return new PgValue(((JToken)rawValue).ToString(Formatting.None), KDPgValueTypeInstances.Json);
           else
-            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None), KDPgValueTypeInstances.Json);
+            return new PgValue(JsonConvert.SerializeObject(rawValue, Formatting.None, JsonSerializerSettings), KDPgValueTypeInstances.Json);
 
         default:
           throw new Exception($"ConvertToPgValue: Type {type} not implemented");
@@ -221,6 +228,28 @@ namespace KDPgDriver.Types
           IEnumerable v => @$"ARRAY[{v.Cast<object>().Select(ConvertToPgString).JoinString(",")}]",
           _ => throw new ArgumentException($"unable to escape value of type: {value.GetType()}"),
       };
+    }
+  }
+
+  internal class DecimalJsonConverter : JsonConverter
+  {
+    public override bool CanConvert(Type objectType) => objectType == typeof(decimal) || objectType == typeof(decimal?);
+
+    public override object ReadJson(
+        JsonReader reader,
+        Type objectType,
+        object existingValue,
+        JsonSerializer serializer)
+    {
+      if (reader.TokenType != JsonToken.String)
+        throw new JsonSerializationException($"Unexpected token when parsing decimal. Expected String, got {reader.TokenType}.");
+
+      return decimal.Parse((string)reader.Value);
+    }
+
+    public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+    {
+      writer.WriteValue(((decimal)value).ToString((IFormatProvider)CultureInfo.InvariantCulture));
     }
   }
 }

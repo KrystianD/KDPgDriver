@@ -56,6 +56,8 @@ namespace KDPgDriver.Types
         return KDPgValueTypeInstances.Integer64;
       if (type == typeof(bool))
         return KDPgValueTypeInstances.Boolean;
+      if (type == typeof(decimal))
+        return KDPgValueTypeInstances.Decimal;
 
       return KDPgValueTypeInstances.Json;
     }

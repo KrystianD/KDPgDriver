@@ -34,14 +34,22 @@ namespace KDPgDriver.Tests.UnitTests
     public void TypeNumber()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Number == 2);
-      Utils.AssertExpression(exp, @"((json_model->'number')::text::int) = (2)");
+      Utils.AssertExpression(exp, @"((json_model->>'number')::int) = (2)");
     }
 
     [Fact]
     public void TypeString()
     {
       var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Name == "A");
-      Utils.AssertExpression(exp, @"((json_model->'name')::text) = ('A')");
+      Utils.AssertExpression(exp, @"(json_model->>'name') = ('A')");
+    }
+
+    [Fact]
+    public void TypeDecimal()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.JsonModel.Decimal == 1.234M);
+      Utils.AssertExpression(exp, @"((json_model->>'decimal')::numeric) = (@1::numeric)",
+                             new Param(1.234M, NpgsqlDbType.Numeric));
     }
   }
 }

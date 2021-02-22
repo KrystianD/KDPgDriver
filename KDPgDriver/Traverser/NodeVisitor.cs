@@ -345,7 +345,10 @@ namespace KDPgDriver.Traverser
       var rq = new RawQuery();
 
       string overrideTableName = null;
-      foreach (var part in parts) {
+      for (var index = 0; index < parts.Count; index++) {
+        var part = parts[index];
+        var isLast = index == parts.Count - 1;
+        
         switch (part) {
           case PropertyInfo member:
 
@@ -383,7 +386,7 @@ namespace KDPgDriver.Traverser
               var fieldName = ModelsRegistry.GetJsonPropertyName(member);
               var fieldType = ModelsRegistry.GetJsonPropertyType(member);
 
-              rq.Append("->");
+              rq.Append(fieldType == KDPgValueTypeInstances.Json || !isLast ? "->" : "->>");
               rq.Append(EscapeUtils.EscapePostgresString(fieldName));
               pi.JsonPath.Add(fieldName);
 
@@ -439,15 +442,10 @@ namespace KDPgDriver.Traverser
 
       if (pi.JsonPath.Count > 0) {
         // cast to native type if known
-        if (pathValueType != KDPgValueTypeInstances.Json) {
+        if (pathValueType != KDPgValueTypeInstances.Json && pathValueType.PostgresFetchType != "text") {
           RawQuery rq2 = new RawQuery();
           rq2.AppendSurround(rq);
-
-          if (pathValueType == KDPgValueTypeInstances.String)
-            rq2.Append("::", pathValueType.PostgresTypeName);
-          else
-            rq2.Append("::text::", pathValueType.PostgresTypeName);
-
+          rq2.Append("::", pathValueType.PostgresFetchType);
           rq = rq2;
         }
       }

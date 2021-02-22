@@ -34,7 +34,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonModel.Name);
 
-      AssertPath<MyModel>(pi, "json_model", "(json_model->'name')::text", KDPgValueTypeInstances.String);
+      AssertPath<MyModel>(pi, "json_model", "json_model->>'name'", KDPgValueTypeInstances.String);
     }
 
     [Fact]
@@ -42,7 +42,7 @@ namespace KDPgDriver.Tests.UnitTests
     {
       var pi = NodeVisitor.VisitPath<MyModel>(x => x.JsonModel.MySubsubmodel.Number);
 
-      AssertPath<MyModel>(pi, "json_model", "(json_model->'inner'->'number')::text::int", KDPgValueTypeInstances.Integer);
+      AssertPath<MyModel>(pi, "json_model", "(json_model->'inner'->>'number')::int", KDPgValueTypeInstances.Integer);
     }
 
     [Fact]

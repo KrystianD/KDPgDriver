@@ -39,6 +39,9 @@ namespace KDPgDriver.Tests
     [JsonProperty("name")]
     public string Name { get; set; }
 
+    [JsonProperty("decimal")]
+    public decimal Decimal { get; set; }
+
     [JsonProperty("inner")]
     public MySubsubmodel MySubsubmodel { get; set; }
 
