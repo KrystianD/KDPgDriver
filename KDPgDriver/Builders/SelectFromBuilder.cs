@@ -266,7 +266,6 @@ namespace KDPgDriver.Builders
 
         if (!firstColumn)
           rq.Append(",");
-        exp.MarkSimple();
         rq.AppendWithCast(exp, type.PostgresFetchType == type.PostgresTypeName ? null : type.PostgresFetchType);
         firstColumn = false;
       }
