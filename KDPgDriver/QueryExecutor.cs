@@ -15,7 +15,7 @@ namespace KDPgDriver
     public abstract Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery);
     public abstract Task<UpdateQueryResult> QueryAsync(IUpdateQuery updateQuery);
     public abstract Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery);
-    public abstract Task<DeleteQueryResult> QueryAsync(IDeleteQuery updateQuery);
+    public abstract Task<DeleteQueryResult> QueryAsync(IDeleteQuery deleteQuery);
 
     // ReSharper disable HeapView.ObjectAllocation.Evident
     public SelectQueryFluentBuilder1Prep<TModel> From<TModel>() => new SelectQueryFluentBuilder1Prep<TModel>(this);

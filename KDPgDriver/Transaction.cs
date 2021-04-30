@@ -36,34 +36,34 @@ namespace KDPgDriver
       throw new Exception("Schedule works only for batch query");
     }
 
-    public override async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> query)
+    public override async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
       var b = Batch.CreateUsingTransaction(this);
-      var res = b.QueryAsync(query);
+      var res = b.QueryAsync(selectQuery);
       await b.Execute();
       return res.Result;
     }
 
-    public override async Task<InsertQueryResult> QueryAsync(IInsertQuery query)
+    public override async Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
     {
       var b = Batch.CreateUsingTransaction(this);
-      var res = b.QueryAsync(query);
+      var res = b.QueryAsync(insertQuery);
       await b.Execute();
       return res.Result;
     }
 
-    public override async Task<UpdateQueryResult> QueryAsync(IUpdateQuery query)
+    public override async Task<UpdateQueryResult> QueryAsync(IUpdateQuery updateQuery)
     {
       var b = Batch.CreateUsingTransaction(this);
-      var res = b.QueryAsync(query);
+      var res = b.QueryAsync(updateQuery);
       await b.Execute();
       return res.Result;
     }
 
-    public override async Task<DeleteQueryResult> QueryAsync(IDeleteQuery query)
+    public override async Task<DeleteQueryResult> QueryAsync(IDeleteQuery deleteQuery)
     {
       var b = Batch.CreateUsingTransaction(this);
-      var res = b.QueryAsync(query);
+      var res = b.QueryAsync(deleteQuery);
       await b.Execute();
       return res.Result;
     }

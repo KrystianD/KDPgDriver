@@ -161,10 +161,10 @@ $f$ LANGUAGE SQL IMMUTABLE;
       return res.Result;
     }
 
-    public override async Task<DeleteQueryResult> QueryAsync(IDeleteQuery query)
+    public override async Task<DeleteQueryResult> QueryAsync(IDeleteQuery deleteQuery)
     {
       var b = Batch.CreateSimple(this);
-      var res = b.QueryAsync(query);
+      var res = b.QueryAsync(deleteQuery);
       await b.Execute();
       return res.Result;
     }

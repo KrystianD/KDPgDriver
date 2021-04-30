@@ -34,16 +34,16 @@ namespace KDPgDriver
       _resultProcessors.Add(null);
     }
 
-    public override Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
+    public override Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery());
+      _combinedRawQuery.Append(selectQuery.GetRawQuery());
       _combinedRawQuery.Append(";\n");
       IsEmpty = false;
 
       var tcs = new TaskCompletionSource<SelectQueryResult<TOut>>();
 
       _resultProcessors.Add(async reader => {
-        var res = new SelectQueryResult<TOut>(builder);
+        var res = new SelectQueryResult<TOut>(selectQuery);
         await res.ProcessResultSet(reader);
 
         tcs.SetResult(res);
@@ -52,9 +52,9 @@ namespace KDPgDriver
       return tcs.Task;
     }
 
-    public override Task<InsertQueryResult> QueryAsync(IInsertQuery builder)
+    public override Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery());
+      _combinedRawQuery.Append(insertQuery.GetRawQuery());
       _combinedRawQuery.Append(";\n");
       IsEmpty = false;
 
@@ -76,9 +76,9 @@ namespace KDPgDriver
       return tcs.Task;
     }
 
-    public override Task<UpdateQueryResult> QueryAsync(IUpdateQuery builder)
+    public override Task<UpdateQueryResult> QueryAsync(IUpdateQuery updateQuery)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery());
+      _combinedRawQuery.Append(updateQuery.GetRawQuery());
       _combinedRawQuery.Append(";\n");
       IsEmpty = false;
 
@@ -93,9 +93,9 @@ namespace KDPgDriver
       return tcs.Task;
     }
 
-    public override Task<DeleteQueryResult> QueryAsync(IDeleteQuery builder)
+    public override Task<DeleteQueryResult> QueryAsync(IDeleteQuery deleteQuery)
     {
-      _combinedRawQuery.Append(builder.GetRawQuery());
+      _combinedRawQuery.Append(deleteQuery.GetRawQuery());
       _combinedRawQuery.Append(";\n");
       IsEmpty = false;
 
