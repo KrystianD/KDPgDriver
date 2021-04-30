@@ -43,6 +43,8 @@ CREATE SCHEMA IF NOT EXISTS ""Schema1"";
 
 DROP TABLE IF EXISTS model;
 DROP TABLE IF EXISTS ""public"".model2;
+DROP TABLE IF EXISTS model_link1 CASCADE;
+DROP TABLE IF EXISTS model_link2 CASCADE;
 DROP TYPE IF EXISTS enum;
 DROP TYPE IF EXISTS ""Schema1"".enum2;
 
@@ -85,6 +87,16 @@ INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest2', 1); -- id: 2
 INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest3', 2); -- id: 3
 INSERT INTO ""public"".model2(name1, model_id) VALUES('subtest4', 4); -- id: 4
 
+CREATE TABLE model_link1 (
+  id SERIAL PRIMARY KEY
+);
+CREATE TABLE model_link2 (
+  id SERIAL PRIMARY KEY,
+  link_id int REFERENCES model_link1(id)
+);
+
+INSERT INTO model_link1(id) VALUES(1);
+INSERT INTO model_link2(id,link_id) VALUES(1,1);
 ");
 
       return dr;

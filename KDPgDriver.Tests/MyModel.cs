@@ -114,4 +114,21 @@ namespace KDPgDriver.Tests
     [KDPgColumn("val_f64")]
     public double ValDouble { get; set; }
   }
+
+  [KDPgTable("model_link1")]
+  public class MyModelLink1
+  {
+    [KDPgColumn("id", KDPgColumnFlagsEnum.PrimaryKey | KDPgColumnFlagsEnum.AutoIncrement)]
+    public int Id { get; set; }
+  }
+
+  [KDPgTable("model_link2")]
+  public class MyModelLink2
+  {
+    [KDPgColumn("id", KDPgColumnFlagsEnum.PrimaryKey | KDPgColumnFlagsEnum.AutoIncrement)]
+    public int Id { get; set; }
+
+    [KDPgColumn("link_id")]
+    public int LinkID { get; set; }
+  }
 }
