@@ -35,12 +35,7 @@ namespace KDPgDriver.Results
 
     public List<T> GetAll() => _objects;
 
-    public T GetSingle()
-    {
-      if (_objects.Count == 0)
-        throw new Exception("no results found");
-      return _objects[0];
-    }
+    public T GetSingle() => _objects.Count == 0 ? throw new Exception("no results found") : _objects[0];
 
     public T GetSingleOrDefault(T def = default) => _objects.Count == 0 ? def : _objects[0];
   }
