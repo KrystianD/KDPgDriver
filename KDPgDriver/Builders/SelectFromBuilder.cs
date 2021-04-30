@@ -14,7 +14,7 @@ namespace KDPgDriver.Builders
 {
   public interface ISelectFromBuilder
   {
-    RawQuery GetRawQuery(string defaultSchema = null);
+    RawQuery GetRawQuery();
 
     IResultProcessor GetResultProcessor();
   }
@@ -251,7 +251,7 @@ namespace KDPgDriver.Builders
       _distinct = true;
     }
 
-    public RawQuery GetRawQuery(string defaultSchema)
+    public RawQuery GetRawQuery()
     {
       RawQuery rq = new RawQuery();
       rq.Append("SELECT ");
@@ -277,7 +277,7 @@ namespace KDPgDriver.Builders
       if (_tablePlaceholders.Count > 1) {
         var firstTable = _tablePlaceholders[0].Table;
         string alias = $"t{tableNum}";
-        rq.AppendTableName(firstTable.Name, firstTable.Schema ?? defaultSchema, alias);
+        rq.AppendTableName(firstTable.Name, firstTable.Schema, alias);
         rq.ApplyAlias(_tablePlaceholders[0].Name, alias);
         tableNum++;
 
@@ -287,7 +287,7 @@ namespace KDPgDriver.Builders
           rq.Append(" LEFT JOIN ");
 
           alias = $"t{tableNum}";
-          rq.AppendTableName(table.Name, table.Schema ?? defaultSchema, alias);
+          rq.AppendTableName(table.Name, table.Schema, alias);
           rq.ApplyAlias(tablePlaceholder.Name, alias);
 
           rq.Append(" ON ");
@@ -297,7 +297,7 @@ namespace KDPgDriver.Builders
         }
       }
       else {
-        rq.AppendTableName(_tablePlaceholders[0].Name, _tablePlaceholders[0].Table.Schema ?? defaultSchema);
+        rq.AppendTableName(_tablePlaceholders[0].Name, _tablePlaceholders[0].Table.Schema);
       }
 
       if (_tablePlaceholders.Count == 1)
