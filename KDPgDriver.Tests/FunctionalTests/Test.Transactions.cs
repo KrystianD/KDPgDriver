@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Npgsql;
 using Xunit;
 
 namespace KDPgDriver.Tests.FunctionalTests
@@ -84,6 +85,22 @@ namespace KDPgDriver.Tests.FunctionalTests
                         x => Assert.Equal(2, x),
                         x => Assert.Equal(3, x),
                         x => Assert.Equal(10, x));
+    }
+
+    [Fact]
+    public async Task TestTransactionBatchError()
+    {
+      var dr = await CreateDriver();
+
+      using (var t = await dr.CreateTransaction()) {
+        var b = t.CreateBatch();
+        b.Insert<MyModelLink1>().UseField(x => x.Id).AddObject(new MyModelLink1() { Id = 2 }).Schedule();
+        b.Delete<MyModelLink1>().Where(x => x.Id == 1).Schedule();
+
+        await Assert.ThrowsAsync<PostgresException>(() => b.Execute());
+        
+        await t.CommitAsync();
+      }
     }
   }
 }
