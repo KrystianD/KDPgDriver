@@ -2,17 +2,13 @@
 {
   public class InsertQueryResult
   {
-    public bool RowInserted { get; private set; }
-    public int? LastInsertId { get; private set; }
+    public readonly bool RowInserted;
+    public readonly int? LastInsertId;
 
-    public static InsertQueryResult CreateRowInserted(int lastInsertId)
+    internal InsertQueryResult(bool rowInserted, int? lastInsertId)
     {
-      return new InsertQueryResult() { RowInserted = true, LastInsertId = lastInsertId, };
-    }
-
-    public static InsertQueryResult CreateRowNotInserted()
-    {
-      return new InsertQueryResult() { RowInserted = false };
+      RowInserted = rowInserted;
+      LastInsertId = lastInsertId;
     }
   }
 }

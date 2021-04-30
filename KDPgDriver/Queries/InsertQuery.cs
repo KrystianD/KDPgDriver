@@ -3,14 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using KDPgDriver.Builders;
+using KDPgDriver.Results;
 using KDPgDriver.Traverser;
 using KDPgDriver.Types;
 using KDPgDriver.Utils;
+using Npgsql;
 
 namespace KDPgDriver.Queries
 {
-  public interface IInsertQuery : IQuery { }
+  public interface IInsertQuery : IQuery
+  {
+    Task<InsertQueryResult> ReadResultAsync(NpgsqlDataReader reader);
+  }
 
   internal enum OnInsertConflict
   {
@@ -219,6 +225,20 @@ namespace KDPgDriver.Queries
 
       rq.SkipExplicitColumnTableNames();
       return rq;
+    }
+
+    public async Task<InsertQueryResult> ReadResultAsync(NpgsqlDataReader reader)
+    {
+      InsertQueryResult res;
+
+      if (await reader.ReadAsync())
+        res = new InsertQueryResult(true, lastInsertId: reader.GetInt32(0));
+      else
+        res = new InsertQueryResult(false, lastInsertId: null);
+
+      await reader.NextResultAsync();
+
+      return res;
     }
   }
 }

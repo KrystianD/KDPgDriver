@@ -80,7 +80,7 @@ namespace KDPgDriver.Fluent
     public async Task<InsertQueryResult> ExecuteAsync()
     {
       if (_insertQuery.IsEmpty)
-        return InsertQueryResult.CreateRowNotInserted();
+        return new InsertQueryResult(false, null);
 
       return await _executor.QueryAsync(GetInsertQuery());
     }

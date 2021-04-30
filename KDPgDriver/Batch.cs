@@ -43,10 +43,7 @@ namespace KDPgDriver
       var tcs = new TaskCompletionSource<SelectQueryResult<TOut>>();
 
       _resultProcessors.Add(async reader => {
-        var res = new SelectQueryResult<TOut>(selectQuery);
-        await res.ProcessResultSet(reader);
-
-        tcs.SetResult(res);
+        tcs.SetResult(await selectQuery.ReadResultAsync(reader));
       });
 
       return tcs.Task;
@@ -61,16 +58,7 @@ namespace KDPgDriver
       var tcs = new TaskCompletionSource<InsertQueryResult>();
 
       _resultProcessors.Add(async reader => {
-        InsertQueryResult res;
-        if (await reader.ReadAsync()) {
-          var lastInsertId = reader.GetInt32(0);
-          res = InsertQueryResult.CreateRowInserted(lastInsertId);
-        }
-        else {
-          res = InsertQueryResult.CreateRowNotInserted();
-        }
-
-        tcs.SetResult(res);
+        tcs.SetResult(await insertQuery.ReadResultAsync(reader));
       });
 
       return tcs.Task;
@@ -84,10 +72,10 @@ namespace KDPgDriver
 
       var tcs = new TaskCompletionSource<UpdateQueryResult>();
 
-      _resultProcessors.Add(reader => {
+      _resultProcessors.Add(async reader => {
         var res = new UpdateQueryResult();
         tcs.SetResult(res);
-        return Task.CompletedTask;
+        await reader.NextResultAsync();
       });
 
       return tcs.Task;
@@ -101,10 +89,10 @@ namespace KDPgDriver
 
       var tcs = new TaskCompletionSource<DeleteQueryResult>();
 
-      _resultProcessors.Add(reader => {
+      _resultProcessors.Add(async reader => {
         var res = new DeleteQueryResult();
         tcs.SetResult(res);
-        return Task.CompletedTask;
+        await reader.NextResultAsync();
       });
 
       return tcs.Task;
@@ -130,9 +118,7 @@ namespace KDPgDriver
         using var reader = await cmd.ExecuteReaderAsync();
 
         foreach (var operation in _resultProcessors) {
-          if (operation != null)
-            await operation(reader);
-          await reader.NextResultAsync();
+          await operation(reader);
         }
 
         await reader.CloseAsync();

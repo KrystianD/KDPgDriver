@@ -1,16 +1,17 @@
-﻿using KDPgDriver.Builders;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using KDPgDriver.Builders;
+using KDPgDriver.Results;
 using KDPgDriver.Utils;
+using Npgsql;
 
 namespace KDPgDriver.Queries
 {
-  public interface ISelectQuery : IQuery
-  {
-    ISelectResultProcessor GetResultProcessor();
-  }
+  public interface ISelectQuery : IQuery { }
 
   // ReSharper disable UnusedTypeParameter
   public class SelectQuery<TModel, TOut> : ISelectQuery
-  // ReSharper restore UnusedTypeParameter
   {
     private readonly IWhereBuilder _whereBuilder;
 
@@ -19,8 +20,6 @@ namespace KDPgDriver.Queries
     private readonly LimitBuilder _limitBuilder;
 
     private readonly bool _existsQuery;
-
-    public ISelectResultProcessor GetResultProcessor() => _fromBuilder.GetResultProcessor();
 
     public SelectQuery(IWhereBuilder whereBuilder,
                        ISelectFromBuilder fromBuilder,
@@ -67,6 +66,28 @@ namespace KDPgDriver.Queries
       }
 
       return rq;
+    }
+
+    internal async Task<SelectQueryResult<TOut>> ReadResultAsync(NpgsqlDataReader reader)
+    {
+      var proc = _fromBuilder.GetResultProcessor();
+
+      Debug.Assert(proc.FieldsCount == reader.FieldCount, "selectResultProcessor.FieldsCount == reader.FieldCount");
+
+      var objects = new List<TOut>();
+
+      object[] values = new object[reader.FieldCount];
+
+      while (await reader.ReadAsync()) {
+        for (int i = 0; i < reader.FieldCount; i++)
+          values[i] = reader.IsDBNull(i) ? null : reader.GetValue(i);
+
+        objects.Add((TOut)proc.ParseResult(values));
+      }
+
+      await reader.NextResultAsync();
+
+      return new SelectQueryResult<TOut>(objects);
     }
   }
 }
