@@ -238,6 +238,9 @@ namespace KDPgDriver.Queries
 
       await reader.NextResultAsync();
 
+      if (_outputVariable != null)
+        await reader.NextResultAsync();
+
       return res;
     }
   }
