@@ -64,5 +64,26 @@ namespace KDPgDriver.Tests.FunctionalTests
       var res2 = await dr.From<MyModel>().Select(x => x.Id).ToListAsync();
       Assert.Equal(5, res2.Count);
     }
+
+    [Fact]
+    public async Task TestTransactionBatchMixed()
+    {
+      var dr = await CreateDriver();
+
+      var t = await dr.CreateTransaction();
+
+      var b = t.CreateBatch();
+      b.Insert<MyModel>().UseField(x => x.Id).AddObject(new MyModel() { Id = 10 }).Schedule();
+      var selectTask = b.From<MyModel>().Select(x => x.Id).ToListAsync();
+
+      await b.Execute();
+      await t.CommitAsync();
+
+      Assert.Collection(selectTask.Result,
+                        x => Assert.Equal(1, x),
+                        x => Assert.Equal(2, x),
+                        x => Assert.Equal(3, x),
+                        x => Assert.Equal(10, x));
+    }
   }
 }

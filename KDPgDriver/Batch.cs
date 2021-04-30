@@ -30,6 +30,8 @@ namespace KDPgDriver
       _combinedRawQuery.Append(query.GetRawQuery());
       _combinedRawQuery.Append(";\n");
       IsEmpty = false;
+
+      _resultProcessors.Add(null);
     }
 
     public override Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> builder)
@@ -128,7 +130,8 @@ namespace KDPgDriver
         using var reader = await cmd.ExecuteReaderAsync();
 
         foreach (var operation in _resultProcessors) {
-          await operation(reader);
+          if (operation != null)
+            await operation(reader);
           await reader.NextResultAsync();
         }
       });
