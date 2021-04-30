@@ -132,11 +132,6 @@ $f$ LANGUAGE SQL IMMUTABLE;
 
     public Batch CreateTransactionBatch(KDPgIsolationLevel isolationLevel = KDPgIsolationLevel.ReadCommitted) => Batch.CreateDedicatedTransaction(this, isolationLevel);
 
-    public override void ScheduleQuery(IQuery query)
-    {
-      throw new InvalidOperationException("Schedule works only for batch query executors");
-    }
-
     public override async Task<InsertQueryResult> QueryAsync(IInsertQuery query)
     {
       var b = Batch.CreateSimple(this);

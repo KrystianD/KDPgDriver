@@ -25,15 +25,6 @@ namespace KDPgDriver
       _connectionCreator = connectionCreator;
     }
 
-    public override void ScheduleQuery(IQuery query)
-    {
-      _combinedRawQuery.Append(query.GetRawQuery());
-      _combinedRawQuery.Append(";\n");
-      IsEmpty = false;
-
-      _resultProcessors.Add(null);
-    }
-
     public override Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
       _combinedRawQuery.Append(selectQuery.GetRawQuery());

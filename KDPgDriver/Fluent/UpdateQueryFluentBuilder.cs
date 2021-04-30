@@ -82,7 +82,7 @@ namespace KDPgDriver.Fluent
 
     public void Schedule()
     {
-      _executor.ScheduleQuery(GetUpdateQuery());
+      _executor.QueryAsync(GetUpdateQuery());
     }
 
     public RawQuery GetRawQuery()

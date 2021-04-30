@@ -100,7 +100,7 @@ namespace KDPgDriver.Fluent
       if (_insertQuery.IsEmpty)
         return;
 
-      _executor.ScheduleQuery(GetInsertQuery());
+      _executor.QueryAsync(GetInsertQuery());
     }
 
     public RawQuery GetRawQuery()

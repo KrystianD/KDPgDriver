@@ -11,7 +11,6 @@ namespace KDPgDriver
 {
   public abstract class QueryExecutor
   {
-    public abstract void ScheduleQuery(IQuery query);
     public abstract Task<InsertQueryResult> QueryAsync(IInsertQuery insertQuery);
     public abstract Task<UpdateQueryResult> QueryAsync(IUpdateQuery updateQuery);
     public abstract Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery);

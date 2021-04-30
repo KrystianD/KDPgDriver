@@ -31,11 +31,6 @@ namespace KDPgDriver
 
     public Task CommitAsync() => NpgsqlTransaction.CommitAsync();
 
-    public override void ScheduleQuery(IQuery query)
-    {
-      throw new Exception("Schedule works only for batch query");
-    }
-
     public override async Task<SelectQueryResult<TOut>> QueryAsync<TModel, TOut>(SelectQuery<TModel, TOut> selectQuery)
     {
       var b = Batch.CreateUsingTransaction(this);
