@@ -16,10 +16,10 @@ namespace KDPgDriver.Builders
   {
     RawQuery GetRawQuery();
 
-    IResultProcessor GetResultProcessor();
+    ISelectResultProcessor GetResultProcessor();
   }
 
-  public interface IResultProcessor
+  public interface ISelectResultProcessor
   {
     object ParseResult(object[] values);
     int FieldsCount { get; }
@@ -38,7 +38,7 @@ namespace KDPgDriver.Builders
     private bool _distinct;
 
     private List<TypedExpression> LeftJoinsExpressions { get; set; }
-    private IResultProcessor ResultProcessor { get; set; }
+    private ISelectResultProcessor SelectResultProcessor { get; set; }
 
     public static SelectFromBuilder FromCombinedExpression<TCombinedModel, TNewModel>(TablesList tablesList, Expression<Func<TCombinedModel, TNewModel>> prBody)
     {
@@ -66,8 +66,8 @@ namespace KDPgDriver.Builders
         {
           IEnumerable<Expression> args = newExpression.Arguments;
 
-          var resultProcessor = new AnonymousTypeResultProcessor<TNewModel>();
-          builder.ResultProcessor = resultProcessor;
+          var resultProcessor = new AnonymousTypeSelectResultProcessor<TNewModel>();
+          builder.SelectResultProcessor = resultProcessor;
 
           foreach (var argExpression in args) {
             // Member is Table (like M1 = x.M1)
@@ -107,8 +107,8 @@ namespace KDPgDriver.Builders
         {
           // .Select(x => x.M1)
           if (ModelsRegistry.IsTable(typeof(TNewModel))) {
-            var resultProcessor = new CombinedModelResultProcessor<TNewModel>();
-            builder.ResultProcessor = resultProcessor;
+            var resultProcessor = new CombinedModelSelectResultProcessor<TNewModel>();
+            builder.SelectResultProcessor = resultProcessor;
 
             var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
             var table = tablePlaceholder.Table;
@@ -130,7 +130,7 @@ namespace KDPgDriver.Builders
             // Select returns single value from combined model
             exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
             builder.AddSelectPart(exp.RawQuery, exp.Type);
-            builder.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+            builder.SelectResultProcessor = new SingleValueSelectResultProcessor(exp.Type);
           }
 
           break;
@@ -143,7 +143,7 @@ namespace KDPgDriver.Builders
           // Select return constant value
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
           builder.AddSelectPart(exp.RawQuery, exp.Type);
-          builder.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+          builder.SelectResultProcessor = new SingleValueSelectResultProcessor(exp.Type);
           break;
       }
 
@@ -158,7 +158,7 @@ namespace KDPgDriver.Builders
       var builder = new SelectFromBuilder();
       builder.LeftJoinsExpressions = tablesList.JoinExpressions;
 
-      var resultProcessor = new AnonymousTypeResultProcessor<TCombinedModel>();
+      var resultProcessor = new AnonymousTypeSelectResultProcessor<TCombinedModel>();
 
       foreach (var tablePlaceholder in tablesList.Tables) {
         builder.AddTable(tablePlaceholder);
@@ -177,7 +177,7 @@ namespace KDPgDriver.Builders
         resultProcessor.AddModelEntry(tablePlaceholder.Table);
       }
 
-      builder.ResultProcessor = resultProcessor;
+      builder.SelectResultProcessor = resultProcessor;
 
       return builder;
     }
@@ -191,8 +191,8 @@ namespace KDPgDriver.Builders
       switch (prBody.Body) {
         case NewExpression newExpression:
         {
-          var resultProcessor = new AnonymousTypeResultProcessor<TNewModel>();
-          b.ResultProcessor = resultProcessor;
+          var resultProcessor = new AnonymousTypeSelectResultProcessor<TNewModel>();
+          b.SelectResultProcessor = resultProcessor;
 
           foreach (var arg in newExpression.Arguments) {
             exp = NodeVisitor.EvaluateToTypedExpression(arg);
@@ -207,7 +207,7 @@ namespace KDPgDriver.Builders
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
           b.AddSelectPart(exp.RawQuery, exp.Type);
-          b.ResultProcessor = new SingleValueResultProcessor(exp.Type);
+          b.SelectResultProcessor = new SingleValueSelectResultProcessor(exp.Type);
 
           break;
       }
@@ -220,7 +220,7 @@ namespace KDPgDriver.Builders
       var b = new SelectFromBuilder();
       b.AddTable(ModelsRegistry.GetTable<TModel>());
 
-      var resultProcessor = new ModelResultProcessor<TModel>();
+      var resultProcessor = new ModelSelectResultProcessor<TModel>();
 
       foreach (var fieldExpression in builder.Fields) {
         var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
@@ -228,7 +228,7 @@ namespace KDPgDriver.Builders
         resultProcessor.UseColumn(column);
       }
 
-      b.ResultProcessor = resultProcessor;
+      b.SelectResultProcessor = resultProcessor;
 
       return b;
     }
@@ -241,7 +241,7 @@ namespace KDPgDriver.Builders
       foreach (var column in ModelsRegistry.GetTable<TModel>().Columns)
         b.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
 
-      b.ResultProcessor = new ModelResultProcessor<TModel>();
+      b.SelectResultProcessor = new ModelSelectResultProcessor<TModel>();
 
       return b;
     }
@@ -305,9 +305,9 @@ namespace KDPgDriver.Builders
       return rq;
     }
 
-    public IResultProcessor GetResultProcessor()
+    public ISelectResultProcessor GetResultProcessor()
     {
-      return ResultProcessor;
+      return SelectResultProcessor;
     }
 
     // helpers

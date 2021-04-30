@@ -5,7 +5,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders.ResultProcessors
 {
-  public class ModelResultProcessor<TModel> : IResultProcessor
+  public class ModelSelectResultProcessor<TModel> : ISelectResultProcessor
   {
     private static readonly KdPgTableDescriptor Table = ModelsRegistry.GetTable<TModel>();
 

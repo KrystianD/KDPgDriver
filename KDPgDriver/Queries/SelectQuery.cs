@@ -5,7 +5,7 @@ namespace KDPgDriver.Queries
 {
   public interface ISelectQuery : IQuery
   {
-    IResultProcessor GetResultProcessor();
+    ISelectResultProcessor GetResultProcessor();
   }
 
   // ReSharper disable UnusedTypeParameter
@@ -20,7 +20,7 @@ namespace KDPgDriver.Queries
 
     private readonly bool _existsQuery;
 
-    public IResultProcessor GetResultProcessor() => _fromBuilder.GetResultProcessor();
+    public ISelectResultProcessor GetResultProcessor() => _fromBuilder.GetResultProcessor();
 
     public SelectQuery(IWhereBuilder whereBuilder,
                        ISelectFromBuilder fromBuilder,

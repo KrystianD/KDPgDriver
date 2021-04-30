@@ -5,7 +5,7 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders.ResultProcessors
 {
-  public class AnonymousTypeResultProcessor<TModel> : IResultProcessor
+  public class AnonymousTypeSelectResultProcessor<TModel> : ISelectResultProcessor
   {
     public class Entry
     {

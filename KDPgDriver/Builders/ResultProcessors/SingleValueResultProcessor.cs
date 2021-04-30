@@ -3,13 +3,13 @@ using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders.ResultProcessors
 {
-  public class SingleValueResultProcessor : IResultProcessor
+  public class SingleValueSelectResultProcessor : ISelectResultProcessor
   {
     private readonly KDPgValueType _type;
 
     public int FieldsCount => 1;
 
-    public SingleValueResultProcessor(KDPgValueType type)
+    public SingleValueSelectResultProcessor(KDPgValueType type)
     {
       _type = type;
     }
