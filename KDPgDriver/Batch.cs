@@ -134,6 +134,8 @@ namespace KDPgDriver
             await operation(reader);
           await reader.NextResultAsync();
         }
+
+        await reader.CloseAsync();
       });
     }
 
