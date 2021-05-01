@@ -1,10 +1,16 @@
-﻿using KDPgDriver.Builders;
+﻿using System.Threading.Tasks;
+using KDPgDriver.Builders;
+using KDPgDriver.Results;
 using KDPgDriver.Types;
 using KDPgDriver.Utils;
+using Npgsql;
 
 namespace KDPgDriver.Queries
 {
-  public interface IUpdateQuery : IQuery { }
+  public interface IUpdateQuery : IQuery
+  {
+    Task<UpdateQueryResult> ReadResultAsync(NpgsqlDataReader reader);
+  }
 
   public class UpdateQuery<TModel> : IUpdateQuery
   {
@@ -49,6 +55,12 @@ namespace KDPgDriver.Queries
 
       rq.SkipExplicitColumnTableNames();
       return rq;
+    }
+
+    public async Task<UpdateQueryResult> ReadResultAsync(NpgsqlDataReader reader)
+    {
+      await reader.NextResultAsync();
+      return new UpdateQueryResult();
     }
   }
 }

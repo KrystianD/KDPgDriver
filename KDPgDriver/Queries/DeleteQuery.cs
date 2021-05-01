@@ -1,10 +1,16 @@
-﻿using KDPgDriver.Builders;
+﻿using System.Threading.Tasks;
+using KDPgDriver.Builders;
+using KDPgDriver.Results;
 using KDPgDriver.Types;
 using KDPgDriver.Utils;
+using Npgsql;
 
 namespace KDPgDriver.Queries
 {
-  public interface IDeleteQuery : IQuery { }
+  public interface IDeleteQuery : IQuery
+  {
+    Task<DeleteQueryResult> ReadResultAsync(NpgsqlDataReader reader);
+  }
 
   public class DeleteQuery<TModel> : IDeleteQuery
   {
@@ -31,6 +37,12 @@ namespace KDPgDriver.Queries
 
       rq.SkipExplicitColumnTableNames();
       return rq;
+    }
+
+    public async Task<DeleteQueryResult> ReadResultAsync(NpgsqlDataReader reader)
+    {
+      await reader.NextResultAsync();
+      return new DeleteQueryResult();
     }
   }
 }

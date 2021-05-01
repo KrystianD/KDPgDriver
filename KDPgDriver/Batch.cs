@@ -64,9 +64,7 @@ namespace KDPgDriver
       var tcs = new TaskCompletionSource<UpdateQueryResult>();
 
       _resultProcessors.Add(async reader => {
-        var res = new UpdateQueryResult();
-        tcs.SetResult(res);
-        await reader.NextResultAsync();
+        tcs.SetResult(await updateQuery.ReadResultAsync(reader));
       });
 
       return tcs.Task;
@@ -81,9 +79,7 @@ namespace KDPgDriver
       var tcs = new TaskCompletionSource<DeleteQueryResult>();
 
       _resultProcessors.Add(async reader => {
-        var res = new DeleteQueryResult();
-        tcs.SetResult(res);
-        await reader.NextResultAsync();
+        tcs.SetResult(await deleteQuery.ReadResultAsync(reader));
       });
 
       return tcs.Task;
