@@ -10,7 +10,7 @@ namespace KDPgDriver.Traverser
   {
     public class Entry
     {
-      private readonly bool _isMethod;
+      private readonly bool _isMethod; // true - normal method, false - extension method
 
       public Type Type { get; }
       public string Member { get; }
@@ -26,21 +26,11 @@ namespace KDPgDriver.Traverser
 
       public TypedExpression Process(MethodCallExpression call, Func<Expression, TypedExpression> expVisitor)
       {
-        if (_isMethod) { // normal method
-          TypedExpression callObject = expVisitor(call.Object);
+        var args = _isMethod
+            ? Enumerable.Empty<Expression>().Append(call.Object).Concat(call.Arguments)
+            : call.Arguments;
 
-          var params1 = Enumerable.Empty<TypedExpression>()
-                                  .Concat(new[] { callObject })
-                                  .Concat(call.Arguments.Select(expVisitor))
-                                  .ToArray();
-
-          return Processor(params1);
-        }
-        else { // extension
-          var params1 = call.Arguments.Select(expVisitor).ToArray();
-
-          return Processor(params1);
-        }
+        return Processor(args.Select(expVisitor).ToArray());
       }
     }
 
