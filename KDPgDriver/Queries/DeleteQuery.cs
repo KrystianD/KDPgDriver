@@ -39,10 +39,6 @@ namespace KDPgDriver.Queries
       return rq;
     }
 
-    public async Task<DeleteQueryResult> ReadResultAsync(NpgsqlDataReader reader)
-    {
-      await reader.NextResultAsync();
-      return new DeleteQueryResult();
-    }
+    public Task<DeleteQueryResult> ReadResultAsync(NpgsqlDataReader reader) => Task.FromResult(new DeleteQueryResult());
   }
 }

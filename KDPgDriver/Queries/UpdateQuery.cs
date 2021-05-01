@@ -57,10 +57,6 @@ namespace KDPgDriver.Queries
       return rq;
     }
 
-    public async Task<UpdateQueryResult> ReadResultAsync(NpgsqlDataReader reader)
-    {
-      await reader.NextResultAsync();
-      return new UpdateQueryResult();
-    }
+    public Task<UpdateQueryResult> ReadResultAsync(NpgsqlDataReader reader) => Task.FromResult(new UpdateQueryResult());
   }
 }

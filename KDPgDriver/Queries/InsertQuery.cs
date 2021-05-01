@@ -229,17 +229,20 @@ namespace KDPgDriver.Queries
 
     public async Task<InsertQueryResult> ReadResultAsync(NpgsqlDataReader reader)
     {
-      InsertQueryResult res;
+      InsertQueryResult res = null;
 
-      if (await reader.ReadAsync())
-        res = new InsertQueryResult(true, lastInsertId: reader.GetInt32(0));
-      else
-        res = new InsertQueryResult(false, lastInsertId: null);
+      if (TableModel.PrimaryKey != null) {
+        if (await reader.ReadAsync())
+          res = new InsertQueryResult(true, lastInsertId: reader.GetInt32(0));
+        else
+          res = new InsertQueryResult(false, lastInsertId: null);
 
-      await reader.NextResultAsync();
-
-      if (_outputVariable != null)
         await reader.NextResultAsync();
+      }
+
+      if (_outputVariable != null) {
+        await reader.NextResultAsync();
+      }
 
       return res;
     }

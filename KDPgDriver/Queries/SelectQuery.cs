@@ -72,7 +72,7 @@ namespace KDPgDriver.Queries
     {
       var proc = _fromBuilder.GetResultProcessor();
 
-      Debug.Assert(proc.FieldsCount == reader.FieldCount, "selectResultProcessor.FieldsCount == reader.FieldCount");
+      Debug.Assert(proc.FieldsCount == reader.FieldCount, "proc.FieldsCount == reader.FieldCount");
 
       var objects = new List<TOut>();
 
