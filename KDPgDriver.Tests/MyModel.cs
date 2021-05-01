@@ -131,4 +131,11 @@ namespace KDPgDriver.Tests
     [KDPgColumn("link_id")]
     public int LinkID { get; set; }
   }
+
+  [KDPgTable("model_nopk")]
+  public class MyModelNoPK
+  {
+    [KDPgColumn("name")]
+    public string Name { get; set; }
+  }
 }

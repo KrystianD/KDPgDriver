@@ -45,6 +45,7 @@ DROP TABLE IF EXISTS model;
 DROP TABLE IF EXISTS ""public"".model2;
 DROP TABLE IF EXISTS model_link1 CASCADE;
 DROP TABLE IF EXISTS model_link2 CASCADE;
+DROP TABLE IF EXISTS model_nopk;
 DROP TYPE IF EXISTS enum;
 DROP TYPE IF EXISTS ""Schema1"".enum2;
 
@@ -97,6 +98,10 @@ CREATE TABLE model_link2 (
 
 INSERT INTO model_link1(id) VALUES(1);
 INSERT INTO model_link2(id,link_id) VALUES(1,1);
+
+CREATE TABLE model_nopk (
+  name text
+);
 ");
 
       return dr;
