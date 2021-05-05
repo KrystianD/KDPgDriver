@@ -49,8 +49,6 @@ namespace KDPgDriver.Traverser
             return EvaluateToPropertyInfo(lambda.Body);
 
           case MemberExpression me:
-            if (me.Member.Name == "Value") // unwrap optional type
-              return (PropertyInfo)((MemberExpression)me.Expression).Member;
             return (PropertyInfo)me.Member;
 
           case UnaryExpression un:

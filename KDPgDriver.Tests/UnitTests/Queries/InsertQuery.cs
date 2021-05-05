@@ -224,7 +224,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var obj = new MyModel2 { };
 
       var q = Builders<MyModel2>.Insert(obj)
-                                .UseField(x => x.ModelId.Value, subq);
+                                .UseField(x => x.ModelId, subq);
 
       Utils.AssertRawQuery(q, @"INSERT INTO ""public"".model2(model_id) 
                                               VALUES ((SELECT ""id"" FROM model WHERE (""name"") = ('subtest4')))

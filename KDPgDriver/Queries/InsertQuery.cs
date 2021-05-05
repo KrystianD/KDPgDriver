@@ -67,6 +67,12 @@ namespace KDPgDriver.Queries
       return this;
     }
 
+    public InsertQuery<TModel> UseField<TValue>(Expression<Func<TModel, TValue?>> field, SelectSubquery<TValue> subquery) where TValue : struct
+    {
+      _columns.Add(new InsertColumnMeta() { columnDescriptor = NodeVisitor.EvaluateExpressionToColumn(field), subquery = subquery });
+      return this;
+    }
+
     public InsertQuery<TModel> UsePreviousInsertId<TRefModel>(Expression<Func<TModel, object>> field, Expression<Func<TRefModel, int>> idField)
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field);
