@@ -50,6 +50,32 @@ FROM
   model t0 LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.model_id))");
     }
 
+    private class JoinClass
+    {
+      public MyModel M1 { get; set; }
+      public MyModel2 M2 { get; set; }
+    }
+
+    [Fact]
+    public void SelectMultipleNewClass()
+    {
+      var q = BuildersJoin.FromMany<MyModel, MyModel2>((a, b) => a.Id == b.ModelId)
+                          .Map((a, b) => new JoinClass {
+                              M1 = a,
+                              M2 = b,
+                          })
+                          .Select(x => new {
+                              M1_name = x.M1.Name,
+                              M2_name = x.M2.Name1,
+                          });
+
+      Utils.AssertRawQueryWithAliases(q, @"
+SELECT 
+  t0.""name"",t1.name1
+FROM
+  model t0 LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.model_id))");
+    }
+
     [Fact]
     public void SelectMultiple3Tables()
     {

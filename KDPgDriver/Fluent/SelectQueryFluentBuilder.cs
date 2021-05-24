@@ -27,6 +27,20 @@ namespace KDPgDriver.Fluent
     }
   }
 
+  internal static class SelectQueryFluentBuilderUtils
+  {
+    public static List<string> ParseMap(LambdaExpression pr)
+    {
+      var argsMap = pr.Body switch {
+          NewExpression newExpression => newExpression.Members.Zip(newExpression.Arguments).ToDictionary(x => x.Item2, x => x.Item1.Name),
+          MemberInitExpression memberInitExpression => memberInitExpression.Bindings.ToDictionary(x => ((MemberAssignment)x).Expression, x => x.Member.Name),
+          _ => throw new Exception("invalid Map usage"),
+      };
+
+      return pr.Parameters.Select(x => argsMap.GetValueOrDefault(x, x.Name)).ToList();
+    }
+  }
+
   [PublicAPI]
   public class SelectQueryFluentBuilder1Prep<TModel>
   {
@@ -90,8 +104,7 @@ namespace KDPgDriver.Fluent
 
     public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TCombinedModel>> pr)
     {
-      var argsMap = ((NewExpression)pr.Body).Members.Zip(((NewExpression)pr.Body).Arguments).ToDictionary(x => x.Item2, x => x.Item1.Name);
-      var inpParams = pr.Parameters.Select(x => argsMap.GetValueOrDefault(x, x.Name)).ToList();
+      var inpParams = SelectQueryFluentBuilderUtils.ParseMap(pr);
 
       _p1.Name = inpParams[0];
       _p2.Name = inpParams[1];
@@ -136,8 +149,7 @@ namespace KDPgDriver.Fluent
 
     public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TCombinedModel>> pr)
     {
-      var argsMap = ((NewExpression)pr.Body).Members.Zip(((NewExpression)pr.Body).Arguments).ToDictionary(x => x.Item2, x => x.Item1.Name);
-      var inpParams = pr.Parameters.Select(x => argsMap.GetValueOrDefault(x, x.Name)).ToList();
+      var inpParams = SelectQueryFluentBuilderUtils.ParseMap(pr);
 
       _p1.Name = inpParams[0];
       _p2.Name = inpParams[1];
@@ -196,8 +208,7 @@ namespace KDPgDriver.Fluent
 
     public SelectMultipleQueryFluentBuilderMapper<TCombinedModel> Map<TCombinedModel>(Expression<Func<TModel1, TModel2, TModel3, TModel4, TCombinedModel>> pr)
     {
-      var argsMap = ((NewExpression)pr.Body).Members.Zip(((NewExpression)pr.Body).Arguments).ToDictionary(x => x.Item2, x => x.Item1.Name);
-      var inpParams = pr.Parameters.Select(x => argsMap.GetValueOrDefault(x, x.Name)).ToList();
+      var inpParams = SelectQueryFluentBuilderUtils.ParseMap(pr);
 
       _p1.Name = inpParams[0];
       _p2.Name = inpParams[1];
