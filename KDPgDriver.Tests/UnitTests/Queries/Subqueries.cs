@@ -30,6 +30,25 @@ WHERE (name1) IN (
     }
 
     [Fact]
+    public void SelectSimpleNullable()
+    {
+      var subq = Builders<MyModel>.Select(x => (int?)x.Id)
+                                  .Where(x => x.Id == 1)
+                                  .AsSubquery();
+
+      var q = Builders<MyModel2>.Select(x => x.Id)
+                                .Where(x => x.Id.PgIn(subq));
+
+      Utils.AssertRawQuery(q, @"
+SELECT ""id""
+FROM ""public"".model2
+WHERE (""id"") IN (
+    SELECT ""id"" FROM model
+    WHERE (""id"") = (1)
+)");
+    }
+
+    [Fact]
     public void SelectWithJoin()
     {
       var subq = BuildersJoin.FromMany<MyModel, MyModel2>((m, m2) => m.Id == m2.Id)

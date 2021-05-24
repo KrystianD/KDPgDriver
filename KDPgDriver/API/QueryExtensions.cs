@@ -1,17 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using JetBrains.Annotations;
 using KDPgDriver.Queries;
 
 namespace KDPgDriver
 {
   public static class QueryExtensions
   {
-    public static bool PgIn<T>(this T source, params T[] values)
+    public static bool PgIn<T>(this T source, [ItemCanBeNull] params T[] values)
     {
       throw new Exception("do not use directly");
     }
 
-    public static bool PgIn<T>(this T source, IEnumerable<T> values)
+    public static bool PgIn<T>(this T source, [ItemCanBeNull] IEnumerable<T> values)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static bool PgIn<T>(this T source, SelectSubquery<T?> subquery) where T : struct
     {
       throw new Exception("do not use directly");
     }
@@ -21,12 +27,17 @@ namespace KDPgDriver
       throw new Exception("do not use directly");
     }
 
-    public static bool PgNotIn<T>(this T source, params T[] values)
+    public static bool PgNotIn<T>(this T source, [ItemCanBeNull] params T[] values)
     {
       throw new Exception("do not use directly");
     }
 
-    public static bool PgNotIn<T>(this T source, IEnumerable<T> values)
+    public static bool PgNotIn<T>(this T source, [ItemCanBeNull] IEnumerable<T> values)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static bool PgNotIn<T>(this T source, SelectSubquery<T?> subquery) where T : struct
     {
       throw new Exception("do not use directly");
     }
