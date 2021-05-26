@@ -164,13 +164,21 @@ $f$ LANGUAGE SQL IMMUTABLE;
       return res.Result;
     }
 
-    public async Task QueryRawAsync(string query)
+    public async Task QueryRawAsync(string query, TimeSpan? timeout = null)
     {
       using var connection = await CreateConnection();
       using var command = connection.CreateCommand();
 
       command.CommandText = query;
-      await command.ExecuteNonQueryAsync();
+      if (timeout.HasValue)
+        command.CommandTimeout = (int)timeout.Value.TotalSeconds;
+      
+      try {
+        await command.ExecuteNonQueryAsync();
+      }
+      catch (NpgsqlException e) when (e.InnerException is TimeoutException) {
+        throw e.InnerException;
+      }
     }
   }
 }
