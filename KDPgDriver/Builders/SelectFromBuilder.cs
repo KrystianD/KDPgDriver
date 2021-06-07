@@ -222,8 +222,7 @@ namespace KDPgDriver.Builders
 
       var resultProcessor = new ModelSelectResultProcessor<TModel>();
 
-      foreach (var fieldExpression in builder.Fields) {
-        var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
+      foreach (var column in builder.Fields) {
         b.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
         resultProcessor.UseColumn(column);
       }

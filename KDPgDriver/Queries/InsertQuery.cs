@@ -189,11 +189,10 @@ namespace KDPgDriver.Queries
         var fields = new FieldListBuilder<TModel>();
         _onInsertConflictUpdateFields(fields);
         first = true;
-        foreach (var fieldExpression in fields.Fields) {
+        foreach (var column in fields.Fields) {
           if (!first)
             rq.Append(", ");
 
-          var column = NodeVisitor.EvaluateExpressionToColumn(fieldExpression);
           rq.AppendColumnName(column.Name);
 
           first = false;

@@ -1,16 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
+using KDPgDriver.Traverser;
+using KDPgDriver.Utils;
 
 namespace KDPgDriver.Builders
 {
   public class FieldListBuilder<TModel>
   {
-    public List<Expression<Func<TModel, object>>> Fields { get; } = new List<Expression<Func<TModel, object>>>();
+    private readonly HashSet<KdPgColumnDescriptor> _fieldsSet = new HashSet<KdPgColumnDescriptor>();
+
+    public List<KdPgColumnDescriptor> Fields { get; } = new List<KdPgColumnDescriptor>();
 
     public FieldListBuilder<TModel> AddField(Expression<Func<TModel, object>> field)
     {
-      Fields.Add(field);
+      var column = NodeVisitor.EvaluateExpressionToColumn(field);
+
+      if (_fieldsSet.Add(column))
+        Fields.Add(column);
+
       return this;
     }
   }

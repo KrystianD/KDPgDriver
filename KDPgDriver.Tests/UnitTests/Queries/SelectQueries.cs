@@ -62,6 +62,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       var fieldsBuilder = new FieldListBuilder<MyModel>();
 
       fieldsBuilder.AddField(x => x.Id)
+                   .AddField(x => x.Name) // duplicated on purpose
                    .AddField(x => x.Name);
 
       var q = Builders<MyModel>.SelectOnly(fieldsBuilder);
