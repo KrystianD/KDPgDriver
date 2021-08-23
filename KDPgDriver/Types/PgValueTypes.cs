@@ -191,7 +191,9 @@ namespace KDPgDriver.Types
     public KDPgValueTypeEnum(TypeRegistry.EnumEntry enumEntry)
     {
       EnumEntry = enumEntry;
-      PostgresTypeName = EscapeUtils.QuoteTable(enumEntry.EnumName, enumEntry.Schema);
+      PostgresTypeName = enumEntry.EnumName == null
+          ? "text"
+          : EscapeUtils.QuoteTable(enumEntry.EnumName, enumEntry.Schema);
     }
   }
 

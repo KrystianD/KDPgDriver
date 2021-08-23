@@ -9,7 +9,7 @@ namespace KDPgDriver
     public class EnumEntry
     {
       public Type Type { get; internal set; }
-      public string EnumName { get; internal set; }
+      public string EnumName { get; internal set; } // if null, uses 'text'
       public Func<object, string> EnumToNameFunc { get; internal set; }
       public Func<string, object> NameToEnumFunc { get; internal set; }
       public string Schema { get; internal set; }
@@ -33,6 +33,19 @@ namespace KDPgDriver
       Entries.Add(entry);
     }
 
+    public static void RegisterEnumAsText<T>(Func<T, string> enumToNameFunc, Func<string, T> nameToEnumFunc)
+    {
+      var entry = new EnumEntry();
+      entry.Type = typeof(T);
+      entry.EnumName = null;
+      entry.EnumToNameFunc = o => enumToNameFunc((T)o);
+      entry.NameToEnumFunc = name => nameToEnumFunc(name);
+
+      entry.ValueType = new KDPgValueTypeEnum(entry);
+
+      Entries.Add(entry);
+    }
+
     public static void RegisterNativeEnum<T>(string enumName, string schema = null) where T : struct, Enum
     {
       if (!typeof(T).IsEnum)
@@ -43,6 +56,16 @@ namespace KDPgDriver
           x => x.ToString(),
           Enum.Parse<T>,
           schema: schema);
+    }
+
+    public static void RegisterNativeEnumAsText<T>() where T : struct, Enum
+    {
+      if (!typeof(T).IsEnum)
+        throw new ArgumentException("T must be an enumerated type");
+
+      RegisterEnumAsText<T>(
+          x => x.ToString(),
+          Enum.Parse<T>);
     }
 
     public static bool HasEnumType(Type type)

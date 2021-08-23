@@ -22,6 +22,12 @@ namespace KDPgDriver.Tests
     C
   }
 
+  public enum MyEnumText
+  {
+    TextEnum1,
+    TextEnum2,
+  }
+
   public class MySubsubmodel
   {
     [JsonProperty("number")]
@@ -77,7 +83,7 @@ namespace KDPgDriver.Tests
     public MyEnum2 Enum2 { get; set; }
 
     [KDPgColumn("enum_text")]
-    public string EnumText { get; set; }
+    public MyEnumText EnumText { get; set; }
 
     [KDPgColumn("date")]
     [KDPgColumnType(KDPgValueTypeKind.Date)]

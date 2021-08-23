@@ -161,6 +161,9 @@ namespace KDPgDriver.Traverser
               if (un.Type == typeof(object)) // not important conversion (eg due to Func<Model,object> expression)
                 return val;
 
+              if (val.Type is KDPgValueTypeEnum)
+                return val;
+
               var targetType = un.Type;
               if (targetType.IsNullable()) targetType = targetType.GetNullableInnerType();
 
@@ -479,6 +482,13 @@ namespace KDPgDriver.Traverser
       // 'date' and C# DateTime 
       if (expectedType == KDPgValueTypeInstances.Date && pgValue.Type == KDPgValueTypeInstances.DateTime)
         return PgTypesConverter.ConvertToPgValue(expectedType, pgValue.Value);
+
+      if (expectedType is KDPgValueTypeEnum typeEnum && pgValue.Type == KDPgValueTypeInstances.Integer) {
+        foreach (var val in Enum.GetValues(typeEnum.EnumEntry.Type))
+          if ((int)val == (int)pgValue.Value)
+            return PgTypesConverter.ConvertToPgValue(expectedType, val);
+        throw new Exception($"No enum with value: {pgValue.Value}");
+      }
 
       return pgValue;
     }

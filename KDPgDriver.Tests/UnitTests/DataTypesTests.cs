@@ -102,6 +102,9 @@ namespace KDPgDriver.Tests.UnitTests
 
       exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.ListEnum.Contains(MyEnum.A));
       Utils.AssertExpression(exp, @"('A') = ANY((list_enum))");
+
+      exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.EnumText == MyEnumText.TextEnum2);
+      Utils.AssertExpression(exp, @"(enum_text) = ('TextEnum2')");
     }
   }
 }
