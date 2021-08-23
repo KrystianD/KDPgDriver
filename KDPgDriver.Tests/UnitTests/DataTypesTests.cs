@@ -93,5 +93,15 @@ namespace KDPgDriver.Tests.UnitTests
       Utils.AssertExpression(exp, @"(""binary"") = (@1::bytea)",
                              new Param(data, NpgsqlDbType.Bytea));
     }
+
+    [Fact]
+    public void TypeEnum()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.Enum == MyEnum.A);
+      Utils.AssertExpression(exp, @"(""enum"") = ('A')");
+
+      exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.ListEnum.Contains(MyEnum.A));
+      Utils.AssertExpression(exp, @"('A') = ANY((list_enum))");
+    }
   }
 }
