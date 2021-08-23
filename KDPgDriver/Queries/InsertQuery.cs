@@ -237,10 +237,11 @@ namespace KDPgDriver.Queries
       InsertQueryResult res = null;
 
       if (TableModel.PrimaryKey != null) {
-        if (await reader.ReadAsync())
-          res = new InsertQueryResult(true, lastInsertId: reader.GetInt32(0));
-        else
-          res = new InsertQueryResult(false, lastInsertId: null);
+        var ids = new List<int>();
+        while (await reader.ReadAsync())
+          ids.Add(reader.GetInt32(0));
+
+        res = new InsertQueryResult(ids);
 
         await reader.NextResultAsync();
       }

@@ -86,7 +86,7 @@ namespace KDPgDriver.Fluent
     public async Task<InsertQueryResult> ExecuteAsync()
     {
       if (_insertQuery.IsEmpty)
-        return new InsertQueryResult(false, null);
+        return new InsertQueryResult(new List<int>());
 
       return await _executor.QueryAsync(GetInsertQuery());
     }
@@ -97,8 +97,18 @@ namespace KDPgDriver.Fluent
         throw new Exception("Cannot insert empty list for id");
 
       var res = await _executor.QueryAsync(GetInsertQuery());
-      Debug.Assert(res.LastInsertId != null, "res.LastInsertId != null");
+      Debug.Assert(res.LastInsertIds != null, "res.LastInsertIds != null");
       return res.LastInsertId.Value;
+    }
+
+    public async Task<List<int>> ExecuteForIdsAsync()
+    {
+      if (_insertQuery.IsEmpty)
+        throw new Exception("Cannot insert empty list for id");
+
+      var res = await _executor.QueryAsync(GetInsertQuery());
+      Debug.Assert(res.LastInsertIds != null, "res.LastInsertIds != null");
+      return res.LastInsertIds;
     }
 
     public void Schedule()

@@ -29,6 +29,29 @@ namespace KDPgDriver.Tests.FunctionalTests
     }
 
     [Fact]
+    public async Task TestInsertMany()
+    {
+      var dr = await CreateDriver();
+
+      var obj1 = new MyModel() {
+          Name = "new1",
+      };
+
+      var obj2 = new MyModel() {
+          Name = "new2",
+      };
+
+      var newIds = await dr.Insert<MyModel>()
+                           .AddObject(obj1)
+                           .AddObject(obj2)
+                           .ExecuteForIdsAsync();
+      
+      Assert.Collection(newIds,
+                        x => Assert.Equal(4, x),
+                        x => Assert.Equal(5, x));
+    }
+
+    [Fact]
     public async Task TestInsertRefField()
     {
       var dr = await CreateDriver();
