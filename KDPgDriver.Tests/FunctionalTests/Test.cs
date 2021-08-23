@@ -59,6 +59,7 @@ CREATE TABLE model (
   list_string2 text[],
   enum enum,
   enum2 ""Schema1"".enum2,
+  enum_text text,
   list_enum enum[],
   date date,
   time time,
