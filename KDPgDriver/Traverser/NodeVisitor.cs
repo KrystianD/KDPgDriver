@@ -170,7 +170,10 @@ namespace KDPgDriver.Traverser
               var pgTargetType = PgTypesConverter.CreatePgValueTypeFromObjectType(targetType);
               if (pgTargetType == val.Type) return val;
 
-              return ExpressionBuilders.Cast(val, pgTargetType);
+              if (val.Type is KDPgValueTypeJson)
+                return ExpressionBuilders.CastJsonToType(val, pgTargetType);
+              else
+                return ExpressionBuilders.Cast(val, pgTargetType);
 
             case ExpressionType.Not: return ExpressionBuilders.Not(val);
             case ExpressionType.ArrayLength: return ExpressionBuilders.ArrayLength(val);

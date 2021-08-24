@@ -395,6 +395,15 @@ namespace KDPgDriver.Builders
       return new TypedExpression(rq, array.Type);
     }
 
+    public static TypedExpression CastJsonToType(TypedExpression value, KDPgValueType pgType)
+    {
+      RawQuery rq = new RawQuery();
+      rq.Append("(");
+      rq.AppendSurround(value.RawQuery);
+      rq.Append("#>>'{}')::");
+      rq.Append(pgType.PostgresTypeName);
+      return new TypedExpression(rq, pgType);
+    }
 
     public static TypedExpression KDPgArrayDistinct(TypedExpression array)
     {

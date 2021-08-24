@@ -51,5 +51,12 @@ namespace KDPgDriver.Tests.UnitTests
       Utils.AssertExpression(exp, @"((json_model->>'decimal')::numeric) = (@1::numeric)",
                              new Param(1.234M, NpgsqlDbType.Numeric));
     }
+
+    [Fact]
+    public void TypeDecimalFromJson()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => (decimal)x.JsonObject1["value"]);
+      Utils.AssertExpression(exp, @"(((json_object1)->'value')#>>'{}')::numeric");
+    }
   }
 }
