@@ -78,5 +78,16 @@ namespace KDPgDriver.Tests.UnitTests
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE (""id"") = ANY(@1::int[])",
                            new Param(new[] { 1, 2, 3 }, NpgsqlDbType.Array | NpgsqlDbType.Integer));
     }
+
+    [Fact]
+    public void WhereInSubquery()
+    {
+      var sq = Builders<MyModel>.Select(x => x.Id).AsSubquery();
+
+      var q = Builders<MyModel>.Select(x => new { x.Id })
+                               .Where(WhereBuilder<MyModel>.In(x => x.Id, sq));
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE (""id"") IN (SELECT ""id"" FROM model)");
+    }
   }
 }

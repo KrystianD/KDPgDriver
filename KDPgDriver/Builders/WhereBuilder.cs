@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using KDPgDriver.Queries;
 using KDPgDriver.Traverser;
 using KDPgDriver.Types;
 using KDPgDriver.Utils;
@@ -69,6 +70,18 @@ namespace KDPgDriver.Builders
     {
       var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
       return new WhereBuilder<TModel>(ExpressionBuilders.In(column.TypedExpression, array));
+    }
+
+    public static WhereBuilder<TModel> In<T>(Expression<Func<TModel, T>> field, SelectSubquery<T?> subquery) where T : struct
+    {
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      return new WhereBuilder<TModel>(ExpressionBuilders.In(column.TypedExpression, subquery.GetTypedExpression()));
+    }
+
+    public static WhereBuilder<TModel> In<T>(Expression<Func<TModel, T>> field, SelectSubquery<T> subquery)
+    {
+      var column = NodeVisitor.EvaluateExpressionToColumn(field.Body);
+      return new WhereBuilder<TModel>(ExpressionBuilders.In(column.TypedExpression, subquery.GetTypedExpression()));
     }
 
     public static WhereBuilder<TModel> ContainsAny<T>(Expression<Func<TModel, IList<T>>> field, params T[] values)
