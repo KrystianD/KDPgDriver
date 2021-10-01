@@ -1,4 +1,5 @@
 ﻿using KDPgDriver.Builders;
+using NpgsqlTypes;
 using Xunit;
 
 namespace KDPgDriver.Tests.UnitTests
@@ -66,6 +67,16 @@ namespace KDPgDriver.Tests.UnitTests
                                .Where(x => x.Name == "test");
 
       Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE ((""id"") = (1)) AND ((""name"") = ('test'))");
+    }
+
+    [Fact]
+    public void WhereInArray()
+    {
+      var q = Builders<MyModel>.Select(x => new { x.Id })
+                               .Where(WhereBuilder<MyModel>.In(x => x.Id, new[] { 1, 2, 3 }));
+
+      Utils.AssertRawQuery(q, @"SELECT ""id"" FROM model WHERE (""id"") = ANY(@1::int[])",
+                           new Param(new[] { 1, 2, 3 }, NpgsqlDbType.Array | NpgsqlDbType.Integer));
     }
   }
 }
