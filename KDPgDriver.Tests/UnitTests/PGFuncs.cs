@@ -65,6 +65,13 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void FuncAggregateSum()
+    {
+      var q1 = Builders<MyModel>.Select(x => AggregateFunc.Sum(x.ValFloat));
+      Utils.AssertRawQuery(q1, @"SELECT SUM(val_f32) FROM model");
+    }
+
+    [Fact]
     public void FuncDate()
     {
       var dt = new DateTime(2000, 1, 2, 3, 4, 5);

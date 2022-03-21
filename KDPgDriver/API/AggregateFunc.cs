@@ -18,6 +18,12 @@ namespace KDPgDriver
       var rq = RawQuery.Create("MIN(").Append(query.RawQuery).Append(")");
       return new TypedExpression(rq, query.Type);
     }
+
+    public static TypedExpression Sum(TypedExpression query)
+    {
+      var rq = RawQuery.Create("SUM(").Append(query.RawQuery).Append(")");
+      return new TypedExpression(rq, query.Type);
+    }
   }
 
   public static class AggregateFunc
@@ -28,6 +34,11 @@ namespace KDPgDriver
     }
 
     public static T Min<T>(T value)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Sum<T>(T value)
     {
       throw new Exception("do not use directly");
     }
