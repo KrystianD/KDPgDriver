@@ -24,6 +24,12 @@ namespace KDPgDriver
       var rq = RawQuery.Create("SUM(").Append(query.RawQuery).Append(")");
       return new TypedExpression(rq, query.Type);
     }
+
+    public static TypedExpression Avg(TypedExpression query)
+    {
+      var rq = RawQuery.Create("AVG(").Append(query.RawQuery).Append(")");
+      return new TypedExpression(rq, query.Type);
+    }
   }
 
   public static class AggregateFunc
@@ -39,6 +45,11 @@ namespace KDPgDriver
     }
 
     public static T Sum<T>(T value)
+    {
+      throw new Exception("do not use directly");
+    }
+
+    public static T Avg<T>(T value)
     {
       throw new Exception("do not use directly");
     }
