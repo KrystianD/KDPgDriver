@@ -200,8 +200,9 @@ namespace KDPgDriver.Types
   public class KDPgValueTypeArray : KDPgValueType
   {
     public KDPgValueType ItemType { get; }
+    public Type CSharpItemType { get; }
 
-    public override Type CSharpType { get; }
+    public override Type CSharpType => throw new NotSupportedException();
 
     // ReSharper disable once BitwiseOperatorOnEnumWithoutFlags
     public override NpgsqlDbType NpgsqlDbType => NpgsqlDbType.Array | ItemType.NpgsqlDbType;
@@ -215,7 +216,7 @@ namespace KDPgDriver.Types
 
     public KDPgValueTypeArray(KDPgValueType itemType, Type nativeItemType)
     {
-      CSharpType = nativeItemType;
+      CSharpItemType = nativeItemType;
       ItemType = itemType;
     }
   }

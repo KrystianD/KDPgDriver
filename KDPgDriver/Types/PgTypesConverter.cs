@@ -138,7 +138,7 @@ namespace KDPgDriver.Types
 
         case KDPgValueTypeArray arrayType:
           var rawItems = (IList)rawSqlValue;
-          var outputList = ReflectionUtils.CreateListInstance(arrayType.CSharpType);
+          var outputList = ReflectionUtils.CreateListInstance(arrayType.CSharpItemType);
           foreach (var rawItem in rawItems)
             outputList.Add(ConvertFromRawSqlValue(arrayType.ItemType, rawItem));
 
