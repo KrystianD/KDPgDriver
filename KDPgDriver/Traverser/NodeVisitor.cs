@@ -25,7 +25,6 @@ namespace KDPgDriver.Traverser
     public TypedExpression Expression;
     public KdPgColumnDescriptor Column { get; set; }
     public List<object> JsonPath { get; } = new List<object>();
-    public ParameterExpression ParameterExp;
   }
 
   internal static class NodeVisitor
@@ -300,8 +299,6 @@ namespace KDPgDriver.Traverser
       var pi = new PathInfo();
       KDPgValueType pathValueType = null;
 
-      List<object> parts = new List<object>();
-
       // extract Body expression if Func expression was passed
       if (exp is LambdaExpression lm)
         exp = lm.Body;
@@ -309,6 +306,9 @@ namespace KDPgDriver.Traverser
       // remove Convert from last part
       if (exp is UnaryExpression un && un.NodeType == ExpressionType.Convert)
         exp = (MemberExpression)un.Operand;
+
+      List<object> parts = new List<object>();
+      ParameterExpression parameterExp;
 
       void Traverse(Expression innerExpression)
       {
@@ -336,7 +336,7 @@ namespace KDPgDriver.Traverser
             break;
 
           case ParameterExpression parameterExpression: // lambda parameter
-            pi.ParameterExp = parameterExpression;
+            parameterExp = parameterExpression;
             break;
 
           default:
@@ -380,7 +380,7 @@ namespace KDPgDriver.Traverser
               }
               else {
                 // var tableVarName = overrideTableName ?? pi.ParameterName;
-                rq.AppendColumn(column, _options.ParameterToTableAlias[pi.ParameterExp]);
+                rq.AppendColumn(column, _options.ParameterToTableAlias[parameterExp]);
               }
 
               pathValueType = column.Type;
