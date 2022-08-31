@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2020.3.0" />
-    <PackageReference Include="KDLib" Version="0.4.1" />
+    <PackageReference Include="KDLib" Version="0.4.10" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
     <PackageReference Include="Npgsql" Version="5.0.1.1" />
   </ItemGroup>
