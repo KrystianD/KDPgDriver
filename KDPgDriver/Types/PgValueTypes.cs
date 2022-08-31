@@ -211,7 +211,7 @@ namespace KDPgDriver.Types
 
     public IList CreateToPgList()
     {
-      return ReflectionUtils.CreateListInstance(ItemType.PostgresPutType);
+      return ReflectionUtils.CreateListInstance(ReflectionUtils.CreateNullableTypeFrom(ItemType.PostgresPutType));
     }
 
     public KDPgValueTypeArray(KDPgValueType itemType, Type nativeItemType)

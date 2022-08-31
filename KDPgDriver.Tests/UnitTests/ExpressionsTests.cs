@@ -190,6 +190,15 @@ namespace KDPgDriver.Tests.UnitTests
     }
 
     [Fact]
+    public void ExpressionInDirectNullableType()
+    {
+      var exp = NodeVisitor.VisitFuncExpression<MyModel>(x => x.IntNullable.PgIn((int?)null));
+
+      Utils.AssertExpression(exp, @"(int_nullable) = ANY(@1::int[])",
+                             new Param(new[] { (int?)null }, NpgsqlDbType.Array | NpgsqlDbType.Integer));
+    }
+
+    [Fact]
     public void ExpressionInArray()
     {
       var items = new[] { null, "A1", "A2", "B3", "A4" };
