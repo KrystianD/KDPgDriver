@@ -71,7 +71,8 @@ CREATE TABLE model (
   ""binary"" bytea,
   private_int int,
   val_f32 real,
-  val_f64 double precision
+  val_f64 double precision,
+  int_nullable int          NULL
 );
 
 CREATE TABLE ""public"".model2 (

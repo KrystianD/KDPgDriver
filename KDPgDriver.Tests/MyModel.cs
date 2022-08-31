@@ -122,6 +122,9 @@ namespace KDPgDriver.Tests
 
     [KDPgColumn("val_f64")]
     public double ValDouble { get; set; }
+
+    [KDPgColumn("int_nullable")]
+    public int? IntNullable { get; set; }
   }
 
   [KDPgTable("model_link1")]
