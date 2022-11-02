@@ -57,10 +57,10 @@ namespace KDPgDriver.Builders
       switch (prBody.Body) {
         /* For:
          * .Select(x => new {
-                            M1 = x.M1,
-                            M2_name = x.M2.Name1,
-                            M3_calc = x.M2.Id * 2,
-                        })
+             M1 = x.M1,
+             M2_name = x.M2.Name1,
+             M3_calc = x.M2.Id * 2,
+           })
          */
         case NewExpression newExpression:
         {
@@ -137,7 +137,7 @@ namespace KDPgDriver.Builders
         }
 
         /* For:
-         * .Select(x => 0)
+         * .Select(x => x.Val1)
          */
         default:
           // Select return constant value
@@ -182,6 +182,7 @@ namespace KDPgDriver.Builders
       return builder;
     }
 
+    // For simple selects
     public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)
     {
       var b = new SelectFromBuilder();
@@ -189,6 +190,11 @@ namespace KDPgDriver.Builders
       TypedExpression exp;
 
       switch (prBody.Body) {
+        /* For:
+         * .Select(x => new {
+         *   Val1 = x.Val1
+         * })
+         */
         case NewExpression newExpression:
         {
           var resultProcessor = new AnonymousTypeSelectResultProcessor<TNewModel>();
@@ -203,6 +209,9 @@ namespace KDPgDriver.Builders
           break;
         }
 
+        /* For:
+         * .Select(x => x.Val1)
+         */
         default:
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
