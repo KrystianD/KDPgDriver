@@ -20,7 +20,8 @@ Uses Npgsql as PostgreSQL connector.
 * Subqueries support:
   * in WHERE clause of SELECT, DELETE and UPDATE queries,
   * in INSERT query as field value,
-* Support for transactions and batch queries (and batch transaction queries).
+* Support for transactions and batch queries (and batch transaction queries),
+* Support for placing results in custom DTO objects.
 
 **Examples**
 

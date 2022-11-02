@@ -100,6 +100,51 @@ namespace KDPgDriver.Builders
         }
 
         /* For:
+         * .Select(x => new CustomDto {
+             Id = x.M1.Id * 2,
+             M1 = x.M1,
+           })
+         */
+        case MemberInitExpression memberInitExpression:
+        {
+          var resultProcessor = new CustomDtoResultProcessor<TNewModel>();
+          builder.SelectResultProcessor = resultProcessor;
+
+          foreach (var entry in memberInitExpression.Bindings) {
+            var memberAssignment = (MemberAssignment)entry;
+            var argExpression = memberAssignment.Expression;
+            var propertyInfo = (PropertyInfo)memberAssignment.Member;
+
+            // Member is Table (like M1 = x)
+            if (argExpression is MemberExpression memberExpression && ModelsRegistry.IsTable(memberExpression.Type)) {
+              var tablePlaceholder = tableToPlaceholder[memberExpression.Member.Name];
+              var table = tablePlaceholder.Table;
+
+              var tableTestRawQuery = new RawQuery();
+              tableTestRawQuery.AppendTable(tablePlaceholder);
+              tableTestRawQuery.Append(" IS NULL");
+              builder.AddSelectPart(tableTestRawQuery, KDPgValueTypeInstances.Boolean);
+
+              foreach (var column in table.Columns) {
+                var rq = new RawQuery();
+                rq.AppendColumn(column, tablePlaceholder);
+                builder.AddSelectPart(rq, column.Type);
+              }
+
+              resultProcessor.AddModelEntry(propertyInfo, table, withNullIndicator: true);
+            }
+            // Member is Member-expression (like Id = x.Id * 2)
+            else {
+              exp = NodeVisitor.EvaluateToTypedExpression(argExpression, (string)null, options);
+              builder.AddSelectPart(exp.RawQuery, exp.Type);
+              resultProcessor.AddMemberEntry(propertyInfo, exp.Type);
+            }
+          }
+
+          break;
+        }
+
+        /* For:
          * .Select(x => x.M1)
          * .Select(x => x.M2.Name1)
          */
@@ -204,6 +249,43 @@ namespace KDPgDriver.Builders
             exp = NodeVisitor.EvaluateToTypedExpression(arg);
             builder.AddSelectPart(exp.RawQuery, exp.Type);
             resultProcessor.AddMemberEntry(exp.Type);
+          }
+
+          break;
+        }
+
+        /* For:
+         * .Select(x => new CustomDto {
+             Id = x.Id * 2,
+             M1 = x,
+           })
+         */
+        case MemberInitExpression memberInitExpression:
+        {
+          var resultProcessor = new CustomDtoResultProcessor<TNewModel>();
+          builder.SelectResultProcessor = resultProcessor;
+
+          foreach (var entry in memberInitExpression.Bindings) {
+            var memberAssignment = (MemberAssignment)entry;
+            var argExpression = memberAssignment.Expression;
+            var propertyInfo = (PropertyInfo)memberAssignment.Member;
+
+            // Member is Table (like M1 = x)
+            if (argExpression is ParameterExpression memberExpression && ModelsRegistry.IsTable(memberExpression.Type)) {
+              var table = ModelsRegistry.GetTable(memberExpression.Type);
+
+              foreach (var column in ModelsRegistry.GetTable<TModel>().Columns)
+                builder.AddSelectPart(column.TypedExpression.RawQuery, column.Type);
+
+              resultProcessor.AddModelEntry(propertyInfo, table, withNullIndicator: false);
+            }
+            // Member is Member-expression (like Id = x.Id * 2)
+            else {
+              var options = new EvaluationOptions();
+              exp = NodeVisitor.EvaluateToTypedExpression(argExpression, (string)null, options);
+              builder.AddSelectPart(exp.RawQuery, exp.Type);
+              resultProcessor.AddMemberEntry(propertyInfo, exp.Type);
+            }
           }
 
           break;

@@ -56,6 +56,23 @@ namespace KDPgDriver.Tests.UnitTests.Queries
       Utils.AssertRawQuery(q, @"SELECT ((""name"") || ('A')) || ('B') FROM model");
     }
 
+    private class CustomDto
+    {
+      public MyModel M1 { get; set; }
+      public int Id { get; set; }
+    }
+
+    [Fact]
+    public void SelectCustomDto()
+    {
+      var q = Builders<MyModel>.Select(x => new CustomDto {
+          Id = x.Id * 2,
+          M1 = x,
+      });
+
+      Utils.AssertRawQuery(q, @"SELECT (""id"") * (2),""id"",""name"",list_string,list_string2,(""enum"")::text,(list_enum)::text[],(enum2)::text,enum_text,""date"",""time"",datetime,json_object1,json_model,json_array1,bool,""binary"",private_int,val_f32,val_f64,int_nullable FROM model");
+    }
+
     [Fact]
     public void SelectColumnsFieldList()
     {
@@ -85,7 +102,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
 
       Utils.AssertRawQuery(q, @"SELECT ""id"",""name"" FROM model");
     }
-    
+
     // Exists
     [Fact]
     public void Exists()

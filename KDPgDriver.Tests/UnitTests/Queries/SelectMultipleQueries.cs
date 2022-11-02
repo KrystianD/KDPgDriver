@@ -224,5 +224,29 @@ LEFT JOIN ""public"".model2 t1 ON ((t0.""id"") = (t1.""id""))
 LEFT JOIN ""public"".model3 t2 ON ((t0.""id"") = (t2.""id""))
 LEFT JOIN ""public"".model2 t3 ON ((t0.""id"") = (t3.""id""))");
     }
+
+    private class CustomDto
+    {
+      public MyModel M1 { get; set; }
+      public int Id { get; set; }
+    }
+
+    [Fact]
+    public void SelectMultipleCustomDto()
+    {
+      var q = BuildersJoin.FromMany<MyModel, MyModel>((a, b) => a.Id == b.Id)
+                          .Map((a, b) => new {
+                              M1 = a,
+                              M2 = b,
+                          })
+                          .Select(x => new CustomDto {
+                              Id = x.M2.Id * 2,
+                              M1 = x.M1,
+                          });
+
+      Utils.AssertRawQuery(q, @"SELECT (t1.""id"") * (2),t0 IS NULL,t0.""id"",t0.""name"",t0.list_string,t0.list_string2,(t0.""enum"")::text,(t0.list_enum)::text[],(t0.enum2)::text,t0.enum_text,t0.""date"",t0.""time"",t0.datetime,t0.json_object1,t0.json_model,t0.json_array1,t0.bool,t0.""binary"",t0.private_int,t0.val_f32,t0.val_f64,t0.int_nullable
+FROM
+  model t0 LEFT JOIN model t1 ON ((t0.""id"") = (t1.""id""))");
+    }
   }
 }
