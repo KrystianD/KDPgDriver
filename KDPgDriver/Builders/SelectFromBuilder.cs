@@ -185,8 +185,8 @@ namespace KDPgDriver.Builders
     // For simple selects
     public static SelectFromBuilder FromExpression<TModel, TNewModel>(Expression<Func<TModel, TNewModel>> prBody)
     {
-      var b = new SelectFromBuilder();
-      b.AddTable(ModelsRegistry.GetTable<TModel>());
+      var builder = new SelectFromBuilder();
+      builder.AddTable(ModelsRegistry.GetTable<TModel>());
       TypedExpression exp;
 
       switch (prBody.Body) {
@@ -198,11 +198,11 @@ namespace KDPgDriver.Builders
         case NewExpression newExpression:
         {
           var resultProcessor = new AnonymousTypeSelectResultProcessor<TNewModel>();
-          b.SelectResultProcessor = resultProcessor;
+          builder.SelectResultProcessor = resultProcessor;
 
           foreach (var arg in newExpression.Arguments) {
             exp = NodeVisitor.EvaluateToTypedExpression(arg);
-            b.AddSelectPart(exp.RawQuery, exp.Type);
+            builder.AddSelectPart(exp.RawQuery, exp.Type);
             resultProcessor.AddMemberEntry(exp.Type);
           }
 
@@ -215,13 +215,13 @@ namespace KDPgDriver.Builders
         default:
           exp = NodeVisitor.EvaluateToTypedExpression(prBody.Body);
 
-          b.AddSelectPart(exp.RawQuery, exp.Type);
-          b.SelectResultProcessor = new SingleValueSelectResultProcessor(exp.Type);
+          builder.AddSelectPart(exp.RawQuery, exp.Type);
+          builder.SelectResultProcessor = new SingleValueSelectResultProcessor(exp.Type);
 
           break;
       }
 
-      return b;
+      return builder;
     }
 
     public static SelectFromBuilder FromFieldListBuilder<TModel>(FieldListBuilder<TModel> builder)
