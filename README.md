@@ -6,8 +6,9 @@ Uses Npgsql as PostgreSQL connector.
 
 **Key Concepts**
 
-* Supports PostgreSQL only,
-* Single source of truth - table and column names defined as attributes in POCO model.
+* Made specifically for PostgreSQL,
+* Single source of truth - table and column names defined as attributes in POCO model,
+* Stable - almost 200 tests (unit and functional).
 
 **Features**
 
