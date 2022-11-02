@@ -1,9 +1,12 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using KDLib;
 using KDPgDriver.Builders;
 using KDPgDriver.Queries;
 using KDPgDriver.Tests.UnitTests;
+using KDPgDriver.Types;
 using KDPgDriver.Utils;
 using Xunit;
 
@@ -38,6 +41,19 @@ namespace KDPgDriver.Tests
 
     private static string NormalizeQuery(string query)
     {
+      query = new Regex("<COLUMNS:([A-Za-z0-9]+)>").Replace(query, match => {
+        var typeName = match.Groups[1].Value;
+        var type = Assembly.GetExecutingAssembly().DefinedTypes.Single(x => x.Name == typeName);
+        return GenerateColumnsStr(type, null);
+      });
+
+      query = new Regex("<COLUMNS:([A-Za-z0-9]+):([a-z0-9]+)>").Replace(query, match => {
+        var typeName = match.Groups[1].Value;
+        var prefix = match.Groups[2].Value;
+        var type = Assembly.GetExecutingAssembly().DefinedTypes.Single(x => x.Name == typeName);
+        return GenerateColumnsStr(type, prefix);
+      });
+
       query = Regex.Replace(query, "[ \n]+", " ").Trim();
       query = query.Replace("( SELECT", "(SELECT");
       query = query.Replace(") )", "))");
@@ -120,5 +136,30 @@ namespace KDPgDriver.Tests
     //   var q3 = Builders<MyModel>.Select(x => new { x.Id }).Where(wb2);
     //   AssertRawQuery(q, q2, q3, expectedQuery, parameters);
     // }
+
+    private static string GenerateColumnsStr(Type tableType, string alias = null)
+    {
+      var table = ModelsRegistry.GetTable(tableType);
+      alias ??= table.Name;
+
+      RawQuery rq = new RawQuery();
+
+      bool firstColumn = true;
+      foreach (var col in table.Columns) {
+        var type = col.Type;
+
+        if (!firstColumn)
+          rq.Append(",");
+
+        var crq = new RawQuery();
+        crq.AppendColumn(col, new RawQuery.TableNamePlaceholder(table, alias));
+
+        rq.AppendWithCast(crq, type.PostgresFetchType == type.PostgresTypeName ? null : type.PostgresFetchType);
+
+        firstColumn = false;
+      }
+
+      return rq.ToString();
+    }
   }
 }

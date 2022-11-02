@@ -15,7 +15,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
     {
       var q = Builders<MyModel>.Select();
 
-      Utils.AssertRawQuery(q, @"SELECT ""id"",""name"",list_string,list_string2,(""enum"")::text,(list_enum)::text[],(enum2)::text,enum_text,""date"",""time"",datetime,json_object1,json_model,json_array1,bool,""binary"",private_int,val_f32,val_f64,int_nullable FROM model");
+      Utils.AssertRawQuery(q, @"SELECT <COLUMNS:MyModel> FROM model");
     }
 
     // Single values
@@ -70,7 +70,7 @@ namespace KDPgDriver.Tests.UnitTests.Queries
           M1 = x,
       });
 
-      Utils.AssertRawQuery(q, @"SELECT (""id"") * (2),""id"",""name"",list_string,list_string2,(""enum"")::text,(list_enum)::text[],(enum2)::text,enum_text,""date"",""time"",datetime,json_object1,json_model,json_array1,bool,""binary"",private_int,val_f32,val_f64,int_nullable FROM model");
+      Utils.AssertRawQuery(q, @"SELECT (""id"") * (2),<COLUMNS:MyModel> FROM model");
     }
 
     [Fact]
