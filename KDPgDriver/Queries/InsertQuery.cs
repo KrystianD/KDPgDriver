@@ -228,7 +228,6 @@ namespace KDPgDriver.Queries
         rq.Append(ExpressionBuilders.SetConfigText(_outputVariable, ExpressionBuilders.LastVal(), true).RawQuery);
       }
 
-      rq.SkipExplicitColumnTableNames();
       return rq;
     }
 

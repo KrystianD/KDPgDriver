@@ -43,7 +43,6 @@ namespace KDPgDriver.Tests
       string query;
       ParametersContainer outParameters;
 
-      rq.SkipExplicitColumnTableNames();
       rq.Render(out query, out outParameters);
 
       static string NormalizeQuery(string query)

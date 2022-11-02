@@ -390,8 +390,6 @@ namespace KDPgDriver.Builders
         rq.AppendTableName(_tablePlaceholders[0].Name, _tablePlaceholders[0].Table.Schema);
       }
 
-      if (_tablePlaceholders.Count == 1)
-        rq.SkipExplicitColumnTableNames();
       return rq;
     }
 

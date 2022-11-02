@@ -53,7 +53,6 @@ namespace KDPgDriver.Queries
           .Append(whereRawQuery);
       }
 
-      rq.SkipExplicitColumnTableNames();
       return rq;
     }
 

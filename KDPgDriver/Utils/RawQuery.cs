@@ -49,7 +49,6 @@ namespace KDPgDriver.Utils
     private class RenderingContext
     {
       public Stack<Dictionary<string, string>> AliasesStack;
-      public bool SkipExplicitColumnTableNames;
     }
 
     private bool _isSimple;
@@ -59,7 +58,6 @@ namespace KDPgDriver.Utils
     public bool IsEmpty => _parts.Count == 0;
 
     private readonly Dictionary<string, string> _aliases = new Dictionary<string, string>();
-    private bool _skipExplicitColumnTableNames;
 
     public void ApplyAlias(string table, string newAlias)
     {
@@ -260,7 +258,6 @@ namespace KDPgDriver.Utils
       var ctx = new RenderingContext();
       ctx.AliasesStack = new Stack<Dictionary<string, string>>();
       ctx.AliasesStack.Push(_aliases);
-      ctx.SkipExplicitColumnTableNames = _skipExplicitColumnTableNames;
       outParameters = new ParametersContainer();
       query = RenderInto(outParameters, ctx);
     }
@@ -398,9 +395,5 @@ namespace KDPgDriver.Utils
     //   rq.AppendTable(table);
     //   return rq;
     // }
-    public void SkipExplicitColumnTableNames()
-    {
-      _skipExplicitColumnTableNames = true;
-    }
   }
 }
