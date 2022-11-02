@@ -36,6 +36,14 @@ namespace KDPgDriver.Tests
       AssertRawQuery(exp.RawQuery, expectedQuery, parameters);
     }
 
+    private static string NormalizeQuery(string query)
+    {
+      query = Regex.Replace(query, "[ \n]+", " ").Trim();
+      query = query.Replace("( SELECT", "(SELECT");
+      query = query.Replace(") )", "))");
+      return query;
+    }
+
     public static void AssertRawQuery(RawQuery rq, string expectedQuery, params Param[] parameters)
     {
       if (expectedQuery == null) throw new ArgumentNullException(nameof(expectedQuery));
@@ -44,14 +52,6 @@ namespace KDPgDriver.Tests
       ParametersContainer outParameters;
 
       rq.Render(out query, out outParameters);
-
-      static string NormalizeQuery(string query)
-      {
-        query = Regex.Replace(query, "[ \n]+", " ").Trim();
-        query = query.Replace("( SELECT", "(SELECT");
-        query = query.Replace(") )", "))");
-        return query;
-      }
 
       expectedQuery = NormalizeQuery(expectedQuery);
       query = NormalizeQuery(query);
@@ -69,8 +69,8 @@ namespace KDPgDriver.Tests
 
       rq.Render(out query, out outParameters);
 
-      expectedQuery = Regex.Replace(expectedQuery, "[ \n]+", " ").Trim();
-      query = Regex.Replace(query, "[ \n]+", " ").Trim();
+      expectedQuery = NormalizeQuery(expectedQuery);
+      query = NormalizeQuery(query);
 
       Assert.Equal(expectedQuery, query);
       CompareParameters(outParameters, parameters);
