@@ -17,6 +17,7 @@ namespace KDPgDriver.Types
         Converters = new List<JsonConverter>() {
             new DecimalJsonConverter(),
         },
+        DateParseHandling = DateParseHandling.None,
     };
 
     public static KDPgValueType CreatePgValueTypeFromObjectType(Type type)
